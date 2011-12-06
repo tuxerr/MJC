@@ -1,0 +1,185 @@
+-- PROJET3 STL 11-12 - micro java : grammaire 
+option auto= true;
+option version = 0.0.0 ;
+option k=3;
+
+-- les attributs semantiques
+inh source : MJAVASourceFile for PROGRAMME;
+-- les terminaux 
+
+space separateur is  "[\r\n\t ]+";     
+space comm is  "\/\/[^\n]*\n";
+sugar paro is  "\(";
+sugar parf is  "\)";
+sugar aco is  "\{";     
+sugar acf is  "\}"; 
+sugar cro is  "\["; 
+sugar crf is  "\]";
+sugar virg is  ",";
+sugar pv is  "\;";
+sugar pt is  "\.";
+sugar affect is  "=";
+sugar si is  "if";
+sugar sinon is  "else";
+sugar void is  "void";
+sugar int is  "int";
+sugar bool is  "boolean";
+sugar classe is  "class";
+sugar interface is  "interface";
+sugar etend is  "extends";
+sugar implemente is  "implements";
+sugar retour is  "return";
+sugar nouveau is  "new";
+sugar null is  "null";
+sugar inf is  "\<";
+sugar infeg is  "\<=";
+sugar sup is  "\>";
+sugar supeg is  "\>=";
+sugar eg is  "==";
+sugar neg is  "\!=";
+sugar plus is  "\+";
+sugar moins is  "\-";
+sugar ou is  "\|\|";
+sugar mult is  "\*";
+sugar div is  "\/";
+sugar mod is  "\%" ; 
+sugar et is  "\&\&";
+sugar non is  "\!";
+sugar vrai is  "true";
+sugar faux is  "false";
+term entier is  "[0-9]+";
+term ident is  "[_A-Za-z][_0-9A-Za-z]*";
+
+---------- REGLES DE PRODUCTION ----------------------------------------
+PROGRAMME -> #init ENTITES #gen;
+global
+   machine : AbstractMachine;
+   
+#init {
+local
+do
+   machine := PROGRAMME^source.getMachine();
+end
+}
+
+#gen {
+local
+do
+  call machine.writeCode(PROGRAMME^source.getFileName(), "");
+end
+}
+
+ENTITES -> ;
+ENTITES -> DEFCLASSE ENTITES  ;
+ENTITES -> DEFINTERFACE ENTITES  ;
+-- definition d'une classe
+DEFCLASSE -> classe ident SUPER CORPS ;
+--DEFCLASSE -> classe ident etend ident CORPS ;
+--DEFCLASSE -> classe ident implemente ident CORPS ;
+DEFINTERFACE -> interface ident SUPER CORPS;
+--DEFINTERFACE -> interface ident etend ident CORPS;
+-- 1 extends maximum suivi d'un implements maximum
+SUPER -> ETEND IMPL ;
+ETEND -> ;
+ETEND -> etend ident ;
+IMPL -> ;
+IMPL -> implemente ident ;
+CORPS -> aco DEFS acf ;
+-- les attributs
+DEFS ->   ;
+DEFS ->  DEF DEFS   ;
+-- attribut
+DEF ->  TYPE ident pv  ;
+-- methode (fonction) 
+DEF ->  TYPE ident paro PARFS parf MCORPS  ;
+-- methode (procedure)
+DEF ->  void ident paro PARFS parf MCORPS  ;
+-- dans classe ou dans interface
+MCORPS -> pv ;
+MCORPS -> BLOC ;
+-- constructeur
+DEF -> ident  paro PARFS parf BLOC  ; 
+-- les types
+TYPE-> int  ;
+TYPE-> bool ;
+TYPE-> ident ;
+-- parametres de methodes
+PARFS ->  ;
+PARFS ->  PARF PARFSX ;
+PARFSX ->  ;
+PARFSX -> virg  PARF  PARFSX ;
+PARF ->  TYPE ident  ;
+-- corps de methode et bloc d'instructions
+BLOC ->  aco INSTS acf  ;
+-- instructions
+INSTS ->   ;
+INSTS ->  INST INSTS  ;
+-- declaration de variable locale avec ou sans init
+INST->  TYPE ident AFFX pv ;
+-- instruction expression
+INST ->  E pv ;
+-- bloc d'instructions
+INST ->  BLOC  ;
+-- conditionnelle
+INST ->  si paro E parf BLOC SIX ;
+SIX ->   sinon BLOC ;
+SIX ->;
+-- return
+INST ->  retour E pv ;
+-- les expressions
+E ->  ER AFFX ;
+-- affectation
+AFFX ->  affect ER  ;
+AFFX -> ;
+-- relation
+ER ->   ES ERX ;
+ES ->  T ESX ;
+ERX ->  OPREL ES ;
+ERX -> ;
+OPREL -> inf ;
+OPREL -> infeg ;
+OPREL -> sup ;
+OPREL -> supeg ;
+OPREL -> eg ;
+OPREL -> neg ;
+-- addition, ...
+ESX ->   OPADD T ESX ;
+ESX ->;
+OPADD -> plus ;
+OPADD -> moins ;
+OPADD -> ou ;
+T ->  F TX ;
+-- multiplication, ...
+TX ->   OPMUL F TX ;
+TX -> ;
+OPMUL -> mult ;
+OPMUL -> div ;
+OPMUL -> mod ;
+OPMUL -> et ;
+-- expressions de base
+F -> entier  ;
+F -> vrai  ;
+F -> faux  ;
+-- unaire
+F ->  OPUN F ;
+OPUN -> plus;
+OPUN -> moins;
+OPUN -> non;
+-- null
+F -> null  ;
+F ->  paro E parf ;
+-- new
+F -> nouveau  TYPE paro ARGS parf  ;
+F ->  ident Q ;
+-- Q = qualificateur de variable
+Q ->  ;
+-- acces attribut
+Q ->  pt ident  Q ;
+-- arguments d'appel de methode
+Q ->  paro ARGS parf Q ;
+ARGS ->  E ARGSX  ;
+ARGS -> ;
+ARGSX ->   virg E ARGSX  ;
+ARGSX -> ;
+
+end

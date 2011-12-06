@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Config file for EGG Grammar  -->
+
+  <egg
+      module="false"
+      lang="java"
+      scanner="jlex"
+      gen="egg"
+      prefix="mjc"
+      typage="false"
+      so="false"
+      dst="false"
+      main="true"
+  >
+    <import    lib="mjc.compiler.*"/>
+    <import    lib="mjc.gc.*"/>
+  </egg>
