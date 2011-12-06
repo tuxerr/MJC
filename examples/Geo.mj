@@ -1,0 +1,93 @@
+class Point {
+  int x;
+  int y;
+  Point origine;
+
+  Point(int a, int b){
+    x = a;
+    y = b;
+    origine = null;
+    }
+
+  int getx() {
+    return x;
+    }
+    
+  int gety() {
+    return y;
+    }
+    
+  void setx(int l) {
+    x = l;
+    }
+    
+  void sety(int l) {
+    y = l;
+    }
+  
+  void init (int xi,int yi) {
+    x = xi;
+    y = yi;
+    }
+ 
+  void xtrans(int d){
+    x = x + d;
+    }
+
+  void ytrans(int d){
+    y = y + d;
+    }
+    
+  Point milieu (Point p){
+    Point m = new Point();
+    m.init((x + p.x)/2, (y + p.y)/2);
+    return m;
+    }
+  }
+
+
+class PointCol extends Point {
+  int col;
+
+  PointCol (int xi,int yi, int ci) {
+    x = xi;
+    y = yi;
+    col = ci;
+    }
+
+  void changer(int val){
+    col = val;
+    }
+  
+  void init (int xi,int yi) {
+    col = 84;
+    }
+
+  int type () {
+    return 2;
+    } 
+  
+  }
+
+class Geo {
+  void main ( int args ) {
+    Point p = new Point();
+    Point p1 = new Point();
+    PointCol pc = new PointCol();
+    int l;
+    p.init(5,4);
+    p1.init(6,2);
+    pc.init(6,1);
+    Point m ;
+    m = p.milieu(p1);
+    Point m1 = null ;
+    m1 = p.milieu(pc);
+    Point m2 ;
+    m2 = pc.milieu(p);
+    Point m3 ;
+    m3 = pc.milieu(pc);
+    l = p.type();
+    p = pc;
+    l = p.type();
+  }
+}

@@ -1,0 +1,84 @@
+class Object {
+  boolean equals(Object o){
+    return false;
+    }
+}
+
+interface IGeo {
+    int getNumero();
+}
+   
+interface IPoint extends IGeo{
+    int getx();
+    int gety();
+    void setx(int x);
+    void sety(int y);
+}
+
+class Point extends Object implements IPoint{
+  int x;
+  int y;
+  int numero ;
+  Point origine;
+
+  Point(int a, int b){
+    x = a;
+    y = b;
+    origine = null;
+    }
+
+  int getNumero() {
+    return numero;
+    }
+    
+  int getx() {
+    return x;
+    }
+    
+  int gety() {
+    return y;
+    }
+    
+  void setx(int l) {
+    x = l;
+    }
+    
+  void sety(int l) {
+    y = l;
+    }
+  
+  void xtrans(int d){
+    x = x + d;
+    }
+
+  void ytrans(int d){
+    y = y + d;
+    }
+    
+  Point milieu (Point p){
+    Point m = new Point();
+    m.init((x + p.x)/2, (y + p.y)/2);
+    return m;
+    }
+  }
+
+
+class Main extends Object{
+  void main ( int args ) {
+    IPoint p = new Point(5,4);
+    IPoint p1 = new Point(6,2);
+    PointCol pc = new PointCol(6,1,99);
+    Point m ;
+    m = p.milieu(p1);
+    IPoint m1 = null ;
+    m1 = p.milieu(pc);
+    IPoint m2 ;
+    m2 = pc.milieu(p);
+    IPoint m3 ;
+    m3 = pc.milieu(pc);
+    int l;
+    l = p.type();
+    p = pc;
+    l = p.type();
+  }
+}
