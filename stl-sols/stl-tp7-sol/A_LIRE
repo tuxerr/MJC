@@ -1,0 +1,34 @@
+TP STL #7
+=========
+A) Gestion de la mémoire
+=======================
+Implanter en EGG le calcul des adresses des variables
+vu en TD pour le langage BLOC fourni. Cette version
+gère les noms de types, les types 'pointeur', les
+couples et les structures
+
+B) Machine TAM
+==============
+La machine TAM est accessible en :
+
+  /mnt/n7fs/ens/gen6/itam_linux/eclipse/itam
+
+1)Ecrire la traduction en TAM du programme exemples/essai.bloc
+dans le fichier essai.tam
+Importer ce fichier dans la machine TAM et l'exécuter pas à pas
+pour voir l'évolution de la mémoire.
+
+
+2)Ecrire la traduction en TAM du programme exemples/geo.bloc
+dans le fichier geo.tam
+Importer ce fichier dans la machine TAM et l'exécuter pas à pas
+pour voir l'évolution de la mémoire.
+
+3)Ecrire la traduction en TAM du programme exemples/mem.bloc 
+dans le fichier mem.tam
+Importer ce fichier dans la machine TAM et l'exécuter pas à pas
+pour voir l'évolution de la mémoire.
+
+4)Ecrire la traduction en TAM du programme exemples/geomem.bloc
+dans le fichier geomem.tam
+

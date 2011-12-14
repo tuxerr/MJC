@@ -1,0 +1,238 @@
+----------------------------------------------- -*- text -*-
+-- BLOC 
+-- semantique : tds + verification de type
+-- (s'assurer que cela reste similaire avec la version complete)
+-----------------------------------------------
+option auto= true;
+option version = 0.0.1 ;
+option k=1;
+
+
+inh source : BLOCSourceFile for PROG ; 
+inh tds    : TDS     for BLOC, INST, INSTS, TERME, FACTEUR ;
+syn type   : DTYPE   for TYPE, TERME, FACTEUR;
+
+space  separateur  is    "[\n\r\t ]+";
+space  comments    is    "\/\/.*\n";
+sugar  aco         is    "\{";
+sugar  acf         is    "\}";
+sugar  paro        is    "\(";
+sugar  parf        is    "\)";
+sugar  inf         is    "\<";
+sugar  sup         is    "\>";
+sugar  pv          is    ";";
+sugar  v           is    ",";
+sugar  aff         is    "=";
+sugar  vrai        is    "true";
+sugar  faux        is    "false";
+sugar  si          is    "if";
+sugar  sinon       is    "else";
+sugar  print       is    "print";
+sugar  tantque     is    "while";
+sugar  fst         is    "fst";
+sugar  snd         is    "snd";
+sugar  int         is    "int";
+sugar  bool        is    "bool";
+term   entier      is    "[0-9]+";
+term   ident       is    "[a-z_]+";
+
+
+PROG -> ident #tds BLOC ;
+#tds {
+do
+   BLOC^tds := nil;
+end
+}
+
+BLOC -> aco #tds INSTS acf #tds2 ;
+global        -- globale aux actions de cette regle
+  t : TDS;    -- pour voir la TDS du bloc
+#tds {
+do
+   t := new TDS(BLOC^tds);
+   INSTS^tds := t;
+end
+}
+#tds2 {
+do
+   write "; tds:\n" + t;
+end
+}
+
+TYPE -> bool #type ;
+#type {
+do
+  TYPE^type := new DTYPE("booleen", 1);
+end
+}
+
+TYPE -> int  #type ;
+#type {
+do
+    TYPE^type := new DTYPE("entier", 1);
+end
+}
+
+TYPE -> inf TYPE v TYPE sup  #type ;
+#type {
+do
+    TYPE^type := new COUPLE(TYPE1^type, TYPE2^type);
+end
+}
+
+INSTS ->      ;
+
+INSTS -> INST INSTS ;
+
+INST -> TYPE ident aff TERME #tds #type pv ;
+#tds {
+local
+    i : INFO ;
+do
+    i := INST^tds.chercherLocalement(ident^txt);
+    if i /= nil then
+       error(B_00, ident^txt);
+    else
+       i := new INFO(TYPE^type, 0);
+       call INST^tds.inserer(ident^txt,  i);
+    end
+end
+}
+#type {
+do
+  if ~TYPE^type.compareTo(TERME^type) then
+     error(B_02, TYPE^type, TERME^type);
+  end
+end
+}
+
+INST -> ident #tds aff TERME #type pv ;
+global
+    i : INFO;  -- utilise dans #tds et #gen
+#tds {
+do
+    -- rechercher l'ident
+    i := INST^tds.chercherGlobalement(ident^txt);
+    if i = nil then
+      error(B_01, ident^txt);
+    end
+  end
+}
+#type {
+local
+  t : DTYPE ;
+do
+  t := i.getType();
+  if ~t.compareTo(TERME^type) then
+     error(B_02, t, TERME^type);
+  end
+end
+}
+
+INST -> si paro TERME #type parf BLOC sinon BLOC ;
+#type {
+do
+   if ~TERME^type.compareTo(new DTYPE("booleen", 1)) then
+      error(B_04, TERME^type);
+   end
+end
+}
+
+INST -> tantque paro TERME #type parf BLOC ;
+#type {
+do
+   if ~TERME^type.compareTo(new DTYPE("booleen", 1)) then
+      error(B_04, TERME^type);
+   end
+end
+}
+
+INST -> print paro TERME parf pv ;
+
+TERME -> FACTEUR #type ;
+#type {
+do
+   TERME^type := FACTEUR^type;
+end
+}
+
+FACTEUR -> ident #tds ;
+#tds {
+local
+    i:INFO;
+do
+    i := FACTEUR^tds.chercherGlobalement(ident^txt);
+    if i = nil then
+      error(B_01, ident^txt);
+    end
+    FACTEUR^type := i.getType();
+  end
+
+}
+
+FACTEUR -> entier #type;
+#type {
+do
+    FACTEUR^type := new DTYPE("entier", 1);
+end
+}
+
+FACTEUR -> vrai #type;
+#type {
+do
+    FACTEUR^type := new DTYPE("booleen", 1);
+end
+}
+
+FACTEUR -> faux #type;
+#type {
+do
+    FACTEUR^type := new DTYPE("booleen", 1);
+end
+}
+
+FACTEUR -> paro TERME parf #type;
+#type {
+do
+   FACTEUR^type := TERME^type;
+end
+}
+
+FACTEUR -> inf TERME v TERME sup #type;
+#type {
+do
+   FACTEUR^type := new COUPLE(TERME^type, TERME1^type);
+end
+}
+
+FACTEUR -> fst FACTEUR #type;
+#type {
+local
+  c : COUPLE;
+do
+   match FACTEUR1^type
+     with COUPLE then
+       c := FACTEUR1^type;
+       FACTEUR^type := c.getGauche();
+   else
+      error(B_03, FACTEUR1^type);
+   end
+end
+}
+
+FACTEUR -> snd FACTEUR #type;
+#type {
+local
+  c : COUPLE;
+do
+   match FACTEUR1^type
+     with COUPLE then
+       c := FACTEUR1^type;
+       FACTEUR^type := c.getDroite();
+   else
+      error(B_03, FACTEUR1^type);
+   end
+end
+}
+
+end

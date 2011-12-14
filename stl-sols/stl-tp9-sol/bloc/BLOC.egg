@@ -1,0 +1,549 @@
+-----------------------------------------------
+-- BLOC 
+-- semantique : tds + verification de type
+-- + adresses + code
+-----------------------------------------------
+option auto= true;
+option version = 0.0.1 ; 
+option k=2;
+
+
+
+inh tam : TAM for BLOC, INSTS,  INST, TERME, FACTEUR, FX, TERMES;
+inh source : BLOCSourceFile for PROG ; 
+inh tds    : TDS     for BLOC, INST, INSTS, TERME, FACTEUR, TYPE , CHAMPS, TERMES;
+syn type   : DTYPE   for TYPE, TERME, FACTEUR, FX;
+inh htype   : DTYPE   for  FX;
+inh champs : LCHAMPS for CHAMPS;
+inh types : LTYPES for  TERMES;
+inh hadr : INTEGER for BLOC, INSTS, INST , CHAMPS;
+syn adr : INTEGER for INST , INSTS;
+syn code : STRING for BLOC, INSTS, INST, TERME, FACTEUR, FX, TERMES;
+inh hcode : STRING for FX;
+syn est_adresse : BOOLEAN for TERME, FACTEUR, FX ;
+inh hest_adresse : BOOLEAN for FX ;
+
+
+space  separateur  is    "[\n\r\t ]+";
+space  comments    is    "\/\/.*[\n\r]"; 
+sugar  aco         is    "\{";
+sugar  acf         is    "\}";
+sugar  paro        is    "\(";
+sugar  parf        is    "\)";
+sugar  pv          is    ";";
+sugar  v           is    ",";
+sugar  aff         is    "=";
+sugar  struct      is    "struct" ;
+sugar  pt          is    "\." ;
+sugar  etoile      is    "\*" ;
+sugar  new         is    "new" ;
+sugar  typedef        is    "typedef" ;
+sugar  vrai        is    "true";
+sugar  faux        is    "false";
+sugar  si          is    "if";
+sugar  sinon       is    "else";
+sugar  int         is    "int";
+sugar  bool        is    "bool";
+term   entier      is    "[0-9]+";
+term   ident       is    "[A-Za-z_]+";
+
+
+
+PROG -> ident #tds BLOC #gen  ;
+global
+  tam : TAM; 
+#tds {
+do
+   BLOC^tds := nil;
+   BLOC^hadr := 0;
+   tam :=  new TAM(PROG^source.getFileName());
+   BLOC^tam := tam;
+end
+}
+
+#gen{
+do
+   call tam.genAsm( BLOC^code);
+end
+}
+
+BLOC -> aco #tds INSTS acf #gen ;
+global        -- globale aux actions de cette regle
+  t : TDS;    -- pour voir la TDS du bloc
+#tds {
+do
+   t :=  new TDS(BLOC^tds);
+   INSTS^tds := t;
+end
+}
+#gen {
+do
+   write "; tds:\n" + t;
+   write "; taille des locales = " + (INSTS^adr - BLOC^hadr)+ "\n";
+   BLOC^code := INSTS^code + BLOC^tam.genFree(INSTS^adr - BLOC^hadr);
+end
+}
+
+-------------------------------------------------------
+-- les types
+-------------------------------------------------------
+TYPE -> bool #type ;
+#type {
+do
+  TYPE^type := new DTYPE("booleen", 1);
+end
+}
+
+TYPE -> int  #type ;
+#type {
+do
+    TYPE^type := new DTYPE("entier", 1);
+end
+}
+
+-------------------------------------------------------
+-- les noms de types 
+-------------------------------------------------------
+TYPE -> ident  #type ;
+#type {
+ local
+    i : INFO ;
+    it : INFOTYPE;
+    t : DTYPE;
+ do
+    -- rechercher l'ident   
+    i := TYPE^tds.chercherGlobalement(ident^txt);
+    if i = nil then
+      error(B_01, ident^txt);
+    else
+       match i
+       with INFOTYPE then
+         it := i ;
+         TYPE^type :=  it.getType();
+       else
+          error(B_07, ident^txt);
+       end
+    end
+  end
+}
+
+-------------------------------------------------------
+-- les struct
+-------------------------------------------------------
+TYPE -> struct aco #ch CHAMPS acf  #type ;
+global 
+ lc : LCHAMPS ;
+#ch {
+do
+  lc := new LCHAMPS();
+  CHAMPS^champs := lc;
+  CHAMPS^hadr := 0;
+end
+}
+
+#type {
+ do
+   TYPE^type := new STRUCT(lc);
+ end
+}
+
+CHAMPS -> ;
+CHAMPS -> TYPE ident pv #ch CHAMPS ;
+#ch {
+ local
+  c : CHAMP ;
+ do
+  c := CHAMPS^champs.chercher(ident^txt);
+    if c /= nil then
+       error(B_00, ident^txt);
+    else    
+      c := new CHAMP(ident^txt, TYPE^type, CHAMPS^hadr);
+     call CHAMPS^champs.inserer(c);
+     CHAMPS1^hadr := CHAMPS^hadr + TYPE^type.getTaille();
+    end
+ end
+}
+
+-------------------------------------------------------
+-- Les pointeurs
+-------------------------------------------------------
+TYPE -> etoile TYPE #type ;
+#type {
+do
+  TYPE^type := new POINTEUR(TYPE1^type);
+end
+}
+
+-------------------------------------------------------
+-- instructions (et declarations)
+-------------------------------------------------------
+INSTS ->  #gen;
+#gen {
+do
+  INSTS^adr := INSTS^hadr ;
+  INSTS^code := "";
+end
+}
+
+INSTS -> INST #adr INSTS  #gen;
+#adr {
+do
+  --write "@ courante = " + INST^adr + "\n";
+  INSTS1^hadr := INST^adr;
+end
+}
+
+#gen {
+do
+  INSTS^adr := INSTS1^adr;
+  INSTS^code := INST^code + INSTS1^code;
+end
+}
+
+-------------------------------------------------------
+-- Les noms de types (en majuscules)
+-------------------------------------------------------
+INST -> typedef ident aff TYPE pv  #gen;
+#gen {
+local
+    i : INFO ;
+do
+    i := INST^tds.chercherGlobalement(ident^txt);
+    if i /= nil then
+       error(B_00, ident^txt);
+    else    
+      -- creer un type
+     i := new INFOTYPE(TYPE^type);
+     call INST^tds.inserer(ident^txt,  i);
+     INST^adr := INST^hadr ;
+     INST^code := "";
+    end
+end
+}
+
+-------------------------------------------------------
+-- les variables 
+-------------------------------------------------------
+INST -> TYPE ident aff TERME pv  #gen;
+global 
+    i : INFO ;
+    iv : INFOVAR ;
+
+#gen {
+
+do
+    i := INST^tds.chercherLocalement(ident^txt);
+    if i /= nil then
+      error(B_00, ident^txt);
+    elseif ~TYPE^type.compareTo(TERME^type) then
+      error(B_02, TYPE^type, TERME^type);
+    else
+      -- creer une variable
+      iv := new INFOVAR(TYPE^type, INST^hadr);
+      call INST^tds.inserer(ident^txt,  iv);
+     INST^adr := INST^hadr + TYPE^type.getTaille();
+     INST^code := INST^tam.genDecl(ident^txt, iv, TERME^code);
+    end
+end
+}
+
+-------------------------------------------------------
+-- affectations
+-------------------------------------------------------
+INST -> ident #tds FX aff TERME pv  #gen;
+global
+    iv : INFOVAR; 
+  
+  #tds {
+local
+  t : DTYPE ;
+    i : INFO; 
+do
+    -- rechercher l'ident
+    i := INST^tds.chercherGlobalement(ident^txt);
+    if i = nil then
+      error(B_01, ident^txt);
+    else 
+      match i
+      -- une variable ?
+      with INFOVAR then
+        iv := i;
+        t := iv.getType();
+        FX^htype := t;
+        FX^hest_adresse := true;
+        FX^hcode := INST^tam.genAdr(iv.getDep());
+      else
+        -- pas une variable
+        error(B_05, ident^txt);
+      end 
+    end
+  end
+}
+
+#gen {
+do
+    if ~FX^type.compareTo(TERME^type) then
+      error(B_02, FX^type, TERME^type);
+    else
+      INST^adr := INST^hadr ;
+      -- toujours adresse 
+      --if FX^est_adresse then
+        INST^code := INST^tam.genComment("Valeur") +
+                     TERME^code + 
+                     INST^tam.genComment("Adresse") +
+                     FX^code + INST^tam.genWriteMem(FX^type.getTaille());    
+      --else
+      --  INST^code := TERME^code + FX^code ;
+      --end
+     end
+  end
+}
+
+-------------------------------------------------------
+-- Conditionnelle
+-------------------------------------------------------
+INST -> si paro TERME #type parf BLOC sinon BLOC #gen;
+#gen {
+do
+    INST^adr := INST^hadr;
+    INST^code := INST^tam.genIf(TERME^code, BLOC^code, BLOC1^code) ;
+end
+}
+
+#type {
+do
+   if ~TERME^type.compareTo(new DTYPE("booleen", 1)) then
+      error(B_04, TERME^type);
+   end
+end
+}
+
+-------------------------------------------------------
+-- terme = facteur eventuellement qualifie
+-------------------------------------------------------
+TERME -> FACTEUR #hgen FX #gen;
+#hgen {
+do
+  FX^hest_adresse := FACTEUR^est_adresse;
+  FX^hcode := FACTEUR^code;
+  FX^htype := FACTEUR^type;
+end
+}
+
+ #gen {
+do
+  TERME^type := FX^type;
+  TERME^est_adresse := FX^est_adresse ;
+  -- a revoir : dans cette grammaire TERME n'est jamais a gauche
+  -- donc ok, mais pas assez general
+  if FX^est_adresse then 
+    TERME^code := FX^code + TERME^tam.genReadMem(FX^type.getTaille());
+  else
+    TERME^code := FX^code ;
+  end
+end
+}
+
+-------------------------------------------------------
+-- qualificateur
+-------------------------------------------------------
+FX -> #gen;
+#gen {
+do
+  FX^type := FX^htype;
+  FX^est_adresse := FX^hest_adresse;
+  FX^code := FX^hcode;
+end
+}
+
+FX -> pt ident #a FX  #gen;
+#gen {
+do
+  FX^type := FX1^type;
+  FX^est_adresse := true;
+  FX^code :=FX1^code;
+end
+}
+
+#a {
+local
+ s : STRUCT ;
+ c : CHAMP;
+ lc : LCHAMPS;
+do
+  match FX^htype
+  with STRUCT then
+    s := FX^htype;
+    lc := s.getChamps();
+    c := lc.chercher(ident^txt);
+    if c = nil then
+      error(B_10, ident^txt) ;
+    else
+      FX1^htype := c.getType();
+    --  FX1^hest_adresse := FX^hest_adresse;
+      FX1^hcode :=FX^hcode + FX^tam.genAdrField(c.getDep())  ;
+    end    
+  else
+    error(B_09, FX^htype);
+  end
+
+end
+}
+
+--------------------------------------------------------------
+FX -> etoile #a  FX #gen;
+#gen {
+do
+  FX^type := FX1^type;
+  -- on ne peut pas savoir si valeur ou non ...
+  -- donc dans le doute
+  FX^est_adresse := true;
+  FX^code :=  FX1^code;
+end
+}
+
+#a {
+local
+p : POINTEUR ;
+do
+  match FX^htype
+  with POINTEUR then
+    p := FX^htype;
+    FX1^htype := p.getType();
+    -- on lit le contenu
+    FX1^hcode := FX^hcode + FX^tam.genReadMem(1);
+   else
+    error(B_11, FX^htype);
+  end
+
+end
+}
+
+
+-------------------------------------------------------
+-- variable
+-------------------------------------------------------
+FACTEUR -> ident  #gen;
+global 
+  iv : INFOVAR ;
+  t : DTYPE;
+#gen{
+local
+  i:INFO;
+do
+  i := FACTEUR^tds.chercherGlobalement(ident^txt);
+  if i = nil then
+    error(B_01, ident^txt);
+  end
+  match i 
+  with INFOVAR then
+    iv := i;
+    t := iv.getType();
+    FACTEUR^type := t;
+    FACTEUR^est_adresse := true;
+    FACTEUR^code :=FACTEUR^tam.genAdr(iv.getDep());
+  else
+    error(B_08, ident^txt);
+  end
+end
+}
+
+-------------------------------------------------------
+-- Constante entiere
+-------------------------------------------------------
+FACTEUR -> entier #gen;
+#gen {
+do
+    FACTEUR^type := new DTYPE("entier", 1);
+    FACTEUR^est_adresse := false;
+    FACTEUR^code := FACTEUR^tam.genCst(entier^txt);
+end
+}
+
+-------------------------------------------------------
+-- constantes booleennes
+-------------------------------------------------------
+FACTEUR -> vrai #gen;
+#gen {
+do
+  FACTEUR^type := new DTYPE("booleen", 1);
+  FACTEUR^est_adresse := false;
+  FACTEUR^code := FACTEUR^tam.genCst("1");
+ end
+}
+
+FACTEUR -> faux #gen;
+#gen {
+do
+  FACTEUR^type := new DTYPE("booleen", 1);
+  FACTEUR^est_adresse := false;
+  FACTEUR^code := FACTEUR^tam.genCst("0");
+end
+}
+
+-------------------------------------------------------
+--FACTEUR -> paro TERME parf  #gen;
+--#gen {
+--do
+--  FACTEUR^est_adresse := TERME^est_adresse;
+--  FACTEUR^code := TERME^code;
+--  FACTEUR^type := TERME^type;
+--end
+--}
+
+-------------------------------------------------------
+-- init pointeur
+-------------------------------------------------------
+FACTEUR -> new TYPE paro parf #gen;
+#gen {
+do
+   FACTEUR^type := new POINTEUR(TYPE^type);
+   FACTEUR^est_adresse := false;
+   FACTEUR^code := FACTEUR^tam.genMalloc(TYPE^type.getTaille());
+end
+}
+
+-------------------------------------------------------
+-- Liste de termes pour initialiser un struct
+-- le type de facteur est TUPLE
+-------------------------------------------------------
+FACTEUR -> aco #a TERME TERMES acf  #gen;
+global
+  lt : LTYPES ;
+  
+#a {
+do
+  lt := new LTYPES();
+  TERMES^types := lt;
+end
+}
+
+
+#gen {
+do
+  call lt.inserer(TERME^type);
+  FACTEUR^type := new TUPLE(lt);
+  FACTEUR^est_adresse := false;
+  FACTEUR^code := TERME^code + TERMES^code; 
+end
+}
+
+TERMES ->  #gen;
+#gen {
+do
+  TERMES^code := "";
+end
+}
+
+
+TERMES -> v TERME TERMES #gen;
+#gen {
+do
+  TERMES^code := TERME^code + TERMES1^code;
+  call TERMES^types.add(TERME^type);
+ 
+end
+}
+-------------------------------------------------------
+
+end

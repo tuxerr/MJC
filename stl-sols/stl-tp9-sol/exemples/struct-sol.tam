@@ -1,0 +1,72 @@
+;;; code TAM engendre pour exemples/struct
+
+   ; decl de p en 0/SB taille = 2
+	LOADL 1
+	LOADL 2
+   ; decl de c en 2/SB taille = 1
+	LOADA 0[SB]
+	LOADL 0
+	SUBR Iadd
+	LOADI(1)
+; Valeur
+	LOADA 0[SB]
+	LOADL 1
+	SUBR Iadd
+	LOADI(1)
+; Adresse
+	LOADA 0[SB]
+	LOADL 0
+	SUBR Iadd
+	STOREI(1)
+; Valeur
+	LOADA 2[SB]
+	LOADI(1)
+; Adresse
+	LOADA 0[SB]
+	LOADL 1
+	SUBR Iadd
+	STOREI(1)
+   ; decl de s en 3/SB taille = 4
+	LOADL 1
+	LOADL 2
+	LOADL 3
+	LOADL 4
+   ; decl de a en 7/SB taille = 1
+	LOADA 3[SB]
+	LOADL 0
+	SUBR Iadd
+	LOADL 0
+	SUBR Iadd
+	LOADI(1)
+; Valeur
+	LOADA 3[SB]
+	LOADL 0
+	SUBR Iadd
+	LOADL 1
+	SUBR Iadd
+	LOADI(1)
+; Adresse
+	LOADA 7[SB]
+	STOREI(1)
+; Valeur
+	LOADA 3[SB]
+	LOADL 2
+	SUBR Iadd
+	LOADL 0
+	SUBR Iadd
+	LOADI(1)
+; Adresse
+	LOADA 7[SB]
+	STOREI(1)
+; Valeur
+	LOADA 3[SB]
+	LOADL 2
+	SUBR Iadd
+	LOADL 1
+	SUBR Iadd
+	LOADI(1)
+; Adresse
+	LOADA 7[SB]
+	STOREI(1)
+	POP(0)8
+	HALT

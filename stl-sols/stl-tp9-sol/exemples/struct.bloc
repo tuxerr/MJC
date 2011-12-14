@@ -1,0 +1,13 @@
+xxx {
+  typedef point = struct {int x ; int y; } ;
+  point p = {1, 2};
+  int c = p.x;
+  p.x = p.y;
+  p.y = c;
+  typedef seg = struct {point o; point e;} ;
+  seg s = {{1,2}, {3, 4}};
+  int a = s.o.x;
+  a = s.o.y;
+  a = s.e.x;
+  a = s.e.y;
+  }

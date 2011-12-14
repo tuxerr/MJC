@@ -1,0 +1,24 @@
+Syntaxe du langage BLOC
+=======================
+
+PROG -> ident  BLOC  
+BLOC -> aco  INSTS acf 
+TYPE -> bool 
+TYPE -> int  
+TYPE -> inf TYPE v TYPE sup  
+INSTS ->  
+INSTS ->  INST  INSTS 
+INST -> TYPE ident aff TERME pv 
+INST -> ident  aff TERME  pv 
+INST -> si po TERME pf  BLOC sinon  BLOC 
+INST -> while po TERME pf  BLOC 
+INST -> print po TERME pf pv 
+TERME -> FACTEUR
+FACTEUR -> ident 
+FACTEUR -> vrai 
+FACTEUR -> entier 
+FACTEUR -> faux 
+FACTEUR -> inf TEMRE v TEMRE sup 
+FACTEUR -> fst FACTEUR 
+FACTEUR -> snd FACTEUR 
+FACTEUR -> po TERME pf

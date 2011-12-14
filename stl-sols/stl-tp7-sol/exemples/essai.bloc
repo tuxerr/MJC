@@ -1,0 +1,17 @@
+essai {
+  int a = 99;
+  bool b = true;
+  if (b) {
+    int c = 5;
+    print (a);
+    print (c);
+    }
+  else {
+    int d = 6;
+    int e = 7;
+    }
+  <int, int> f = < 100, 101> ;
+  int g = snd f; 
+  print (g);
+}
+

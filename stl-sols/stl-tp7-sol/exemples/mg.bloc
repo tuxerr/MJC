@@ -1,0 +1,16 @@
+test {
+  int x = 18;
+  <int, int> c = <3, 4> ;
+  int u = fst c;
+  bool d = true;
+  if (d) {
+     int a = 2;
+     int b = 12;
+     }
+  else {
+     int e = 55;
+     }
+  * int  y = new int();
+  y * = x;
+  u = y*;
+}

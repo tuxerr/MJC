@@ -1,0 +1,12 @@
+xxx {
+  type POINT = struct {int x ; int y; } ;
+  type PPOINT = * POINT ;
+  POINT p = {1, 2};
+  PPOINT pp = new POINT();
+  p = pp*;
+  pp* = p ;
+  int c = pp*.x;
+  type PPPOINT = * * POINT ;
+  PPPOINT ppp = new PPOINT();
+  ppp **= p;
+  }

@@ -1,0 +1,100 @@
+;;; code TAM engendre pour exemples/sp
+
+   ; decl de p en 0/SB taille = 1
+	LOADL 2
+	SUBR Malloc
+; Valeur
+	LOADL 3
+; Adresse
+	LOADA 0[SB]
+	LOADI(1)
+	LOADL 0
+	SUBR Iadd
+	STOREI(1)
+; Valeur
+	LOADL 4
+; Adresse
+	LOADA 0[SB]
+	LOADI(1)
+	LOADL 1
+	SUBR Iadd
+	STOREI(1)
+   ; decl de c en 1/SB taille = 1
+	LOADA 0[SB]
+	LOADI(1)
+	LOADL 0
+	SUBR Iadd
+	LOADI(1)
+; Valeur
+	LOADA 0[SB]
+	LOADI(1)
+	LOADL 1
+	SUBR Iadd
+	LOADI(1)
+; Adresse
+	LOADA 0[SB]
+	LOADI(1)
+	LOADL 0
+	SUBR Iadd
+	STOREI(1)
+; Valeur
+	LOADA 1[SB]
+	LOADI(1)
+; Adresse
+	LOADA 0[SB]
+	LOADI(1)
+	LOADL 1
+	SUBR Iadd
+	STOREI(1)
+   ; decl de s en 2/SB taille = 1
+	LOADL 2
+	SUBR Malloc
+; Valeur
+	LOADL 2
+	SUBR Malloc
+; Adresse
+	LOADA 2[SB]
+	LOADI(1)
+	LOADL 0
+	SUBR Iadd
+	STOREI(1)
+; Valeur
+	LOADA 0[SB]
+	LOADI(1)
+; Adresse
+	LOADA 2[SB]
+	LOADI(1)
+	LOADL 1
+	SUBR Iadd
+	STOREI(1)
+; Valeur
+	LOADA 2[SB]
+	LOADI(1)
+	LOADL 1
+	SUBR Iadd
+	LOADI(1)
+	LOADL 0
+	SUBR Iadd
+	LOADI(1)
+; Adresse
+	LOADA 2[SB]
+	LOADI(1)
+	LOADL 0
+	SUBR Iadd
+	LOADI(1)
+	LOADL 1
+	SUBR Iadd
+	STOREI(1)
+; Valeur
+	LOADA 2[SB]
+	LOADI(1)
+	LOADL 0
+	SUBR Iadd
+	LOADI(1)
+	LOADI(2)
+; Adresse
+	LOADA 0[SB]
+	LOADI(1)
+	STOREI(2)
+	POP(0)3
+	HALT

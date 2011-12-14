@@ -1,0 +1,5 @@
+mem{
+   * int  p = new int();
+   p* = 5;
+   }
+

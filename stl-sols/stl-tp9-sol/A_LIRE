@@ -1,0 +1,12 @@
+TP #9
+=====
+
+Generation de code pour bloc avec structures ET pointeurs.
+
+Il s'agit ici de completer la grammaire attribuee fournie
+pour implanter la génération de code vue en TD.
+
+Le fichier TAM.java (fourni) contient les methodes de
+generation de code TAM.
+
+Les exemples sont fournis avec une traduction en TAM.

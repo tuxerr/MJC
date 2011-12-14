@@ -1,0 +1,12 @@
+#!/bin/sh
+#EDIR=/usr/local/gen6/egg502
+EDIR=.
+# les jars associes
+GJAR=${EDIR}/eggc.jar:.
+
+#--------------------------------------------------------
+# java, javac, jar
+#JDIR=/usr/local/jdk1.6/bin
+JDIR=/usr/bin
+
+${JDIR}/java -classpath .:${EDIR}/eggc.jar bloc.compiler.BLOCC $*

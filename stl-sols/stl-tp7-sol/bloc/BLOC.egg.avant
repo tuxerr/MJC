@@ -1,0 +1,462 @@
+-----------------------------------------------
+-- BLOC 
+-- semantique : tds + verification de type
+-----------------------------------------------
+option auto= true;
+option version = 0.0.1 ;
+option k=2;
+
+
+inh source : BLOCSourceFile for PROG ; 
+inh tds    : TDS     for BLOC, INST, INSTS, TERME, FACTEUR, TYPE , CHAMPS, TERMES;
+syn type   : DTYPE   for TYPE, TERME, FACTEUR, FX;
+inh htype   : DTYPE   for  FX;
+inh champs : LCHAMPS for CHAMPS;
+inh types : LTYPES for  TERMES;
+-- pour controler l'affectation des structs
+syn est_tuple : BOOLEAN for TERME, FACTEUR;
+
+space  separateur  is    "[\n\r\t ]+";
+space  comments    is    "\/\/.*[\n\r]";
+sugar  aco         is    "\{";
+sugar  acf         is    "\}";
+sugar  paro        is    "\(";
+sugar  parf        is    "\)";
+sugar  pv          is    ";";
+sugar  v           is    ",";
+sugar  aff         is    "=";
+sugar  struct      is    "struct" ;
+sugar  pt          is    "\." ;
+sugar  etoile      is    "\*" ;
+sugar  new         is    "new" ;
+sugar  type        is    "type" ;
+sugar  vrai        is    "true";
+sugar  faux        is    "false";
+sugar  si          is    "if";
+sugar  sinon       is    "else";
+sugar  print       is    "print";
+sugar  tantque     is    "while";
+sugar  int         is    "int";
+sugar  bool        is    "bool";
+term   entier      is    "[0-9]+";
+term   ident       is    "[a-zA-Z_]+";
+
+
+PROG -> ident #tds BLOC ;
+#tds {
+do
+   BLOC^tds := nil;
+end
+}
+
+BLOC -> aco #tds INSTS acf #tds2 ;
+global        -- globale aux actions de cette regle
+  t : TDS;    -- pour voir la TDS du bloc
+#tds {
+do
+   t := new TDS(BLOC^tds);
+   INSTS^tds := t;
+end
+}
+#tds2 {
+do
+   write "; tds:\n" + t;
+end
+}
+
+-------------------------------------------------------
+-- les types
+-------------------------------------------------------
+TYPE -> bool #type ;
+#type {
+do
+  TYPE^type := new DTYPE("booleen", 1);
+end
+}
+
+TYPE -> int  #type ;
+#type {
+do
+    TYPE^type := new DTYPE("entier", 4);
+end
+}
+
+-------------------------------------------------------
+-- les noms de types 
+-------------------------------------------------------
+TYPE -> ident  #type ;
+#type {
+ local
+    i : INFO ;
+    it : INFOTYPE;
+    t : DTYPE;
+ do
+    -- rechercher l'ident
+    i := TYPE^tds.chercherGlobalement(ident^txt);
+    if i = nil then
+      error(B_01, ident^txt);
+    else
+       match i
+       with INFOTYPE then
+         it := i ;
+         TYPE^type :=  it.getType();
+       else
+          error(B_07, ident^txt);
+       end
+    end
+  end
+}
+
+-------------------------------------------------------
+-- Les pointeurs
+-------------------------------------------------------
+TYPE -> etoile TYPE #type ;
+#type {
+do
+  TYPE^type := new POINTEUR(TYPE1^type);
+end
+}
+
+
+-------------------------------------------------------
+-- instructions (et declarations)
+-------------------------------------------------------
+INSTS ->      ;
+
+INSTS -> INST INSTS ;
+
+-------------------------------------------------------
+-- Les noms de types 
+-------------------------------------------------------
+INST -> type ident aff TYPE  #tds pv  ;
+#tds {
+local
+    i : INFO ;
+do
+    i := INST^tds.chercherGlobalement(ident^txt);
+    if i /= nil then
+       error(B_00, ident^txt);
+    else    
+      -- creer un type
+      i := new INFOTYPE(TYPE^type);
+     call INST^tds.inserer(ident^txt,  i);
+    end
+end
+}
+
+-------------------------------------------------------
+-- les variables 
+-------------------------------------------------------
+INST -> TYPE ident aff TERME #tdstype pv ;
+#tdstype {
+local
+    i : INFO ;
+do
+    i := INST^tds.chercherLocalement(ident^txt);
+    if i /= nil then
+      error(B_00, ident^txt);
+    elseif ~TYPE^type.compareTo(TERME^type) then
+      error(B_02, TYPE^type, TERME^type);
+    else
+      -- creer une variable
+      i := new INFOVAR(TYPE^type, 0);
+      call INST^tds.inserer(ident^txt,  i);
+    end
+end
+}
+
+-------------------------------------------------------
+-- affectations
+-------------------------------------------------------
+INST -> ident #tds FX aff TERME #type pv ;
+global
+    i : INFO;  -- utilise dans #tds et #type
+
+#tds {
+local
+  t : DTYPE ;
+do
+    -- rechercher l'ident
+    i := INST^tds.chercherGlobalement(ident^txt);
+    if i = nil then
+      error(B_01, ident^txt);
+    else 
+      match i
+      -- une variable ?
+      with INFOVAR then
+        t := i.getType();
+        FX^htype := t;
+      else
+        -- pas une variable
+        error(B_05, ident^txt);
+      end 
+    end
+  end
+}
+
+#type {
+
+do
+    if ~FX^type.compareTo(TERME^type) then
+      error(B_02, FX^type, TERME^type);
+     end
+  end
+}
+
+-------------------------------------------------------
+-- Conditionnelle
+-------------------------------------------------------
+INST -> si paro TERME #type parf BLOC sinon BLOC ;
+#type {
+do
+   if ~TERME^type.compareTo(new DTYPE("booleen", 1)) then
+      error(B_04, TERME^type);
+   end
+end
+}
+
+INST -> tantque paro TERME #type parf BLOC ;
+#type {
+do
+   if ~TERME^type.compareTo(new DTYPE("booleen", 1)) then
+      error(B_04, TERME^type);
+   end
+end
+}
+
+-------------------------------------------------------
+-- Facteur eventuellement qualifie
+-------------------------------------------------------
+TERME -> FACTEUR #type ;
+
+#type {
+do
+   TERME^type := FACTEUR^type;
+   TERME^est_tuple := FACTEUR^est_tuple;
+end
+}
+
+-------------------------------------------------------
+-- qualificateur
+-------------------------------------------------------
+FX -> #type ;
+#type {
+do
+ FX^type := FX^htype;
+end
+}
+
+
+---------------------------------------------------------------
+FX -> etoile #a  FX #type ;
+#a {
+local
+p : POINTEUR ;
+do
+  match FX^htype
+  with POINTEUR then
+    p := FX^htype;
+    FX1^htype := p.getType();
+  else
+    error(B_11, FX^htype);
+  end
+
+end
+}
+#type {
+do
+  FX^type := FX1^type;
+end
+}
+
+-------------------------------------------------------
+-- variable
+-------------------------------------------------------
+FACTEUR -> ident #tds FX #type ;
+#tds {
+local
+  i : INFO;
+  t : DTYPE ;
+do
+    -- rechercher l'ident
+    i := FACTEUR^tds.chercherGlobalement(ident^txt);
+    if i = nil then
+      error(B_01, ident^txt);
+    else 
+      match i
+      -- une variable ?
+      with INFOVAR then
+        t := i.getType();
+        FX^htype := t;
+      else
+        -- pas une variable
+        error(B_05, ident^txt);
+      end 
+    end
+  end
+}
+
+#type {
+do
+  FACTEUR^type := FX^type;
+  FACTEUR^est_tuple := false ;
+end
+}
+
+-------------------------------------------------------
+-- Constante entiere
+-------------------------------------------------------
+FACTEUR -> entier #type;
+#type {
+local
+  v : Integer;
+do
+    FACTEUR^type := new DTYPE("entier", 4);
+    FACTEUR^est_tuple := false ;
+end
+}
+
+-------------------------------------------------------
+-- constantes booleennes
+-------------------------------------------------------
+FACTEUR -> vrai #type;
+#type {
+do
+    FACTEUR^type := new DTYPE("booleen", 1);
+    FACTEUR^est_tuple := false ;
+end
+}
+
+FACTEUR -> faux #type;
+#type {
+do
+    FACTEUR^type := new DTYPE("booleen", 1);
+    FACTEUR^est_tuple := false ;
+end
+}
+
+-------------------------------------------------------
+-------------------------------------------------------
+FACTEUR -> paro TERME parf #type;
+#type {
+do
+    FACTEUR^type := TERME^type;
+    FACTEUR^est_tuple := TERME^est_tuple ;
+end
+}
+
+-------------------------------------------------------
+-- init pointeur
+-------------------------------------------------------
+FACTEUR -> new TYPE paro parf #type ;
+#type {
+do
+  FACTEUR^type := new POINTEUR(TYPE^type);
+    FACTEUR^est_tuple := false ;
+end
+}
+
+
+-------------------------------------------------------
+-- les struct
+-------------------------------------------------------
+TYPE -> struct aco #ch CHAMPS acf  #type ;
+global 
+ lc : LCHAMPS ;
+#ch {
+do
+  lc := new LCHAMPS();
+  CHAMPS^champs := lc;
+end
+}
+
+#type {
+ do
+   TYPE^type := new STRUCT(lc);
+ end
+}
+
+CHAMPS -> ;
+CHAMPS -> TYPE ident pv #ch CHAMPS ;
+#ch {
+ local
+  c : CHAMP ;
+ do
+  c := CHAMPS^champs.chercher(ident^txt);
+    if c /= nil then
+       error(B_00, ident^txt);
+    else    
+      c := new CHAMP(ident^txt, TYPE^type, 0);
+     call CHAMPS^champs.inserer(c);
+    end
+ end
+}
+
+FX -> pt ident #a FX  #type;
+#a {
+local
+ s : STRUCT ;
+ c : CHAMP;
+ lc : LCHAMPS;
+do
+  match FX^htype
+  with STRUCT then
+    s := FX^htype;
+    lc := s.getChamps();
+    c := lc.chercher(ident^txt);
+    if c = nil then
+      error(B_10, ident^txt) ;
+    else
+      FX1^htype := c.getType();
+   end    
+  else
+    error(B_09, FX^htype);
+  end
+
+end
+}
+
+#type {
+do
+  FX^type := FX1^type;
+end
+}
+
+
+-------------------------------------------------------
+-- Liste de termes pour initialiser un struct
+-- le type de facteur est TUPLE
+-------------------------------------------------------
+FACTEUR -> aco #a TERME TERMES acf #syn ;
+global
+  lt : LTYPES ;
+  
+#a {
+do
+  lt := new LTYPES();
+  TERMES^types := lt;
+end
+}
+
+
+#syn {
+do
+  call lt.inserer(TERME^type);
+  FACTEUR^type := new TUPLE(lt);
+  FACTEUR^est_tuple := true ;
+end
+}
+
+TERMES -> ;
+
+TERMES -> v TERME TERMES #syn ;
+
+#syn {
+do
+  call TERMES^types.add(TERME^type);
+ 
+end
+}
+-------------------------------------------------------
+
+end

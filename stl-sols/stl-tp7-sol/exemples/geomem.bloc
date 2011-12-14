@@ -1,0 +1,8 @@
+geomem{
+  type point = struct {int x; int y;} ;
+  * point  p = new point();
+  p* = { 100, 200 };
+  * point q = new point();
+  q* = { 300, 400 };
+  q*.x = p*.y;
+  }

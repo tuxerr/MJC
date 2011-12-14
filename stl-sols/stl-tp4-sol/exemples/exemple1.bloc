@@ -1,0 +1,19 @@
+test  {
+  int x = 3;
+  int y = 4;
+  y = (x);
+  <int, int> c = < 3,4> ;
+  int u = fst c;
+  << bool, int> , int > d = << true,1>, 3>;
+  d = <<true, 6>, 7> ;
+  if (fst fst d) {
+    int a = 2;
+    int x = 12;
+    }
+  else {
+     int x = 55;
+    }
+  int v = snd d;
+  c = <snd fst d, (v)> ;
+  print (c);
+}

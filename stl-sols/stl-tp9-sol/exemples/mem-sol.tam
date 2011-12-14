@@ -1,0 +1,13 @@
+;;; code TAM engendre pour exemples/mem
+
+   ; decl de p en 0/SB taille = 1
+	LOADL 1
+	SUBR Malloc
+; Valeur
+	LOADL 5
+; Adresse
+	LOADA 0[SB]
+	LOADI(1)
+	STOREI(1)
+	POP(0)1
+	HALT

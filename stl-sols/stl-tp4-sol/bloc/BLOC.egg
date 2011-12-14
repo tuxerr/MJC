@@ -1,0 +1,221 @@
+-----------------------------------------------
+-- BLOC 
+-----------------------------------------------
+option auto= true;
+option version = 0.0.1 ;
+option k=1;
+
+
+inh source : BLOCSourceFile for PROG ; 
+inh niveau : INTEGER for BLOC, INSTS, INST ; 
+syn affectations : INTEGER for BLOC, INSTS, INST;
+inh lvar : ListeVar for BLOC, INST, INSTS, TERME, FACTEUR;
+
+space  separateur  is    "[\n\r\t ]+";
+space  comments    is    "\/\/.*\n";
+sugar  aco         is    "\{";
+sugar  acf         is    "\}";
+sugar  paro        is    "\(";
+sugar  parf        is    "\)";
+sugar  inf         is    "\<";
+sugar  sup         is    "\>";
+sugar  pv          is    ";";
+sugar  v           is    ",";
+sugar  aff         is    "=";
+sugar  vrai        is    "true";
+sugar  faux        is    "false";
+sugar  si          is    "if";
+sugar  sinon       is    "else";
+sugar  print       is    "print";
+sugar  tantque     is    "while";
+sugar  fst         is    "fst";
+sugar  snd         is    "snd";
+sugar  int         is    "int";
+sugar  bool        is    "bool";
+term   entier      is    "[0-9]+";
+term   ident       is    "[a-z_]+";
+
+
+PROG -> ident #info BLOC #aff;
+global 
+lv : ListeVar;
+
+#info {
+local
+do
+  write "Compilation du fichier " + PROG^source.getFileName() + "\n" ;
+  BLOC^niveau := 0;
+  lv := new ListeVar();
+  BLOC^lvar := lv;
+end
+}
+
+#aff {
+local
+do
+  write "Affectations : " + BLOC^affectations + "\n" ;
+end
+}
+
+BLOC -> aco #descendre INSTS acf #afficher #aff;
+#descendre {
+local
+do
+  INSTS^niveau := BLOC^niveau +1 ;
+end
+}
+
+#afficher {
+local
+do
+  write "Niveau du bloc : " + BLOC^niveau  + "\n";
+  write "Liste des Variables  : " + BLOC^lvar + "\n" ;
+end
+}
+
+#aff {
+local
+do
+   BLOC^affectations := INSTS^affectations;
+end
+}
+
+TYPE -> bool ;
+
+TYPE -> int  ;
+
+TYPE -> inf TYPE v TYPE sup  ;
+
+INSTS ->   #aff   ;
+#aff {
+local
+do
+   INSTS^affectations := 0;
+end
+}
+
+
+INSTS -> INST INSTS #aff ;
+
+#aff {
+local
+do
+   INSTS^affectations := INST^affectations + INSTS1^affectations;
+end
+}
+
+
+INST -> TYPE ident aff TERME pv #aff ;
+#aff {
+local
+do
+   INST^affectations := 1;
+   if ~INST^lvar.contient(ident^txt) then
+     call INST^lvar.inserer(ident^txt);
+   else
+     error(B_00, ident^txt);
+   end
+end
+}
+
+
+INST -> ident aff TERME pv #aff ;
+#aff {
+local
+do
+   INST^affectations := 1;
+   if ~INST^lvar.contient(ident^txt) then
+     error(B_01, ident^txt);
+   end
+end
+}
+
+
+INST -> si paro TERME parf #lv BLOC sinon #lv2 BLOC #aff ;
+#lv {
+local
+lv : ListeVar;
+do
+  lv := new ListeVar();
+  BLOC^lvar := lv;
+end
+}
+
+#lv2 {
+local
+lv : ListeVar;
+do
+  lv := new ListeVar();
+  BLOC1^lvar := lv;
+end
+}
+
+#aff {
+local
+do
+   INST^affectations := BLOC^affectations + BLOC1^affectations;
+end
+}
+
+INST -> tantque paro TERME parf #trans #lv BLOC #aff ;
+#lv {
+local
+lv : ListeVar;
+do
+  lv := new ListeVar();
+  BLOC^lvar := lv;
+end
+}
+
+#trans {
+local
+do
+  BLOC^niveau := INST^niveau ;
+end
+}
+
+#aff {
+local
+do
+   INST^affectations := BLOC^affectations;
+end
+}
+
+
+INST -> print paro TERME parf pv #aff ;
+#aff {
+local
+do
+   INST^affectations := 0;
+end
+}
+
+
+TERME -> FACTEUR ;
+
+FACTEUR -> ident #verif ;
+#verif {
+local
+do
+
+   if ~FACTEUR^lvar.contient(ident^txt) then
+     error(B_01, ident^txt);
+   end
+end
+}
+
+FACTEUR -> entier ;
+
+FACTEUR -> vrai ;
+
+FACTEUR -> faux ;
+
+FACTEUR -> paro TERME parf ;
+
+FACTEUR -> inf TERME v TERME sup ;
+
+FACTEUR -> fst FACTEUR ;
+
+FACTEUR -> snd FACTEUR ;
+
+end

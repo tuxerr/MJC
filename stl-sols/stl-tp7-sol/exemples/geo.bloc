@@ -1,0 +1,10 @@
+geo{
+  int x = 12;
+  int y = x;
+  type point = <int, int> ;
+  point p = < 1, 2>;
+  point q = < 3, 4>;
+  x = fst p;
+  q = p;
+  }
+  

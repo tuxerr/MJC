@@ -1,0 +1,15 @@
+sp {
+  typedef point = struct {int x ; int y; } ;
+  * point p = new point() ;
+  p*.x = 3 ;
+  p*.y = 4 ;
+  int c = p*.x;
+  p*.x = p*.y;
+  p*.y = c;
+  typedef seg = struct {* point o; * point e;} ;
+  * seg s = new seg();
+  s*.o = new point();
+  s*.e = p;
+  s*.o*.y = s*.e*.x;
+  p* = s*.o*;
+}
