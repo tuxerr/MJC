@@ -21,4 +21,25 @@ public abstract class AbstractMachine {
 		}
 	}
 
+	abstract String genCst(String v);
+	abstract String genOpPlus();
+	abstract String genOpMoins();
+	abstract String genOpNon();
+	abstract String genOpMul();
+	abstract String genOpDiv();
+	abstract String genOpMod();
+	abstract String genOpEt();
+	abstract String genOpAdd();
+	abstract String genOpMin();
+	abstract String genOpOu();
+	abstract String genOpInf();
+	abstract String genOpInfeg();
+	abstract String genOpSup();
+	abstract String genOpSupeg();
+	abstract String genOpEg();
+	abstract String genOpNeg();
+	abstract String genIf(String si, String inst1, String inst2); 
+
 }
+
+

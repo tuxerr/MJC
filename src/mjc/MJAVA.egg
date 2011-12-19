@@ -5,8 +5,10 @@ option k=3;
 
 -- les attributs semantiques
 inh source : MJAVASourceFile for PROGRAMME;
-syn type : DTYPE for TYPE;
-syn code : STRING for F;
+syn type : DTYPE for TYPE, OPUN, OPMUL, OPADD, T, TX, ESX, F;
+syn code : STRING for F, OPUN, OPMUL, OPADD, T, TX, ESX, INST, INSTS, BLOC, DEF, DEFS;
+inh tds : TDS for DEF;
+inh machine : AbstractMachine for F, OPUN, OPMUL, OPADD, INST;
 
 -- les terminaux 
 space separateur is  "[\r\n\t ]+";     
@@ -97,13 +99,39 @@ CORPS -> aco DEFS acf ;
 -------------------------------------------------------
 -- les attributs
 -------------------------------------------------------
-DEFS ->   ;
-DEFS ->  DEF DEFS   ;
+DEFS ->  #gen;
+#gen {
+ do
+   DEFS^code := "";
+ end
+}
+
+DEFS ->  DEF DEFS #gen;
+#gen {
+ do
+   DEFS^code := DEF^code + DEFS1^code;
+ end
+}
 
 -------------------------------------------------------
 -- attribut
 -------------------------------------------------------
-DEF ->  TYPE ident pv  ;
+DEF ->  TYPE ident pv  #inf;
+#inf {
+ local
+   i : INFO;
+   t : DTYPE;
+ do
+    i := DEF^tds.chercherGlobalement(ident^txt);
+    if i /= nil then
+       error(B_02, ident^txt);
+    else
+   -- ajouter l'ident dans la TDS;
+   i := new INFO(TYPE^type);
+   call DEF^tds.inserer(ident^txt, i);
+   DEF^code := "";
+ end
+}
 
 -------------------------------------------------------
 -- methode (fonction) 
@@ -153,14 +181,14 @@ TYPE-> ident #type;
    -- rechercher l'ident   
    i := TYPE^tds.chercherGlobalement(ident^txt);
    if i = nil then
-     error(B_01, ident^txt);
+     error(B_03, ident^txt);
    else
      match i
        with INFOTYPE then
          it := i ;
          TYPE^type :=  it.getType();
        else
-         error(B_07, ident^txt);
+         error(B_04, ident^txt);
      end
    end
  end
@@ -178,13 +206,29 @@ PARF ->  TYPE ident  ;
 -------------------------------------------------------
 -- corps de methode et bloc d'instructions
 -------------------------------------------------------
-BLOC ->  aco INSTS acf  ;
+BLOC ->  aco INSTS acf  #gen;
+#gen {
+ do
+   BLOC^code := INSTS^code;
+ end
+}
 
 -------------------------------------------------------
 -- instructions
 -------------------------------------------------------
-INSTS ->   ;
-INSTS ->  INST INSTS  ;
+INSTS ->  #gen;
+#gen {
+ do
+   INSTS^code := "";
+ end
+}
+
+INSTS ->  INST INSTS #gen;
+#gen {
+ do
+   INSTS^code := INST^code + INSTS1^code;
+ end
+}
 
 -------------------------------------------------------
 -- declaration de variable locale avec ou sans init
@@ -204,9 +248,33 @@ INST ->  BLOC  ;
 -------------------------------------------------------
 -- conditionnelle
 -------------------------------------------------------
-INST ->  si paro E parf BLOC SIX ;
-SIX ->   sinon BLOC ;
-SIX ->;
+INST ->  si paro E #type parf BLOC SIX #gen;
+#gen {
+ do
+   INST^code := INST^machine.genIf(E^code, BLOC^code, SIX^code);
+ end
+}
+#type {
+do
+ if ~E^type.compareTo(new DTYPE("booleen", 1)) then
+   error(B_05, E^type);
+ end
+end
+}
+
+SIX -> sinon BLOC #gen;
+#gen {
+ do
+   SIX^code := BLOC^code;
+ end
+}
+
+SIX -> #gen;
+#gen {
+ do
+   SIX^code := "";
+ end
+}
 
 -------------------------------------------------------
 -- return
@@ -222,21 +290,81 @@ E ->  ER AFFX ;
 -- affectation
 -------------------------------------------------------
 AFFX ->  affect ER  ;
+
 AFFX -> ;
 
 -------------------------------------------------------
 -- relation
 -------------------------------------------------------
-ER ->   ES ERX ;
-ES ->  T ESX ;
-ERX ->  OPREL ES ;
-ERX -> ;
-OPREL -> inf ;
-OPREL -> infeg ;
-OPREL -> sup ;
-OPREL -> supeg ;
-OPREL -> eg ;
-OPREL -> neg ;
+ER ->   ES ERX #gen;
+#gen {
+ do
+   ER^code := ES^code + ERX^code;
+ end
+}
+
+ES ->  T ESX #gen;
+#gen {
+ do
+   ES^code := T^code + ESX^code;
+ end
+}
+
+ERX ->  OPREL ES #gen;
+#gen {
+ do
+   ERX^code := ES^code + OPREL^code;
+ end
+}
+
+ERX -> #gen;
+#gen {
+ do
+   ERX^code := "";
+ end
+}
+
+OPREL -> inf #gen;
+#gen {
+ do
+   OPREL^code := OPREL^machine.genOpInf();
+ end
+}
+
+OPREL -> infeg #gen;
+#gen {
+ do
+   OPREL^code := OPREL^machine.genOpInfeg();
+ end
+}
+
+OPREL -> sup #gen;
+#gen {
+ do
+   OPREL^code := OPREL^machine.genOpSup();
+ end
+}
+
+OPREL -> supeg #gen;
+#gen {
+ do
+   OPREL^code := OPREL^machine.genSupeg();
+ end
+}
+
+OPREL -> eg #gen;
+#gen {
+ do
+   OPREL^code := OPREL^machine.genEg();
+ end
+}
+
+OPREL -> neg #gen;
+#gen {
+ do
+   OPREL^code := OPREL^machine.genNeg();
+ end
+}
 
 -------------------------------------------------------
 -- addition, ...
@@ -247,10 +375,10 @@ ESX ->   OPADD T ESX #gen;
    if ~T^type.compareTo(OPADD^type) then
      error(B_00, T^type, OPADD^type);
    elseif ~T^type.compareTo(ESX^type) then
-     error(B_00, T^type, ESX^type);
+     error(B_00, T^type, ESX1^type);
    else
      ESX^type := T^type;
-     ESX^code := ESX^tam.genOp(T^code,ESX^code,OPADD^code);
+     ESX^code := T^code + ESX1^code + OPADD^code;
    end
  end
 }
@@ -266,7 +394,7 @@ OPADD -> plus #gen;
 #gen {
  do
    OPADD^type := new DTYPE("entier", 1);
-   OPADD^code := OPADD^tam.genOpAdd();
+   OPADD^code := OPADD^machine.genOpAdd();
  end
 }
 
@@ -274,7 +402,7 @@ OPADD -> moins #gen;
 #gen {
  do
    OPADD^type := new DTYPE("entier", 1);
-   OPADD^code := OPADD^tam.genOpMin();
+   OPADD^code := OPADD^machine.genOpMin();
  end
 }
 
@@ -282,7 +410,7 @@ OPADD -> ou #gen;
 #gen {
  do
    OPADD^type := new DTYPE("booleen", 1);
-   OPADD^code := OPADD^tam.genOpOu();
+   OPADD^code := OPADD^machine.genOpOu();
  end
 }
 
@@ -293,7 +421,7 @@ T ->  F TX #gen;
      error(B_00, F^type, TX^type);
    else
      T^type := TX^type;
-     T^code := T^tam.genOp(F^code,TX^code);
+     T^code := T^machine.genOp(F^code,TX^code);
    end
  end
 }
@@ -310,7 +438,7 @@ TX ->   OPMUL F TX #gen;
      error(B_00, F^type, TX1^type);
    else
      TX^type := TX1^type;
-     TX^code := TX^tam.genOp(F1^code,TX1^code,OPMUL^code);
+     TX^code := F^code + TX1^code + OPMUL^code;
    end
  end
 }
@@ -326,7 +454,7 @@ OPMUL -> mult #gen;
 #gen {
  do
    OPMUL^type := new DTYPE("entier", 1);
-   OPMUL^code := OPUN^tam.genOpMul();
+   OPMUL^code := OPUN^machine.genOpMul();
  end
 }
 
@@ -334,7 +462,7 @@ OPMUL -> div #gen;
 #gen {
  do
    OPMUL^type := new DTYPE("entier", 1);
-   OPMUL^code := OPUN^tam.genOpDiv();
+   OPMUL^code := OPUN^machine.genOpDiv();
  end
 }
 
@@ -342,7 +470,7 @@ OPMUL -> mod #gen;
 #gen {
  do
    OPMUL^type := new DTYPE("entier", 1);
-   OPMUL^code := OPUN^tam.genOpMod();
+   OPMUL^code := OPUN^machine.genOpMod();
  end
 }
 
@@ -350,7 +478,7 @@ OPMUL -> et #gen;
 #gen {
  do
    OPMUL^type := new DTYPE("booleen", 1);
-   OPMUL^code := OPUN^tam.genOpEt();
+   OPMUL^code := OPUN^machine.genOpEt();
  end
 }
 
@@ -361,7 +489,7 @@ F -> entier #gen;
 #gen {
  do
    F^type := new DTYPE("entier", 1);
-   F^code := F^tam.genCst(entier^txt);
+   F^code := F^machine.genCst(entier^txt);
  end
 }
 
@@ -369,7 +497,7 @@ F -> vrai #gen;
 #gen {
  do
    F^type := new DTYPE("booleen", 1);
-   F^code := F^tam.genCst("1");
+   F^code := F^machine.genCst("1");
  end
 }
 
@@ -377,7 +505,7 @@ F -> faux #gen;
 #gen {
  do
    F^type := new DTYPE("booleen", 1);
-   F^code := F^tam.genCst("0");
+   F^code := F^machine.genCst("0");
  end
 }
 
@@ -391,7 +519,7 @@ F ->  OPUN F #gen;
      error(B_00, F1^type, OPUN^type);
    else
      F^type := F1^type;
-     F^code := F^tam.genOp(F1^code,OPUN^code);
+     F^code := F1^code + OPUN^code;
    end
  end
 }
@@ -400,7 +528,7 @@ OPUN -> plus #gen;
 #gen {
  do
    OPUN^type := new DTYPE("entier", 1);
-   OPUN^code := OPUN^tam.genOpPlus();
+   OPUN^code := OPUN^machine.genOpPlus();
  end
 }
 
@@ -408,7 +536,7 @@ OPUN -> moins #gen;
 #gen {
  do
    OPUN^type := new DTYPE("entier", 1);
-   OPUN^code := OPUN^tam.genOpMoins();
+   OPUN^code := OPUN^machine.genOpMoins();
  end
 }
 
@@ -416,7 +544,7 @@ OPUN -> non #gen;
 #gen {
  do
    OPUN^type := new DTYPE("booleen", 1);
-   OPUN^code := OPUN^tam.genOpNon();
+   OPUN^code := OPUN^machine.genOpNon();
  end
 }
 
@@ -424,18 +552,38 @@ OPUN -> non #gen;
 -- null
 -------------------------------------------------------
 F -> null  ;
-F ->  paro E parf ;
+
+F -> this ;
+
+F ->  paro E parf #gen;
+#gen {
+ do
+   F^type := E^type;
+   F^code := E^code;
+ end
+}
 
 -------------------------------------------------------
 -- new
 -------------------------------------------------------
-F -> nouveau  TYPE paro ARGS parf  ;
+-- définir l'erreur d'arguments sur TYPE : AFAIRE
+F -> nouveau TYPE paro ARGS parf #gen;
+#gen {
+ do
+   if then
+     error(B_01, TYPE^type)
+   else
+     F^type := TYPE^type;
+   end
+ end
+}
+
 F ->  ident Q ;
 
 -------------------------------------------------------
 -- Q = qualificateur de variable
 -------------------------------------------------------
-Q ->  ;
+Q ->  #gen;
 
 -------------------------------------------------------
 -- acces attribut
