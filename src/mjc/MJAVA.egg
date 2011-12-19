@@ -241,12 +241,62 @@ OPREL -> neg ;
 -------------------------------------------------------
 -- addition, ...
 -------------------------------------------------------
-ESX ->   OPADD T ESX ;
-ESX ->;
-OPADD -> plus ;
-OPADD -> moins ;
-OPADD -> ou ;
-T ->  F TX ;
+ESX ->   OPADD T ESX #gen;
+#gen {
+ do
+   if ~T^type.compareTo(OPADD^type) then
+     error(B_00, T^type, OPADD^type);
+   elseif ~T^type.compareTo(ESX^type) then
+     error(B_00, T^type, ESX^type);
+   else
+     ESX^type := T^type;
+     ESX^code := ESX^tam.genOp(T^code,ESX^code,OPADD^code);
+   end
+ end
+}
+
+ESX -> #gen;
+#gen {
+ do
+   ESX^code := "";
+ end
+}
+
+OPADD -> plus #gen;
+#gen {
+ do
+   OPADD^type := new DTYPE("entier", 1);
+   OPADD^code := OPADD^tam.genOpAdd();
+ end
+}
+
+OPADD -> moins #gen;
+#gen {
+ do
+   OPADD^type := new DTYPE("entier", 1);
+   OPADD^code := OPADD^tam.genOpMin();
+ end
+}
+
+OPADD -> ou #gen;
+#gen {
+ do
+   OPADD^type := new DTYPE("booleen", 1);
+   OPADD^code := OPADD^tam.genOpOu();
+ end
+}
+
+T ->  F TX #gen;
+#gen {
+ do
+   if ~F^type.compareTo(TX^type) then
+     error(B_00, F^type, TX^type);
+   else
+     T^type := TX^type;
+     T^code := T^tam.genOp(F^code,TX^code);
+   end
+ end
+}
 
 -------------------------------------------------------
 -- multiplication, ...
@@ -259,8 +309,8 @@ TX ->   OPMUL F TX #gen;
    elseif ~F^type.compareTo(TX1^type) then
      error(B_00, F^type, TX1^type);
    else
-     TX^type := F^type;
-     F^code := F^tam.genOp(F1^code,OPUN^code,TX1^code);
+     TX^type := TX1^type;
+     TX^code := TX^tam.genOp(F1^code,TX1^code,OPMUL^code);
    end
  end
 }

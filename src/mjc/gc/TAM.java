@@ -9,8 +9,8 @@ public class TAM extends AbstractMachine {
 }
 
 //genCst(String v)
-//genOp(String codeF, String codeOp) pour les opérateurs unaires
-//genOp(String codeF, String codeOp, String codeFX) pour les opérateurs binaires
+//genOp(String codeF, String codeOp) simple concaténation ?
+//genOp(String codeF, String codeOp, String codeFX) simple concaténation ?
 //genOpPlus()
 //genOpMoins()
 //genOpNon()
@@ -18,3 +18,6 @@ public class TAM extends AbstractMachine {
 //genOpDiv()
 //genOpMod()
 //genOpEt()
+//genOpAdd()
+//genOpMin()
+//genOpOu()
