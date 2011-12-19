@@ -95,11 +95,9 @@ ENTITES -> DEFINTERFACE ENTITES #gen;
 -------------------------------------------------------
 -- definition d'une classe
 -------------------------------------------------------
+-- AFAIRE : #verif pour les implemente
 DEFCLASSE -> classe ident SUPER CORPS ;
-DEFCLASSE -> classe ident etend ident CORPS ;
-DEFCLASSE -> classe ident implemente ident CORPS ;
 DEFINTERFACE -> interface ident SUPER CORPS;
-DEFINTERFACE -> interface ident etend ident CORPS;
 
 -------------------------------------------------------
 -- 1 extends maximum suivi d'un implements maximum
@@ -175,7 +173,7 @@ DEF -> ident paro PARFS parf BLOC  ;
 TYPE -> int #type;
 #type {
  do
-   TYPE^type := new DTYPE("entier", 1);
+   TYPE^type := new DTYPE("entier", 4);
  end
 }
 
@@ -253,7 +251,12 @@ INST-> TYPE ident AFFX pv ;
 -------------------------------------------------------
 -- instruction expression
 -------------------------------------------------------
-INST -> E pv ;
+INST -> E pv #gen;
+#gen {
+ do
+   INST^code := E^code;
+ end
+}
 
 -------------------------------------------------------
 -- bloc d'instructions
@@ -433,7 +436,7 @@ ESX -> #gen;
 OPADD -> plus #gen;
 #gen {
  do
-   OPADD^type := new DTYPE("entier", 1);
+   OPADD^type := new DTYPE("entier", 4);
    OPADD^code := OPADD^machine.genOpAdd();
  end
 }
@@ -441,7 +444,7 @@ OPADD -> plus #gen;
 OPADD -> moins #gen;
 #gen {
  do
-   OPADD^type := new DTYPE("entier", 1);
+   OPADD^type := new DTYPE("entier", 4);
    OPADD^code := OPADD^machine.genOpMin();
  end
 }
@@ -493,7 +496,7 @@ TX -> #gen;
 OPMUL -> mult #gen;
 #gen {
  do
-   OPMUL^type := new DTYPE("entier", 1);
+   OPMUL^type := new DTYPE("entier", 4);
    OPMUL^code := OPUN^machine.genOpMul();
  end
 }
@@ -501,7 +504,7 @@ OPMUL -> mult #gen;
 OPMUL -> div #gen;
 #gen {
  do
-   OPMUL^type := new DTYPE("entier", 1);
+   OPMUL^type := new DTYPE("entier", 4);
    OPMUL^code := OPUN^machine.genOpDiv();
  end
 }
@@ -509,7 +512,7 @@ OPMUL -> div #gen;
 OPMUL -> mod #gen;
 #gen {
  do
-   OPMUL^type := new DTYPE("entier", 1);
+   OPMUL^type := new DTYPE("entier", 4);
    OPMUL^code := OPUN^machine.genOpMod();
  end
 }
@@ -528,7 +531,7 @@ OPMUL -> et #gen;
 F -> entier #gen;
 #gen {
  do
-   F^type := new DTYPE("entier", 1);
+   F^type := new DTYPE("entier", 4);
    F^code := F^machine.genCst(entier^txt);
  end
 }
@@ -567,7 +570,7 @@ F -> OPUN F #gen;
 OPUN -> plus #gen;
 #gen {
  do
-   OPUN^type := new DTYPE("entier", 1);
+   OPUN^type := new DTYPE("entier", 4);
    OPUN^code := OPUN^machine.genOpPlus();
  end
 }
@@ -575,7 +578,7 @@ OPUN -> plus #gen;
 OPUN -> moins #gen;
 #gen {
  do
-   OPUN^type := new DTYPE("entier", 1);
+   OPUN^type := new DTYPE("entier", 4);
    OPUN^code := OPUN^machine.genOpMoins();
  end
 }
@@ -628,9 +631,9 @@ F -> ident Q #gen;
 Q -> #gen;
 
 -------------------------------------------------------
--- acces attribut
+-- acces attribut ou méthode
 -------------------------------------------------------
-Q -> pt ident  Q ;
+Q -> pt ident Q ;
 
 -------------------------------------------------------
 -- arguments d'appel de methode
