@@ -38,7 +38,9 @@ public abstract class AbstractMachine {
 	abstract String genOpSupeg();
 	abstract String genOpEg();
 	abstract String genOpNeg();
-	abstract String genIf(String si, String inst1, String inst2); 
+	abstract String genIf(String si, String inst1, String inst2);
+	abstract String genFin();
+	abstract String genReturn(String expr);
 
 }
 

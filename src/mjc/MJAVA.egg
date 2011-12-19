@@ -60,23 +60,38 @@ global
    machine : AbstractMachine;
    
 #init {
-local
-do
+ do
    machine := PROGRAMME^source.getMachine();
+   ENTITES^machine := machine;
 end
 }
 
 #gen {
-local
-do
-  call machine.writeCode(PROGRAMME^source.getFileName(), "");
-end
+ do
+   call machine.writeCode(PROGRAMME^source.getFileName(), ENTITES^code);
+ end
 }
 
-ENTITES -> ;
-ENTITES -> DEFCLASSE ENTITES  ;
-ENTITES -> DEFINTERFACE ENTITES  ;
+ENTITES -> #gen;
+#gen {
+ do
+   ENTITES^code := ENTITES^machine.genFin();
+ end
+}
 
+ENTITES -> DEFCLASSE ENTITES #gen;
+#gen {
+ do
+   ENTITES^code := DEFCLASSE^code + ENTITES1^code;
+ end
+}
+
+ENTITES -> DEFINTERFACE ENTITES #gen;
+#gen {
+ do
+   ENTITES^code := DEFINTERFACE^code + ENTITES1^code;
+ end
+}
 -------------------------------------------------------
 -- definition d'une classe
 -------------------------------------------------------
@@ -99,14 +114,14 @@ CORPS -> aco DEFS acf ;
 -------------------------------------------------------
 -- les attributs
 -------------------------------------------------------
-DEFS ->  #gen;
+DEFS -> #gen;
 #gen {
  do
    DEFS^code := "";
  end
 }
 
-DEFS ->  DEF DEFS #gen;
+DEFS -> DEF DEFS #gen;
 #gen {
  do
    DEFS^code := DEF^code + DEFS1^code;
@@ -116,7 +131,7 @@ DEFS ->  DEF DEFS #gen;
 -------------------------------------------------------
 -- attribut
 -------------------------------------------------------
-DEF ->  TYPE ident pv  #inf;
+DEF -> TYPE ident pv  #inf;
 #inf {
  local
    i : INFO;
@@ -136,12 +151,12 @@ DEF ->  TYPE ident pv  #inf;
 -------------------------------------------------------
 -- methode (fonction) 
 -------------------------------------------------------
-DEF ->  TYPE ident paro PARFS parf MCORPS  ;
+DEF -> TYPE ident paro PARFS parf MCORPS  ;
 
 -------------------------------------------------------
 -- methode (procedure)
 -------------------------------------------------------
-DEF ->  void ident paro PARFS parf MCORPS  ;
+DEF -> void ident paro PARFS parf MCORPS  ;
 
 -------------------------------------------------------
 -- dans classe ou dans interface
@@ -152,26 +167,26 @@ MCORPS -> BLOC ;
 -------------------------------------------------------
 -- constructeur
 -------------------------------------------------------
-DEF -> ident  paro PARFS parf BLOC  ; 
+DEF -> ident paro PARFS parf BLOC  ; 
 
 -------------------------------------------------------
 -- les types
 -------------------------------------------------------
-TYPE-> int #type;
+TYPE -> int #type;
 #type {
  do
    TYPE^type := new DTYPE("entier", 1);
  end
 }
 
-TYPE-> bool #type;
+TYPE -> bool #type;
 #type {
  do
    TYPE^type := new DTYPE("booleen", 1);
  end
 }
 
-TYPE-> ident #type;
+TYPE -> ident #type;
 #type {
  local
    i : INFO ;
@@ -197,16 +212,16 @@ TYPE-> ident #type;
 -------------------------------------------------------
 -- parametres de methodes
 -------------------------------------------------------
-PARFS ->  ;
-PARFS ->  PARF PARFSX ;
-PARFSX ->  ;
+PARFS -> ;
+PARFS -> PARF PARFSX ;
+PARFSX -> ;
 PARFSX -> virg  PARF  PARFSX ;
-PARF ->  TYPE ident  ;
+PARF -> TYPE ident  ;
 
 -------------------------------------------------------
 -- corps de methode et bloc d'instructions
 -------------------------------------------------------
-BLOC ->  aco INSTS acf  #gen;
+BLOC -> aco INSTS acf #gen;
 #gen {
  do
    BLOC^code := INSTS^code;
@@ -216,14 +231,14 @@ BLOC ->  aco INSTS acf  #gen;
 -------------------------------------------------------
 -- instructions
 -------------------------------------------------------
-INSTS ->  #gen;
+INSTS -> #gen;
 #gen {
  do
    INSTS^code := "";
  end
 }
 
-INSTS ->  INST INSTS #gen;
+INSTS -> INST INSTS #gen;
 #gen {
  do
    INSTS^code := INST^code + INSTS1^code;
@@ -233,22 +248,27 @@ INSTS ->  INST INSTS #gen;
 -------------------------------------------------------
 -- declaration de variable locale avec ou sans init
 -------------------------------------------------------
-INST->  TYPE ident AFFX pv ;
+INST-> TYPE ident AFFX pv ;
 
 -------------------------------------------------------
 -- instruction expression
 -------------------------------------------------------
-INST ->  E pv ;
+INST -> E pv ;
 
 -------------------------------------------------------
 -- bloc d'instructions
 -------------------------------------------------------
-INST ->  BLOC  ;
+INST -> BLOC #gen;
+#gen {
+ do
+   INST^code := BLOC^code;
+ end
+}
 
 -------------------------------------------------------
 -- conditionnelle
 -------------------------------------------------------
-INST ->  si paro E #type parf BLOC SIX #gen;
+INST -> si paro E #type parf BLOC SIX #gen;
 #gen {
  do
    INST^code := INST^machine.genIf(E^code, BLOC^code, SIX^code);
@@ -279,38 +299,58 @@ SIX -> #gen;
 -------------------------------------------------------
 -- return
 -------------------------------------------------------
-INST ->  retour E pv ;
+INST -> retour E pv #gen;
+#gen {
+ do
+   INST^code := INST^machine.genReturn(E^code);
+ end
+}
 
 -------------------------------------------------------
 -- les expressions
 -------------------------------------------------------
-E ->  ER AFFX ;
+E -> ER AFFX #gen;
+#gen {
+ do
+   E^code := ER^code + AFFX^code;
+ end
+}
 
 -------------------------------------------------------
 -- affectation
 -------------------------------------------------------
-AFFX ->  affect ER  ;
+-- AFAIRE
+AFFX -> affect ER #gen;
+#gen {
+ do
+ end
+}
 
-AFFX -> ;
+AFFX -> #gen;
+#gen {
+ do 
+   AFFX^code := "";
+ end
+}
 
 -------------------------------------------------------
 -- relation
 -------------------------------------------------------
-ER ->   ES ERX #gen;
+ER -> ES ERX #gen;
 #gen {
  do
    ER^code := ES^code + ERX^code;
  end
 }
 
-ES ->  T ESX #gen;
+ES -> T ESX #gen;
 #gen {
  do
    ES^code := T^code + ESX^code;
  end
 }
 
-ERX ->  OPREL ES #gen;
+ERX -> OPREL ES #gen;
 #gen {
  do
    ERX^code := ES^code + OPREL^code;
@@ -369,7 +409,7 @@ OPREL -> neg #gen;
 -------------------------------------------------------
 -- addition, ...
 -------------------------------------------------------
-ESX ->   OPADD T ESX #gen;
+ESX -> OPADD T ESX #gen;
 #gen {
  do
    if ~T^type.compareTo(OPADD^type) then
@@ -429,7 +469,7 @@ T ->  F TX #gen;
 -------------------------------------------------------
 -- multiplication, ...
 -------------------------------------------------------
-TX ->   OPMUL F TX #gen;
+TX -> OPMUL F TX #gen;
 #gen {
  do
    if ~F^type.compareTo(OPMUL^type) then
@@ -512,7 +552,7 @@ F -> faux #gen;
 -------------------------------------------------------
 -- unaire
 -------------------------------------------------------
-F ->  OPUN F #gen;
+F -> OPUN F #gen;
 #gen {
  do
    if ~F1^type.compareTo(OPUN^type) then
@@ -553,9 +593,7 @@ OPUN -> non #gen;
 -------------------------------------------------------
 F -> null  ;
 
-F -> this ;
-
-F ->  paro E parf #gen;
+F -> paro E parf #gen;
 #gen {
  do
    F^type := E^type;
@@ -578,22 +616,26 @@ F -> nouveau TYPE paro ARGS parf #gen;
  end
 }
 
-F ->  ident Q ;
+F -> ident Q #gen;
+#gen {
+ do
+ end
+}
 
 -------------------------------------------------------
 -- Q = qualificateur de variable
 -------------------------------------------------------
-Q ->  #gen;
+Q -> #gen;
 
 -------------------------------------------------------
 -- acces attribut
 -------------------------------------------------------
-Q ->  pt ident  Q ;
+Q -> pt ident  Q ;
 
 -------------------------------------------------------
 -- arguments d'appel de methode
 -------------------------------------------------------
-Q ->  paro ARGS parf Q ;
+Q -> paro ARGS parf Q ;
 ARGS ->  E ARGSX  ;
 ARGS -> ;
 ARGSX ->   virg E ARGSX  ;
