@@ -5,8 +5,10 @@ option k=3;
 
 -- les attributs semantiques
 inh source : MJAVASourceFile for PROGRAMME;
--- les terminaux 
+syn type : DTYPE for TYPE;
+syn code : STRING for F;
 
+-- les terminaux 
 space separateur is  "[\r\n\t ]+";     
 space comm is  "\/\/[^\n]*\n";
 sugar paro is  "\(";
@@ -72,66 +74,159 @@ end
 ENTITES -> ;
 ENTITES -> DEFCLASSE ENTITES  ;
 ENTITES -> DEFINTERFACE ENTITES  ;
+
+-------------------------------------------------------
 -- definition d'une classe
+-------------------------------------------------------
 DEFCLASSE -> classe ident SUPER CORPS ;
---DEFCLASSE -> classe ident etend ident CORPS ;
---DEFCLASSE -> classe ident implemente ident CORPS ;
+DEFCLASSE -> classe ident etend ident CORPS ;
+DEFCLASSE -> classe ident implemente ident CORPS ;
 DEFINTERFACE -> interface ident SUPER CORPS;
---DEFINTERFACE -> interface ident etend ident CORPS;
+DEFINTERFACE -> interface ident etend ident CORPS;
+
+-------------------------------------------------------
 -- 1 extends maximum suivi d'un implements maximum
+-------------------------------------------------------
 SUPER -> ETEND IMPL ;
 ETEND -> ;
 ETEND -> etend ident ;
 IMPL -> ;
 IMPL -> implemente ident ;
 CORPS -> aco DEFS acf ;
+
+-------------------------------------------------------
 -- les attributs
+-------------------------------------------------------
 DEFS ->   ;
 DEFS ->  DEF DEFS   ;
+
+-------------------------------------------------------
 -- attribut
+-------------------------------------------------------
 DEF ->  TYPE ident pv  ;
+
+-------------------------------------------------------
 -- methode (fonction) 
+-------------------------------------------------------
 DEF ->  TYPE ident paro PARFS parf MCORPS  ;
+
+-------------------------------------------------------
 -- methode (procedure)
+-------------------------------------------------------
 DEF ->  void ident paro PARFS parf MCORPS  ;
+
+-------------------------------------------------------
 -- dans classe ou dans interface
+-------------------------------------------------------
 MCORPS -> pv ;
 MCORPS -> BLOC ;
+
+-------------------------------------------------------
 -- constructeur
+-------------------------------------------------------
 DEF -> ident  paro PARFS parf BLOC  ; 
+
+-------------------------------------------------------
 -- les types
-TYPE-> int  ;
-TYPE-> bool ;
-TYPE-> ident ;
+-------------------------------------------------------
+TYPE-> int #type;
+#type {
+ do
+   TYPE^type := new DTYPE("entier", 1);
+ end
+}
+
+TYPE-> bool #type;
+#type {
+ do
+   TYPE^type := new DTYPE("booleen", 1);
+ end
+}
+
+TYPE-> ident #type;
+#type {
+ local
+   i : INFO ;
+   it : INFOTYPE;
+   t : DTYPE;
+ do
+   -- rechercher l'ident   
+   i := TYPE^tds.chercherGlobalement(ident^txt);
+   if i = nil then
+     error(B_01, ident^txt);
+   else
+     match i
+       with INFOTYPE then
+         it := i ;
+         TYPE^type :=  it.getType();
+       else
+         error(B_07, ident^txt);
+     end
+   end
+ end
+}
+
+-------------------------------------------------------
 -- parametres de methodes
+-------------------------------------------------------
 PARFS ->  ;
 PARFS ->  PARF PARFSX ;
 PARFSX ->  ;
 PARFSX -> virg  PARF  PARFSX ;
 PARF ->  TYPE ident  ;
+
+-------------------------------------------------------
 -- corps de methode et bloc d'instructions
+-------------------------------------------------------
 BLOC ->  aco INSTS acf  ;
+
+-------------------------------------------------------
 -- instructions
+-------------------------------------------------------
 INSTS ->   ;
 INSTS ->  INST INSTS  ;
+
+-------------------------------------------------------
 -- declaration de variable locale avec ou sans init
+-------------------------------------------------------
 INST->  TYPE ident AFFX pv ;
+
+-------------------------------------------------------
 -- instruction expression
+-------------------------------------------------------
 INST ->  E pv ;
+
+-------------------------------------------------------
 -- bloc d'instructions
+-------------------------------------------------------
 INST ->  BLOC  ;
+
+-------------------------------------------------------
 -- conditionnelle
+-------------------------------------------------------
 INST ->  si paro E parf BLOC SIX ;
 SIX ->   sinon BLOC ;
 SIX ->;
+
+-------------------------------------------------------
 -- return
+-------------------------------------------------------
 INST ->  retour E pv ;
+
+-------------------------------------------------------
 -- les expressions
+-------------------------------------------------------
 E ->  ER AFFX ;
+
+-------------------------------------------------------
 -- affectation
+-------------------------------------------------------
 AFFX ->  affect ER  ;
 AFFX -> ;
+
+-------------------------------------------------------
 -- relation
+-------------------------------------------------------
 ER ->   ES ERX ;
 ES ->  T ESX ;
 ERX ->  OPREL ES ;
@@ -142,40 +237,164 @@ OPREL -> sup ;
 OPREL -> supeg ;
 OPREL -> eg ;
 OPREL -> neg ;
+
+-------------------------------------------------------
 -- addition, ...
+-------------------------------------------------------
 ESX ->   OPADD T ESX ;
 ESX ->;
 OPADD -> plus ;
 OPADD -> moins ;
 OPADD -> ou ;
 T ->  F TX ;
+
+-------------------------------------------------------
 -- multiplication, ...
-TX ->   OPMUL F TX ;
-TX -> ;
-OPMUL -> mult ;
-OPMUL -> div ;
-OPMUL -> mod ;
-OPMUL -> et ;
+-------------------------------------------------------
+TX ->   OPMUL F TX #gen;
+#gen {
+ do
+   if ~F^type.compareTo(OPMUL^type) then
+     error(B_00, F^type, OPMUL^type);
+   elseif ~F^type.compareTo(TX1^type) then
+     error(B_00, F^type, TX1^type);
+   else
+     TX^type := F^type;
+     F^code := F^tam.genOp(F1^code,OPUN^code,TX1^code);
+   end
+ end
+}
+
+TX -> #gen;
+#gen {
+ do
+   TX^code := "";
+ end
+}
+
+OPMUL -> mult #gen;
+#gen {
+ do
+   OPMUL^type := new DTYPE("entier", 1);
+   OPMUL^code := OPUN^tam.genOpMul();
+ end
+}
+
+OPMUL -> div #gen;
+#gen {
+ do
+   OPMUL^type := new DTYPE("entier", 1);
+   OPMUL^code := OPUN^tam.genOpDiv();
+ end
+}
+
+OPMUL -> mod #gen;
+#gen {
+ do
+   OPMUL^type := new DTYPE("entier", 1);
+   OPMUL^code := OPUN^tam.genOpMod();
+ end
+}
+
+OPMUL -> et #gen;
+#gen {
+ do
+   OPMUL^type := new DTYPE("booleen", 1);
+   OPMUL^code := OPUN^tam.genOpEt();
+ end
+}
+
+-------------------------------------------------------
 -- expressions de base
-F -> entier  ;
-F -> vrai  ;
-F -> faux  ;
+-------------------------------------------------------
+F -> entier #gen;
+#gen {
+ do
+   F^type := new DTYPE("entier", 1);
+   F^code := F^tam.genCst(entier^txt);
+ end
+}
+
+F -> vrai #gen;
+#gen {
+ do
+   F^type := new DTYPE("booleen", 1);
+   F^code := F^tam.genCst("1");
+ end
+}
+
+F -> faux #gen;
+#gen {
+ do
+   F^type := new DTYPE("booleen", 1);
+   F^code := F^tam.genCst("0");
+ end
+}
+
+-------------------------------------------------------
 -- unaire
-F ->  OPUN F ;
-OPUN -> plus;
-OPUN -> moins;
-OPUN -> non;
+-------------------------------------------------------
+F ->  OPUN F #gen;
+#gen {
+ do
+   if ~F1^type.compareTo(OPUN^type) then
+     error(B_00, F1^type, OPUN^type);
+   else
+     F^type := F1^type;
+     F^code := F^tam.genOp(F1^code,OPUN^code);
+   end
+ end
+}
+
+OPUN -> plus #gen;
+#gen {
+ do
+   OPUN^type := new DTYPE("entier", 1);
+   OPUN^code := OPUN^tam.genOpPlus();
+ end
+}
+
+OPUN -> moins #gen;
+#gen {
+ do
+   OPUN^type := new DTYPE("entier", 1);
+   OPUN^code := OPUN^tam.genOpMoins();
+ end
+}
+
+OPUN -> non #gen;
+#gen {
+ do
+   OPUN^type := new DTYPE("booleen", 1);
+   OPUN^code := OPUN^tam.genOpNon();
+ end
+}
+
+-------------------------------------------------------
 -- null
+-------------------------------------------------------
 F -> null  ;
 F ->  paro E parf ;
+
+-------------------------------------------------------
 -- new
+-------------------------------------------------------
 F -> nouveau  TYPE paro ARGS parf  ;
 F ->  ident Q ;
+
+-------------------------------------------------------
 -- Q = qualificateur de variable
+-------------------------------------------------------
 Q ->  ;
+
+-------------------------------------------------------
 -- acces attribut
+-------------------------------------------------------
 Q ->  pt ident  Q ;
+
+-------------------------------------------------------
 -- arguments d'appel de methode
+-------------------------------------------------------
 Q ->  paro ARGS parf Q ;
 ARGS ->  E ARGSX  ;
 ARGS -> ;
