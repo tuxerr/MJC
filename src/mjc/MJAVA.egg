@@ -5,15 +5,15 @@ option k=3;
 
 -- les attributs semantiques
 inh source : MJAVASourceFile for PROGRAMME;
-syn type : DTYPE for TYPE, OPUN, OPMUL, OPADD, T, TX, ESX, F;
+syn type : DTYPE for TYPE, OPUN, OPMUL, OPADD, E, ER, T, TX, ESX, F, Q;
 syn code : STRING for F, OPUN, OPMUL, OPADD, T, TX, ESX, INST, INSTS, BLOC, DEF, DEFS;
 inh tds : TDS for DEF;
 inh machine : ABSTRACTMACHINE for F, OPUN, OPMUL, OPADD, INST;
 inh hident : STRING for Q;
 inh htds : TDS for Q;
 syn est_adresse : BOOLEAN for Q, F, T, TX, ES, ESX, ER, ERX;
-syn adr : INTEGER for INST, INSTS, BLOC;
-inh hadr : INTEGER for INSTS;
+syn adr : INTEGER for INST, INSTS;
+inh hadr : INTEGER for INST, INSTS, BLOC;
 
 -- les terminaux 
 space separateur is  "[\r\n\t ]+";     
@@ -224,12 +224,16 @@ PARF -> TYPE ident  ;
 -------------------------------------------------------
 -- corps de methode et bloc d'instructions
 -------------------------------------------------------
---AFAIRE
-BLOC -> aco INSTS acf #gen;
+BLOC -> aco #tds INSTS acf #gen;
+#tds {
+ do
+   t :=  new TDS(BLOC^tds);
+   INSTS^tds := t;
+ end
+}
 #gen {
  do
-   BLOC^adr ???
-   BLOC^code := INSTS^code;
+   BLOC^code := INSTS^code + BLOC^machine.genFree(INSTS^adr - BLOC^hadr);
  end
 }
 
@@ -293,11 +297,10 @@ INST -> E pv #gen;
 -------------------------------------------------------
 -- bloc d'instructions
 -------------------------------------------------------
---AFAIRE
 INST -> BLOC #gen;
 #gen {
  do
-   INST^adr := ???
+   BLOC^hadr := INST^adr
    INST^code := BLOC^code;
  end
 }
@@ -308,6 +311,8 @@ INST -> BLOC #gen;
 INST -> si paro E #type parf BLOC SIX #gen;
 #gen {
  do
+   BLOC^hadr := INST^hadr;
+   SIX^hadr := INST^hadr; 
    INST^adr := INST^hadr;
    INST^code := INST^machine.genIf(E^code, BLOC^code, SIX^code);
  end
@@ -323,6 +328,7 @@ end
 SIX -> sinon BLOC #gen;
 #gen {
  do
+   BLOC^hadr := SIX^hadr;
    SIX^code := BLOC^code;
  end
 }
@@ -349,21 +355,23 @@ INST -> retour E pv #gen;
 -------------------------------------------------------
 -- les expressions
 -------------------------------------------------------
---AFAIRE
 E -> ER AFFX #gen;
 #gen {
  local
    i : INFO;
  do
    if ER^est_adresse then
-     i := E^tds.chercherGlobalement(ER^txt);
+     if ~AFFX^type.compareTo(ER^type)) then
+       error(B_00, ER^type, AFFX^type);
+     else
+       E^type := ER^type
+       E^code := AFFX^code + ER^code + E^machine.genWriteMem(ER^type.getTaille());
    else
-     if ~AFFX^type.compareTo(new DTYPE("null", 1)) then
+     if AFFX^type.compareTo(new DTYPE("null", 1)) then
        error(B_10);
      else
        E^type := ER^type;
        E^code := ER^code;
-     end
    end
  end
 }
@@ -372,12 +380,11 @@ E -> ER AFFX #gen;
 -------------------------------------------------------
 -- affectation
 -------------------------------------------------------
--- AFAIRE
 AFFX -> affect ER #gen;
 #gen {
  do
    AFFX^type := ER^type;
-   AFFX^code := 
+   AFFX^code := ER^code;
  end
 }
 
@@ -392,6 +399,7 @@ AFFX -> #gen;
 -------------------------------------------------------
 -- relation
 -------------------------------------------------------
+--AFAIRE
 ER -> ES ERX #gen;
 #gen {
  do
@@ -400,6 +408,7 @@ ER -> ES ERX #gen;
    else
      ER^est_adresse := ES^est_adresse;
    end
+   ER^type := ES^type;
    ER^code := ES^code + ERX^code;
  end
 }
@@ -412,6 +421,7 @@ ES -> T ESX #gen;
    else
      ES^est_adresse := T^est_adresse;
    end
+   ES^type := T^type;
    ES^code := T^code + ESX^code;
  end
 }
