@@ -1,5 +1,7 @@
 package mjc.gc;
 
+import java.util.ArrayList;
+
 public class ARGS extends ArrayList<DTYPE> {
 
     public String toString() {
@@ -16,6 +18,10 @@ public class ARGS extends ArrayList<DTYPE> {
             taille+=type.getTaille();
         }
         return taille;
+    }
+
+    public boolean equals(ARGS a) {
+        return this.equals(a);
     }
 
 }

@@ -7,6 +7,7 @@ public class CLASSE extends DTYPE {
 
     // une CLASSE peut aussi représenter une interface, dans ce cas le boolean est à false
     private boolean isAClass;
+    private StringBuffer buf;
 
     public CLASSE(String nom,boolean isClass) {
         if(isClass) {
@@ -15,15 +16,36 @@ public class CLASSE extends DTYPE {
             super("interface",0);
         }
         this.nom=nom;
-        this.isClass=isClass;
+        this.isAClass=isClass;
+        
     }
 
     public boolean isClass() {
         return isAClass;
     }
 
-    public boolean implementsCorrectly(CLASSE cl2) {
+    public boolean implementsCorrectly(CLASSE inter) {
+        boolean implementCorrect=true;
+        buf = new StringBuffer();
+
+        if(inter.isClass()) {
+            buf.append(inter);
+            buf.append("is a class and not an interface");
+            return false;
+        }
+
+        for ( METHODE m : methodes ) {
+            if(!inter.methodeExists(m)) {
+                buf.append("the " + m + "method is not implemented in the interface " + inter);
+                implementCorrect=false;
+            }
+        }
         
+        return implementCorrect;
+    }
+
+    public String implementGetError() {
+        buf.toString();
     }
 
     public String getTaille() {
@@ -31,7 +53,7 @@ public class CLASSE extends DTYPE {
     }
 
     public String toString() {
-        return super.toString() + " de nom : " + nom + "d'attributs " + attributs + " et de méthodes " + methodes;
+        return super.toString() + nom;
     }
 
     public void addMethode(METHODE meth) {

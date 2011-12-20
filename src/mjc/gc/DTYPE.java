@@ -1,4 +1,4 @@
-package bloc.lib;
+package mjc.gc;
 
 public class DTYPE {
     // inutilisable avec EGG
@@ -7,16 +7,15 @@ public class DTYPE {
     // final private DTYPE booleen = new DTYPE("booleen",1);
     // public DTYPE getTypeBooleen(){return booleen;}
     protected int taille;
+    protected String nom;
 
     public int getTaille() {
         return taille;
     }
 
-    public int setTaille(int t) {
+    public void setTaille(int t) {
         taille = t;
     }
-
-    protected String nom;
 
     public String getNom() {
         return nom;
@@ -27,8 +26,8 @@ public class DTYPE {
         taille = t;
     }
 
-    public boolean compareTo(DTYPE autre) {
-        return nom.equals(autre.nom);
+    public boolean equals(DTYPE autre) {
+        return nom.equals(autre.nom) & taille==autre.getTaille();
     }
 
     public String toString() {

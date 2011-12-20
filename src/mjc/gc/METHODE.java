@@ -11,6 +11,24 @@ public class METHODE {
         this.args=args;
     }
 
+    public String getNom() {
+        return nom;
+    }
+
+    public DTYPE getReturnType() {
+        return DTYPE;
+    }
+
+    public ARGS getArgs() {
+        return args;
+    }
+
+    public boolean equals(METHODE m) {
+        return nom.equals(m.getNom()) & 
+            returnType.equals(m.getReturnType()) & 
+            args.equals(m.getArgs());
+    }
+
     public String toString() {
         return "Méthode : (" + returnType + ") " + nom + "( " + args + " )";
     }
