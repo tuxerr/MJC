@@ -41,6 +41,8 @@ public abstract class AbstractMachine {
 	abstract String genIf(String si, String inst1, String inst2);
 	abstract String genFin();
 	abstract String genReturn(String expr);
+	abstract String genDecl(String ident, INFOVAR iv, String code);
+	abstract STring genAdr(int dep, int reg);
 
 }
 

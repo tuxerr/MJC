@@ -8,7 +8,10 @@ inh source : MJAVASourceFile for PROGRAMME;
 syn type : DTYPE for TYPE, OPUN, OPMUL, OPADD, T, TX, ESX, F;
 syn code : STRING for F, OPUN, OPMUL, OPADD, T, TX, ESX, INST, INSTS, BLOC, DEF, DEFS;
 inh tds : TDS for DEF;
-inh machine : AbstractMachine for F, OPUN, OPMUL, OPADD, INST;
+inh machine : ABSTRACTMACHINE for F, OPUN, OPMUL, OPADD, INST;
+inh hident : STRING for Q;
+inh htds : TDS for Q;
+syn est_adresse : BOOLEAN for Q, F, T, TX, ES, ESX, ER, ERX;
 
 -- les terminaux 
 space separateur is  "[\r\n\t ]+";     
@@ -246,7 +249,24 @@ INSTS -> INST INSTS #gen;
 -------------------------------------------------------
 -- declaration de variable locale avec ou sans init
 -------------------------------------------------------
-INST-> TYPE ident AFFX pv ;
+INST-> TYPE ident AFFX pv #gen;
+#gen {
+ local
+   i : INFO;
+   iv : INFOVAR;
+ do
+   i := INST^tds.chercherLobalement(ident^txt);
+   if i /= nil then
+     error(B_06, ident^txt);
+   elseif ~AFFX^type.compareTo(new DTYPE("null", 1))&~TYPE^type.compareTo(AFFX^type) then
+     error(B_00, TYPE^type, AFFX^type);
+   else
+     iv := new INFOVAR(TYPE^type, INST^hadr, "LB");
+     call INST^tds.inserer(ident^txt, iv);
+     INST^adr := INST^hadr + TYPE^type.getTaille();
+     INST^code := INST^tam.genDecl(ident^txt, iv, AFFX^code);
+ end
+}
 
 -------------------------------------------------------
 -- instruction expression
@@ -315,6 +335,15 @@ INST -> retour E pv #gen;
 E -> ER AFFX #gen;
 #gen {
  do
+   if AFFX^type.compareTo(new DTYPE("null", 1)) then
+     E^type := ER^type;
+   -- cas affectation : on doit affecter une variable
+   elseif ~ER^est_adresse then
+     error(B_09, ER);
+   --vérification de type
+   elseif ~AFFX^type.compareTo(ER^type) then
+     error(B_00, ER^type, AFFX^type);
+   end
    E^code := ER^code + AFFX^code;
  end
 }
@@ -326,12 +355,15 @@ E -> ER AFFX #gen;
 AFFX -> affect ER #gen;
 #gen {
  do
+   AFFX^type := ER^type;
+   AFFX^code := 
  end
 }
 
 AFFX -> #gen;
 #gen {
- do 
+ do
+   AFFX^type := new DTYPE("null", 1);
    AFFX^code := "";
  end
 }
@@ -342,6 +374,11 @@ AFFX -> #gen;
 ER -> ES ERX #gen;
 #gen {
  do
+   if ~ERX^est_adresse then
+     ER^est_adresse := false;
+   else
+     ER^est_adresse := ES^est_adresse;
+   end
    ER^code := ES^code + ERX^code;
  end
 }
@@ -349,6 +386,11 @@ ER -> ES ERX #gen;
 ES -> T ESX #gen;
 #gen {
  do
+   if ~ESX^est_adresse then
+     ES^est_adresse := false;
+   else
+     ES^est_adresse := T^est_adresse;
+   end
    ES^code := T^code + ESX^code;
  end
 }
@@ -356,6 +398,7 @@ ES -> T ESX #gen;
 ERX -> OPREL ES #gen;
 #gen {
  do
+   ERX^est_adresse := false;
    ERX^code := ES^code + OPREL^code;
  end
 }
@@ -363,6 +406,7 @@ ERX -> OPREL ES #gen;
 ERX -> #gen;
 #gen {
  do
+   ERX^est_adresse := true;
    ERX^code := "";
  end
 }
@@ -420,6 +464,7 @@ ESX -> OPADD T ESX #gen;
    elseif ~T^type.compareTo(ESX^type) then
      error(B_00, T^type, ESX1^type);
    else
+     ESX^est_adresse := false;
      ESX^type := T^type;
      ESX^code := T^code + ESX1^code + OPADD^code;
    end
@@ -429,6 +474,7 @@ ESX -> OPADD T ESX #gen;
 ESX -> #gen;
 #gen {
  do
+   ESX^est_adresse := true;
    ESX^code := "";
  end
 }
@@ -463,6 +509,11 @@ T ->  F TX #gen;
    if ~F^type.compareTo(TX^type) then
      error(B_00, F^type, TX^type);
    else
+     if ~TX^est_adresse then
+       T^est_adresse := false;
+     else
+       T^est_adresse := F^est_adresse;
+     end
      T^type := TX^type;
      T^code := T^machine.genOp(F^code,TX^code);
    end
@@ -480,6 +531,7 @@ TX -> OPMUL F TX #gen;
    elseif ~F^type.compareTo(TX1^type) then
      error(B_00, F^type, TX1^type);
    else
+     TX^est_adresse := false;
      TX^type := TX1^type;
      TX^code := F^code + TX1^code + OPMUL^code;
    end
@@ -489,6 +541,7 @@ TX -> OPMUL F TX #gen;
 TX -> #gen;
 #gen {
  do
+   TX^est_adresse := true;
    TX^code := "";
  end
 }
@@ -531,6 +584,7 @@ OPMUL -> et #gen;
 F -> entier #gen;
 #gen {
  do
+   F^est_adresse := false;
    F^type := new DTYPE("entier", 4);
    F^code := F^machine.genCst(entier^txt);
  end
@@ -539,6 +593,7 @@ F -> entier #gen;
 F -> vrai #gen;
 #gen {
  do
+   F^est_adresse := false;
    F^type := new DTYPE("booleen", 1);
    F^code := F^machine.genCst("1");
  end
@@ -547,6 +602,7 @@ F -> vrai #gen;
 F -> faux #gen;
 #gen {
  do
+   F^est_adresse := false;
    F^type := new DTYPE("booleen", 1);
    F^code := F^machine.genCst("0");
  end
@@ -622,6 +678,11 @@ F -> nouveau TYPE paro ARGS parf #gen;
 F -> ident Q #gen;
 #gen {
  do
+   Q^hident := ident^txt;
+   Q^htds := F^tds;
+   F^type := Q^type;
+   F^code := Q^code;
+   F^est_adresse := Q^est_adresse;
  end
 }
 
@@ -629,6 +690,28 @@ F -> ident Q #gen;
 -- Q = qualificateur de variable
 -------------------------------------------------------
 Q -> #gen;
+#gen{
+ local 
+   iv : INFOVAR ;
+   t : DTYPE;
+   i:INFO;
+ do
+   i := Q^htds.chercherGlobalement(Q^hident);
+   if i = nil then
+     error(B_07, ident^txt);
+   end
+   match i
+   with INFOVAR then
+     iv := i;
+     t := iv.getType();
+     Q^type := t;
+     Q^est_adresse := true;
+     Q^code :=Q^machine.genAdr(iv.getDep(), iv.getReg());
+   else
+     error(B_08, ident^txt);
+   end
+ end
+}
 
 -------------------------------------------------------
 -- acces attribut ou méthode
