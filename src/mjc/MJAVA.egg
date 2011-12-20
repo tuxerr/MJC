@@ -12,6 +12,8 @@ inh machine : ABSTRACTMACHINE for F, OPUN, OPMUL, OPADD, INST;
 inh hident : STRING for Q;
 inh htds : TDS for Q;
 syn est_adresse : BOOLEAN for Q, F, T, TX, ES, ESX, ER, ERX;
+syn adr : INTEGER for INST, INSTS, BLOC;
+inh hadr : INTEGER for INSTS;
 
 -- les terminaux 
 space separateur is  "[\r\n\t ]+";     
@@ -222,9 +224,11 @@ PARF -> TYPE ident  ;
 -------------------------------------------------------
 -- corps de methode et bloc d'instructions
 -------------------------------------------------------
+--AFAIRE
 BLOC -> aco INSTS acf #gen;
 #gen {
  do
+   BLOC^adr ???
    BLOC^code := INSTS^code;
  end
 }
@@ -235,13 +239,20 @@ BLOC -> aco INSTS acf #gen;
 INSTS -> #gen;
 #gen {
  do
+   INSTS^adr := INSTS^hadr;
    INSTS^code := "";
  end
 }
 
-INSTS -> INST INSTS #gen;
+INSTS -> INST #adr INSTS #gen;
+#adr {
+ do
+   INSTS1^hadr := INST^adr;
+ end
+}
 #gen {
  do
+   INSTS^adr := INSTS1^adr;
    INSTS^code := INST^code + INSTS1^code;
  end
 }
@@ -255,7 +266,7 @@ INST-> TYPE ident AFFX pv #gen;
    i : INFO;
    iv : INFOVAR;
  do
-   i := INST^tds.chercherLobalement(ident^txt);
+   i := INST^tds.chercherLocalement(ident^txt);
    if i /= nil then
      error(B_06, ident^txt);
    elseif ~AFFX^type.compareTo(new DTYPE("null", 1))&~TYPE^type.compareTo(AFFX^type) then
@@ -274,6 +285,7 @@ INST-> TYPE ident AFFX pv #gen;
 INST -> E pv #gen;
 #gen {
  do
+   INST^adr := INST^hadr
    INST^code := E^code;
  end
 }
@@ -281,9 +293,11 @@ INST -> E pv #gen;
 -------------------------------------------------------
 -- bloc d'instructions
 -------------------------------------------------------
+--AFAIRE
 INST -> BLOC #gen;
 #gen {
  do
+   INST^adr := ???
    INST^code := BLOC^code;
  end
 }
@@ -294,6 +308,7 @@ INST -> BLOC #gen;
 INST -> si paro E #type parf BLOC SIX #gen;
 #gen {
  do
+   INST^adr := INST^hadr;
    INST^code := INST^machine.genIf(E^code, BLOC^code, SIX^code);
  end
 }
@@ -322,9 +337,11 @@ SIX -> #gen;
 -------------------------------------------------------
 -- return
 -------------------------------------------------------
+--AFAIRE
 INST -> retour E pv #gen;
 #gen {
  do
+   INST^adr := ????
    INST^code := INST^machine.genReturn(E^code);
  end
 }
@@ -332,21 +349,25 @@ INST -> retour E pv #gen;
 -------------------------------------------------------
 -- les expressions
 -------------------------------------------------------
+--AFAIRE
 E -> ER AFFX #gen;
 #gen {
+ local
+   i : INFO;
  do
-   if AFFX^type.compareTo(new DTYPE("null", 1)) then
-     E^type := ER^type;
-   -- cas affectation : on doit affecter une variable
-   elseif ~ER^est_adresse then
-     error(B_09, ER);
-   --vérification de type
-   elseif ~AFFX^type.compareTo(ER^type) then
-     error(B_00, ER^type, AFFX^type);
+   if ER^est_adresse then
+     i := E^tds.chercherGlobalement(ER^txt);
+   else
+     if ~AFFX^type.compareTo(new DTYPE("null", 1)) then
+       error(B_10);
+     else
+       E^type := ER^type;
+       E^code := ER^code;
+     end
    end
-   E^code := ER^code + AFFX^code;
  end
 }
+
 
 -------------------------------------------------------
 -- affectation
@@ -694,7 +715,7 @@ Q -> #gen;
  local 
    iv : INFOVAR ;
    t : DTYPE;
-   i:INFO;
+   i : INFO;
  do
    i := Q^htds.chercherGlobalement(Q^hident);
    if i = nil then
