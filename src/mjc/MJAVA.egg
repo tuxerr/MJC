@@ -10,12 +10,11 @@ syn code : STRING for ENTITES, DEFCLASSE, DEFINTERFACE, BLOC, INSTS, INST, AFFX,
 inh tds : TDS for ;
 inh machine : ABSTRACTMACHINE for ;
 inh hident : STRING for Q;
-inh htds : TDS for Q;
 syn est_adresse : BOOLEAN for E, ER, ERX, ES, ESX, T, TX, F, Q;
-syn adr : INTEGER for DEF, DEFS, INST, INSTS;
-inh hadr : INTEGER for DEF, DEFS, INST, INSTS, BLOC;
-syn ext : BOOLEAN for ETEND, SUPER;
-syn imp : BOOLEAN for IMPL, SUPER;
+syn adr : INTEGER for ENTITES, DEF, DEFS, INST, INSTS;
+inh hadr : INTEGER for ENTITES, DEFCLASSE, DEFINTERFACE, DEF, DEFS, INST, INSTS, BLOC;
+syn ext : STRING for ETEND, SUPER;
+syn imp : STRING for IMPL, SUPER;
 
 -- les terminaux 
 space separateur is  "[\r\n\t ]+";     
@@ -103,9 +102,39 @@ ENTITES -> DEFINTERFACE ENTITES #gen;
 -------------------------------------------------------
 -- definition d'une classe
 -------------------------------------------------------
--- AFAIRE : #verif pour les implemente
-DEFCLASSE -> classe ident SUPER CORPS ;
-DEFINTERFACE -> interface ident SUPER CORPS;
+DEFCLASSE -> classe ident SUPER CORPS #gen;
+#gen {
+ local
+   i : INFO
+   ic : INFOCLASSE
+   c : CLASSE
+ do
+   i := DEF^tds.chercherGlobalement(ident^txt);
+   if i /= nil then
+     error(B_02, ident^txt);
+   else
+   c := new CLASSE(ident^txt);
+   ic := new INFOCLASSE(c);
+   call DEFCLASSE^tds.inserer(ident^txt, ic);
+ end
+}
+
+DEFINTERFACE -> interface ident SUPER CORPS #gen;
+#gen {
+ local
+   i : INFO
+   ic : INFOCLASSE
+   c : INTERFACE
+ do
+   i := DEF^tds.chercherGlobalement(ident^txt);
+   if i /= nil then
+     error(B_02, ident^txt);
+   else
+   c := new INTERFACE(ident^txt);
+   ic := new INFOCLASSE(c);
+   call DEFINTERFACE^tds.inserer(ident^txt, ic);
+ end
+}
 
 -------------------------------------------------------
 -- 1 extends maximum suivi d'un implements maximum
@@ -121,32 +150,37 @@ SUPER -> ETEND IMPL #gen;
 ETEND -> #gen;
 #gen {
  do
-   ETEND^ext := false;
+   ETEND^ext := "";
  end
 }
 
 ETEND -> etend ident #gen;
 #gen {
  do
-   ETEND^ext := true;
+   ETEND^ext := ident^txt;
  end
 }
 
 IMPL -> #gen;
 #gen {
  do
-   IMPL^imp := false;
+   IMPL^imp := "";
  end
 }
 
 IMPL -> implemente ident #gen;
 #gen {
  do
-   IMPL^imp := true;
+   IMPL^imp := ident^txt;
  end
 }
 
-CORPS -> aco DEFS acf #gen;
+CORPS -> aco #tds DEFS acf #gen;
+#tds {
+ do
+   INSTS^tds := new TDS(CORPS^tds);
+ end
+}
 #gen {
  do
    CORPS^code := DEFS^code;
@@ -187,7 +221,6 @@ DEF -> TYPE ident pv  #inf;
  local
    i : INFO;
    iv : INFOVAR;
-   t : DTYPE;
  do
     i := DEF^tds.chercherGlobalement(ident^txt);
     if i /= nil then
@@ -282,6 +315,7 @@ BLOC -> aco #tds INSTS acf #gen;
 }
 #gen {
  do
+   --libérer les variables locales
    BLOC^code := INSTS^code + BLOC^machine.genFree(INSTS^adr - BLOC^hadr);
  end
 }
@@ -786,12 +820,10 @@ F -> ident #tra Q #gen;
 #tra {
  do
    Q^hident := ident^txt;
-   Q^htds := F^tds;
  end
 }
 #gen {
  do
-
    F^est_adresse := Q^est_adresse;
    F^type := Q^type;
    F^code := Q^code;
@@ -805,7 +837,6 @@ Q -> #gen;
 #gen{
  local 
    iv : INFOVAR ;
-   t : DTYPE;
    i : INFO;
  do
    i := Q^htds.chercherGlobalement(Q^hident);
@@ -815,8 +846,7 @@ Q -> #gen;
    match i
    with INFOVAR then
      iv := i;
-     t := iv.getType();
-     Q^type := t;
+     Q^type := iv.getType();
      Q^est_adresse := true;
      Q^code :=Q^machine.genAdr(iv.getDep(), iv.getReg());
    else
