@@ -543,42 +543,42 @@ ERX -> #gen;
 OPREL -> inf #gen;
 #gen {
  do
-   OPREL^code := OPREL^machine.genOpInf();
+   OPREL^code := OPREL^machine.genOpLss();
  end
 }
 
 OPREL -> infeg #gen;
 #gen {
  do
-   OPREL^code := OPREL^machine.genOpInfeg();
+   OPREL^code := OPREL^machine.genOpLeq();
  end
 }
 
 OPREL -> sup #gen;
 #gen {
  do
-   OPREL^code := OPREL^machine.genOpSup();
+   OPREL^code := OPREL^machine.genOpGtr();
  end
 }
 
 OPREL -> supeg #gen;
 #gen {
  do
-   OPREL^code := OPREL^machine.genSupeg();
+   OPREL^code := OPREL^machine.genOpGeq();
  end
 }
 
 OPREL -> eg #gen;
 #gen {
  do
-   OPREL^code := OPREL^machine.genEg();
+   OPREL^code := OPREL^machine.genOpEq();
  end
 }
 
 OPREL -> neg #gen;
 #gen {
  do
-   OPREL^code := OPREL^machine.genNeg();
+   OPREL^code := OPREL^machine.genOpNeq();
  end
 }
 
@@ -621,7 +621,7 @@ OPADD -> moins #gen;
 #gen {
  do
    OPADD^type := new DTYPE("entier", 4);
-   OPADD^code := OPADD^machine.genOpMin();
+   OPADD^code := OPADD^machine.genOpSub();
  end
 }
 
@@ -629,7 +629,7 @@ OPADD -> ou #gen;
 #gen {
  do
    OPADD^type := new DTYPE("booleen", 1);
-   OPADD^code := OPADD^machine.genOpOu();
+   OPADD^code := OPADD^machine.genOpOr();
  end
 }
 
@@ -705,7 +705,7 @@ OPMUL -> et #gen;
 #gen {
  do
    OPMUL^type := new DTYPE("booleen", 1);
-   OPMUL^code := OPUN^machine.genOpEt();
+   OPMUL^code := OPUN^machine.genOpAnd();
  end
 }
 

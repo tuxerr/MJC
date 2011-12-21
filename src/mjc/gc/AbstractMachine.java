@@ -22,24 +22,24 @@ public abstract class AbstractMachine {
     }
 
     abstract String genCst(String v);
+
     abstract String genOpPlus();
     abstract String genOpMoins();
-
-
-    abstract String genOpNon();
+    abstract String genOpAdd();
+    abstract String genOpSub();
     abstract String genOpMul();
     abstract String genOpDiv();
     abstract String genOpMod();
-    abstract String genOpEt();
-    abstract String genOpAdd();
-    abstract String genOpMin();
-    abstract String genOpOu();
-    abstract String genOpInf();
-    abstract String genOpInfeg();
-    abstract String genOpSup();
-    abstract String genOpSupeg();
-    abstract String genOpEg();
+    abstract String genOpEq();
+    abstract String genOpNeq();
+    abstract String genOpLss();
+    abstract String genOpLeq();
+    abstract String genOpGtr();
+    abstract String genOpGeq();
     abstract String genOpNeg();
+    abstract String genOpOr();
+    abstract String genOpAnd();
+
     abstract String genIf(String si, String inst1, String inst2);
     abstract String genFin();
     abstract String genReturn(String expr);

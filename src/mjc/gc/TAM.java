@@ -89,4 +89,61 @@ public class TAM {
   public String genComment(String c){
     return "; " + c + "\n";
   }
+
+  public genOpPlus(){
+    return "\tSUBR IAdd";
+  }
+
+  public genOpMoins(){
+    return "\tSUBR ISub";
+  }
+
+  public genOpMul(){
+    return "\tSUBR IMul";
+  }
+
+  public genOpDiv(){
+    return "\tSUBR IDiv";
+  }
+
+  public genOpMod(){
+    return "\tSUBR IMod";
+  }
+
+  public genOpEq(){
+    return "\tSUBR IEq";
+  }
+
+  public genOpNeq(){
+    return "\tSUBR INeq";
+  }
+
+  public genOpLss(){
+    return "\tSUBR ILss";
+  }
+
+  public genOpLeq(){
+    return "\tSUBR ILeq";
+  }
+
+  public genOpGtr(){
+    return "\tSUBR IGtr";
+  }
+
+  public genOpGeq(){
+    return "\tSUBR IGeq";
+  }
+
+  public genOpNeg(){
+    return "\tSUBR BNeg";
+  }
+
+  public genOpOr(){
+    return "\tSUBR BOr";
+  }
+
+  public genOpAnd(){
+    return "\tSUBR BAnd";
+  }
+
 }
