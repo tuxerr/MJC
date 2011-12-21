@@ -1,7 +1,7 @@
 //--------------------------------------------------
 // INFO la classe representant une info de TDS
 //--------------------------------------------------
-package bloc.lib;
+package mjc.gc;
 
 public class INFO {
 	// le type

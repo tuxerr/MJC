@@ -1,5 +1,4 @@
-package bloc.lib;
-
+package mjc.gc;
 
 public class INFOTYPE extends INFO {
 

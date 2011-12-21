@@ -1,4 +1,4 @@
-package bloc.lib;
+package mjc.gc;
 
 public class INFOVAR extends INFO {
 	// le deplacement

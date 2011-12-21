@@ -1,4 +1,4 @@
-package bloc.lib;
+package mjc.gc;
 
 public class ATTRIBUT {
     private String nom;
@@ -24,7 +24,7 @@ public class ATTRIBUT {
         this.dep = dep;
     }
 
-    public boolean equals(METHODE m) {
+    public boolean equals(ATTRIBUT m) {
         return nom.equals(m.getNom()) & 
             type.equals(m.getType());
     }

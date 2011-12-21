@@ -16,7 +16,7 @@ public class METHODE {
     }
 
     public DTYPE getReturnType() {
-        return DTYPE;
+        return returnType;
     }
 
     public ARGS getArgs() {

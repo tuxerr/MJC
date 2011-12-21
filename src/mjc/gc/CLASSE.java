@@ -5,37 +5,19 @@ public class CLASSE extends DTYPE {
     private LATTRIBUTS attributs;
     private String nom;
 
-    // une CLASSE peut aussi représenter une interface, dans ce cas le boolean est à false
-    private boolean isAClass;
     private StringBuffer buf;
 
-    public CLASSE(String nom,boolean isClass) {
-        if(isClass) {
-            super("class",0);
-        } else {
-            super("interface",0);
-        }
+    public CLASSE(String nom) {
+        super("class",0);
         this.nom=nom;
-        this.isAClass=isClass;
-        
     }
 
-    public boolean isClass() {
-        return isAClass;
-    }
-
-    public boolean implementsCorrectly(CLASSE inter) {
+    public boolean implementsCorrectly(INTERFACE inter) {
         boolean implementCorrect=true;
         buf = new StringBuffer();
 
-        if(inter.isClass()) {
-            buf.append(inter);
-            buf.append("is a class and not an interface");
-            return false;
-        }
-
         for ( METHODE m : methodes ) {
-            if(!inter.methodeExists(m)) {
+            if(!inter.getMethodes().methodeExists(m)) {
                 buf.append("the " + m + "method is not implemented in the interface " + inter);
                 implementCorrect=false;
             }
@@ -45,11 +27,7 @@ public class CLASSE extends DTYPE {
     }
 
     public String implementGetError() {
-        buf.toString();
-    }
-
-    public String getTaille() {
-        return attributs.getTaille();
+        return buf.toString();
     }
 
     public String toString() {
@@ -66,6 +44,7 @@ public class CLASSE extends DTYPE {
     
     public void addAttribut(ATTRIBUT attr) {
         attributs.add(attr);
+        super.setTaille(super.getTaille()+attr.getType().getTaille());
     }
 
     public LATTRIBUTS getAttributs() {
