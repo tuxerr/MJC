@@ -10,6 +10,8 @@ public class CLASSE extends DTYPE {
     public CLASSE(String nom) {
         super("class",0);
         this.nom=nom;
+        methodes = new LMETHODES();
+        attributs = new LATTRIBUTS();
     }
 
     public boolean implementsCorrectly(INTERFACE inter) {
