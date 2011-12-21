@@ -14,6 +14,8 @@ inh htds : TDS for Q;
 syn est_adresse : BOOLEAN for E, ER, ERX, ES, ESX, T, TX, F, Q;
 syn adr : INTEGER for DEF, DEFS, INST, INSTS;
 inh hadr : INTEGER for DEF, DEFS, INST, INSTS, BLOC;
+syn ext : BOOLEAN for ETEND, SUPER;
+syn imp : BOOLEAN for IMPL, SUPER;
 
 -- les terminaux 
 space separateur is  "[\r\n\t ]+";     
@@ -68,6 +70,7 @@ global
  do
    machine := PROGRAMME^source.getMachine();
    ENTITES^machine := machine;
+   ENTITES^tds := new TDS(nil);
 end
 }
 
@@ -107,12 +110,48 @@ DEFINTERFACE -> interface ident SUPER CORPS;
 -------------------------------------------------------
 -- 1 extends maximum suivi d'un implements maximum
 -------------------------------------------------------
-SUPER -> ETEND IMPL ;
-ETEND -> ;
-ETEND -> etend ident ;
-IMPL -> ;
-IMPL -> implemente ident ;
-CORPS -> aco DEFS acf ;
+SUPER -> ETEND IMPL #gen;
+#gen {
+ do
+   SUPER^ext := ETEND^ext;
+   SUPER^imp := IMPL^imp;
+ end
+}
+
+ETEND -> #gen;
+#gen {
+ do
+   ETEND^ext := false;
+ end
+}
+
+ETEND -> etend ident #gen;
+#gen {
+ do
+   ETEND^ext := true;
+ end
+}
+
+IMPL -> #gen;
+#gen {
+ do
+   IMPL^imp := false;
+ end
+}
+
+IMPL -> implemente ident #gen;
+#gen {
+ do
+   IMPL^imp := true;
+ end
+}
+
+CORPS -> aco DEFS acf #gen;
+#gen {
+ do
+   CORPS^code := DEFS^code;
+ end
+}
 
 -------------------------------------------------------
 -- les attributs
@@ -137,6 +176,7 @@ DEFS -> DEF #adr DEFS #gen;
    DEFS^code := DEF^code + DEFS1^code;
  end
 }
+
 
 -------------------------------------------------------
 -- attribut
@@ -237,8 +277,7 @@ PARF -> TYPE ident  ;
 BLOC -> aco #tds INSTS acf #gen;
 #tds {
  do
-   t :=  new TDS(BLOC^tds);
-   INSTS^tds := t;
+   INSTS^tds := new TDS(BLOC^tds);
  end
 }
 #gen {
@@ -310,7 +349,6 @@ INST -> E pv #gen;
 INST -> BLOC #gen;
 #gen {
  do
-   BLOC^hadr := INST^hadr;
    INST^adr := INST^hadr;
    INST^code := BLOC^code;
  end
@@ -320,14 +358,6 @@ INST -> BLOC #gen;
 -- conditionnelle
 -------------------------------------------------------
 INST -> si paro E #type parf BLOC SIX #gen;
-#gen {
- do
-   BLOC^hadr := INST^hadr;
-   SIX^hadr := INST^hadr; 
-   INST^adr := INST^hadr;
-   INST^code := INST^machine.genIf(E^code, BLOC^code, SIX^code);
- end
-}
 #type {
 do
  if ~E^type.compareTo(new DTYPE("booleen", 1)) then
@@ -335,11 +365,21 @@ do
  end
 end
 }
-
-SIX -> sinon BLOC #gen;
 #gen {
  do
+   INST^adr := INST^hadr;
+   INST^code := INST^machine.genIf(E^code, BLOC^code, SIX^code);
+ end
+}
+
+SIX -> sinon #adr BLOC #gen;
+#adr {
+ do
    BLOC^hadr := SIX^hadr;
+ end
+}
+#gen {
+ do
    SIX^code := BLOC^code;
  end
 }
@@ -742,11 +782,16 @@ F -> nouveau TYPE paro ARGS parf #gen;
  end
 }
 
-F -> ident Q #gen;
-#gen {
+F -> ident #tra Q #gen;
+#tra {
  do
    Q^hident := ident^txt;
    Q^htds := F^tds;
+ end
+}
+#gen {
+ do
+
    F^est_adresse := Q^est_adresse;
    F^type := Q^type;
    F^code := Q^code;
@@ -789,6 +834,7 @@ Q -> pt ident Q ;
 -- arguments d'appel de methode
 -------------------------------------------------------
 Q -> paro ARGS parf Q ;
+
 ARGS ->  E ARGSX  ;
 ARGS -> ;
 ARGSX ->   virg E ARGSX  ;
