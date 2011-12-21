@@ -90,60 +90,61 @@ public class TAM {
     return "; " + c + "\n";
   }
 
+  //génération des opérations basiques sur les expressions
   public genOpPlus(){
-    return "\tSUBR IAdd";
+    return "\tSUBR IAdd\n";
   }
 
   public genOpMoins(){
-    return "\tSUBR ISub";
+    return "\tSUBR ISub\n";
   }
 
   public genOpMul(){
-    return "\tSUBR IMul";
+    return "\tSUBR IMul\n";
   }
 
   public genOpDiv(){
-    return "\tSUBR IDiv";
+    return "\tSUBR IDiv\n";
   }
 
   public genOpMod(){
-    return "\tSUBR IMod";
+    return "\tSUBR IMod\n";
   }
 
   public genOpEq(){
-    return "\tSUBR IEq";
+    return "\tSUBR IEq\n";
   }
 
   public genOpNeq(){
-    return "\tSUBR INeq";
+    return "\tSUBR INeq\n";
   }
 
   public genOpLss(){
-    return "\tSUBR ILss";
+    return "\tSUBR ILss\n";
   }
 
   public genOpLeq(){
-    return "\tSUBR ILeq";
+    return "\tSUBR ILeq\n";
   }
 
   public genOpGtr(){
-    return "\tSUBR IGtr";
+    return "\tSUBR IGtr\n";
   }
 
   public genOpGeq(){
-    return "\tSUBR IGeq";
+    return "\tSUBR IGeq\n";
   }
 
   public genOpNeg(){
-    return "\tSUBR BNeg";
+    return "\tSUBR BNeg\n";
   }
 
   public genOpOr(){
-    return "\tSUBR BOr";
+    return "\tSUBR BOr\n";
   }
 
   public genOpAnd(){
-    return "\tSUBR BAnd";
+    return "\tSUBR BAnd\n";
   }
 
 }
