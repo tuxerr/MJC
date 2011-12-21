@@ -25,6 +25,7 @@ public abstract class AbstractMachine {
     abstract String genOpPlus();
     abstract String genOpMoins();
 
+
     abstract String genOpNon();
     abstract String genOpMul();
     abstract String genOpDiv();
