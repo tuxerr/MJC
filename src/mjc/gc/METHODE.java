@@ -24,8 +24,7 @@ public class METHODE {
     }
 
     public boolean equals(METHODE m) {
-        return 
-            nom.equals(m.getNom()) & 
+        return nom.equals(m.getNom()) & 
             returnType.equals(m.getReturnType()) & 
             args.equals(m.getArgs());
     }
