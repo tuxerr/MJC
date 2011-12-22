@@ -4,14 +4,16 @@ public class CLASSE extends DTYPE {
     private LMETHODES methodes;
     private LATTRIBUTS attributs;
     private String nom;
+    private CLASSE classemere;
 
     private StringBuffer buf;
 
     public CLASSE(String nom) {
         super("class",0);
-        this.nom=nom;
+        this.nom = nom;
         methodes = new LMETHODES();
         attributs = new LATTRIBUTS();
+        classemere = null;
     }
 
     public boolean implementsCorrectly(INTERFACE inter) {
@@ -31,6 +33,7 @@ public class CLASSE extends DTYPE {
     public void inherits(CLASSE cl) {
         methodes = (LMETHODES)cl.getMethodes().clone();
         attributs = (LATTRIBUTS)cl.getAttributs().clone();
+        classemere = cl;
     }
 
     public String implementGetError() {

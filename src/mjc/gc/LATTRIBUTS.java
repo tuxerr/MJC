@@ -12,13 +12,13 @@ public class LATTRIBUTS extends ArrayList<ATTRIBUT> {
         return t;
     }
 
-    public boolean containsAttribut(ATTRIBUT attrib) {
+    public ATTRIBUT returnAttribut(String nom) {
         for (ATTRIBUT a : this) {
-            if(a.getNom().equals(attrib.getNom())) {
-                return true;
+            if(a.getNom().equals(nom)) {
+                return a;
             }
         }
-        return false;
+        return null;
     }
 
     public String toString() {
