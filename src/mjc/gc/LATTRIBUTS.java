@@ -12,6 +12,15 @@ public class LATTRIBUTS extends ArrayList<ATTRIBUT> {
         return t;
     }
 
+    public boolean containsAttribut(ATTRIBUT attrib) {
+        for (ATTRIBUT a : this) {
+            if(a.getNom().equals(attrib.getNom())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public String toString() {
         StringBuffer sb = new StringBuffer();
         for (ATTRIBUT c : this) {

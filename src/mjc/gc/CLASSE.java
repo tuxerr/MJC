@@ -19,13 +19,18 @@ public class CLASSE extends DTYPE {
         buf = new StringBuffer();
 
         for ( METHODE m : methodes ) {
-            if(!inter.getMethodes().methodeExists(m)) {
+            if(!inter.getMethodes().containsMethode(m)) {
                 buf.append("the " + m + "method is not implemented in the interface " + inter);
                 implementCorrect=false;
             }
         }
         
         return implementCorrect;
+    }
+
+    public void inherits(CLASSE cl) {
+        methodes = new ArrayList(cl.getMethodes());
+        attributs = new ArrayList(cl.getAttributs());
     }
 
     public String implementGetError() {
@@ -36,19 +41,14 @@ public class CLASSE extends DTYPE {
         return super.toString() + nom;
     }
 
-    public void addMethode(METHODE meth) {
-        methodes.add(meth);
-    }    
-
     public LMETHODES getMethodes() {
         return methodes;
     }
-    
-    public void addAttribut(ATTRIBUT attr) {
-        attributs.add(attr);
-        super.setTaille(super.getTaille()+attr.getType().getTaille());
-    }
 
+    public void updateTaille() {
+        super.setTaille(attributs.getTaille());
+    }
+    
     public LATTRIBUTS getAttributs() {
         return attributs;
     }
