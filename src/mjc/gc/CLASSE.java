@@ -29,8 +29,8 @@ public class CLASSE extends DTYPE {
     }
 
     public void inherits(CLASSE cl) {
-        methodes = new ArrayList(cl.getMethodes());
-        attributs = new ArrayList(cl.getAttributs());
+        methodes = (LMETHODES)cl.getMethodes().clone();
+        attributs = (LATTRIBUTS)cl.getAttributs().clone();
     }
 
     public String implementGetError() {
