@@ -11,12 +11,25 @@ public class LMETHODES extends ArrayList<METHODE> {
         return sb.toString();
     }
 
-    public boolean methodeExists(METHODE met) {
+    public boolean containsMethode(METHODE met) {
         for(METHODE m : this) {
             if(m.equals(met)) {
                 return true;
             }
         }
         return false;
+    }
+
+    public boolean canAddMethod(METHODE met) {
+        boolean canadd=true;
+        for(METHODE m : this) {
+            if(m.getNom().equals(met.getNom())) {
+                if(m.getArgs().size() == met.getArgs().size()) {
+                    // si les 2 méthodes ont le même nom et le même nombre d'arguments, on ne peut pas ajouter la méthode
+                    canadd=false;
+                }
+            } 
+        }
+        return canadd;
     }
 }
