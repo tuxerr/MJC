@@ -5,8 +5,8 @@ option k=3;
 
 -- les attributs semantiques
 inh source : MJAVASourceFile for PROGRAMME;
-syn type : DTYPE for TYPE, AFFX, E, ER, ERX, OPUN, ES, ESX, OPADD, T, TX, OPMUL, F, OPUN, Q;
-syn code : STRING for ENTITES, DEFCLASSE, DEFINTERFACE, BLOC, INSTS, INST, AFFX, E, ER, ERX, OPUN, ES, ESX, OPADD, T, TX, OPMUL, F, OPUN, Q;
+syn type : DTYPE for TYPE, PARF, AFFX, E, ER, ERX, OPUN, ES, ESX, OPADD, T, TX, OPMUL, F, OPUN, Q;
+syn code : STRING for ENTITES, DEFCLASSE, DEFINTERFACE, BLOC, INSTS, INST, PARF, AFFX, E, ER, ERX, OPUN, ES, ESX, OPADD, T, TX, OPMUL, F, OPUN, Q;
 inh tds : TDS for ;
 inh machine : ABSTRACTMACHINE for ;
 inh hident : STRING for Q;
@@ -15,6 +15,8 @@ syn adr : INTEGER for ENTITES, DEF, DEFS, INST, INSTS;
 inh hadr : INTEGER for ENTITES, DEFCLASSE, DEFINTERFACE, DEF, DEFS, INST, INSTS, BLOC;
 syn ext : STRING for ETEND, SUPER;
 syn imp : STRING for IMPL, SUPER;
+inh dep : INTEGER for ARGS, ARGSX;
+syn name : STRING for PARF;
 
 -- les terminaux 
 space separateur is  "[\r\n\t ]+";     
@@ -298,11 +300,46 @@ TYPE -> ident #type;
 -------------------------------------------------------
 -- parametres de methodes
 -------------------------------------------------------
+-- ne rien faire !
 PARFS -> ;
-PARFS -> PARF PARFSX ;
+
+PARFS -> PARF #tds PARFSX ;
+#tds {
+ local
+   i : INFOVAR;
+   d : INTEGER;
+ do
+   d := PARF^type.getTaille() + PARFS^dep;
+   i := new INFOVAR(PARF^type, -d, "LB");
+   call PARFS^tds.inserer(PARF^name, i);
+   PARFSX^dep := PARFS^dep + d;
+ end
+}
+
+--ne rien faire !
 PARFSX -> ;
-PARFSX -> virg  PARF  PARFSX ;
-PARF -> TYPE ident  ;
+
+
+PARFSX -> virg  PARF #tds PARFSX ;
+#tds {
+ local
+   i : INFOVAR;
+   d : INTEGER;
+ do
+   d := PARF^type.getTaille() + PARFSX^dep;
+   i := new INFOVAR(PARF^type, -d, "LB");
+   call PARFSX^tds.inserer(PARF^name, i);
+   PARFSX1^dep := PARFX^dep + d;
+ end
+}
+
+PARF -> TYPE ident #tds;
+#tds {
+ do
+   PARF^type := TYPE^type;
+   PARF^name := ident^txt
+ end
+}
 
 -------------------------------------------------------
 -- corps de methode et bloc d'instructions
@@ -834,12 +871,12 @@ F -> ident #tra Q #gen;
 -- Q = qualificateur de variable
 -------------------------------------------------------
 Q -> #gen;
-#gen{
+#gen {
  local 
-   iv : INFOVAR ;
+   iv : INFOVAR;
    i : INFO;
  do
-   i := Q^htds.chercherGlobalement(Q^hident);
+   i := Q^tds.chercherGlobalement(Q^hident);
    if i = nil then
      error(B_07, ident^txt);
    end
@@ -858,16 +895,45 @@ Q -> #gen;
 -------------------------------------------------------
 -- acces attribut ou méthode
 -------------------------------------------------------
-Q -> pt ident Q ;
+Q -> pt ident #tra Q #gen;
+#tra {
+ local
+   i : INFO;
+   ic : INFOCLASSE;
+ do
+   i : Q^tds.chercherGlobalement(Q^hident);
+   if i = nil then
+     error(B_07, ident^txt);
+   end
+   match i
+   with INFOCLASSE then
+     ic := i;
+     Q1^hident := ident^txt;
+     Q1^tds := ic.getTds;
+   else
+     error(B_13, Q^hident);
+   end
+ end
+}
+#gen {
+ do
+   Q^est_adresse := Q1^est_adresse;
+   Q^type := Q1^type;
+   Q^code := Q1^type;
+ end
+}
 
 -------------------------------------------------------
 -- arguments d'appel de methode
 -------------------------------------------------------
-Q -> paro ARGS parf Q ;
+Q -> paro  ARGS parf Q ;
 
-ARGS ->  E ARGSX  ;
+ARGS ->  E ARGSX ;
+
 ARGS -> ;
-ARGSX ->   virg E ARGSX  ;
+
+ARGSX ->   virg E ARGSX ;
+
 ARGSX -> ;
 
 end

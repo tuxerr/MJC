@@ -1,6 +1,7 @@
 Nagul's update :
 
-- Le .egg un peu plus complet, j'travaille sur la gestion des variables en ce moment : comment les stocker, les modifier etc. Cay la merde mais ça avance.
-- Le TAM à compléter avec les fonctions dont la signature est dans AbstractMachine.java, la plupart sont assez triviales, les plus compliquées sont déjà implémentées normalement.
-- J'ai besoin d'une classe genre INFOMET extendant la classe INFO, qui permet de stocker les infos utiles d'un méthode, en particulier le nombre de paramètres et leurs types.
-- J'ai bientôt fini tout ce qui est instructions de base dans le egg, y'a moyens de faire des tests basiques assez bientôt.
+- Besoin d'une méthode getTds() dans INFOCLASSE pour chopper la tds de la classe en question.
+- Classe attribut à mon sens useless, on peut tout gérer avec INFOVAR qui fait exactement la même chose. Enfin ça dépend de si on considère les attributs comme étant private ou public, faudra se pencher sur la question mais à priori on peut tout faire avec INFOVAR.
+- J'ai fait le stockage des paramètres des méthodes. J'vais tenter de voir pour les appels paramétrer ce qu'il faut faire.
+- Y'a 2-3 trucs à raffiner au niveau des tests sur la TDS, typiquement faut empêcher de créer deux objets de même nom ayant la même signature, mais si leur signature est différente on peut se débrouiller.
+- Faut ajouter la notion de registre à infovar, ça sert pour gérer les appels de fonction et autres, je le ferai je sais ce qu'il faut faire.
