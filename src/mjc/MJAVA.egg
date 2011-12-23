@@ -102,7 +102,7 @@ ENTITES -> DEFINTERFACE ENTITES #gen;
 -------------------------------------------------------
 -- definition d'une classe
 -------------------------------------------------------
-DEFCLASSE -> classe ident SUPER CORPS #gen;
+DEFCLASSE -> classe ident SUPER #gen CORPS;
 #gen {
  local
    i : INFO
@@ -111,7 +111,7 @@ DEFCLASSE -> classe ident SUPER CORPS #gen;
  do
    i := DEF^tds.chercherGlobalement(ident^txt);
    if i /= nil then
-     error(B_02, ident^txt);
+     error(B_11, ident^txt);
    else
    c := new CLASSE(ident^txt);
    ic := new INFOCLASSE(c);
@@ -119,7 +119,7 @@ DEFCLASSE -> classe ident SUPER CORPS #gen;
  end
 }
 
-DEFINTERFACE -> interface ident SUPER CORPS #gen;
+DEFINTERFACE -> interface ident SUPER #gen CORPS;
 #gen {
  local
    i : INFO
@@ -128,10 +128,10 @@ DEFINTERFACE -> interface ident SUPER CORPS #gen;
  do
    i := DEF^tds.chercherGlobalement(ident^txt);
    if i /= nil then
-     error(B_02, ident^txt);
+     error(B_12, ident^txt);
    else
    c := new INTERFACE(ident^txt);
-   ic := new INFOCLASSE(c);
+   ic := new INFOINTER(c);
    call DEFINTERFACE^tds.inserer(ident^txt, ic);
  end
 }
