@@ -3,7 +3,7 @@ package mjc.gc;
 public class INFOCLASSE extends INFO {
 
 	// le deplacement
-    public INFOCLASSE(DTYPE t) {
+    public INFOCLASSE(CLASSE t) {
         super(t);
     }
     public String toString() {

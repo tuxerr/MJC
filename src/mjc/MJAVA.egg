@@ -15,6 +15,7 @@ syn adr : INTEGER for ENTITES, DEF, DEFS, INST, INSTS;
 inh hadr : INTEGER for ENTITES, DEFCLASSE, DEFINTERFACE, DEF, DEFS, INST, INSTS, BLOC;
 syn ext : STRING for ETEND, SUPER;
 syn imp : STRING for IMPL, SUPER;
+syn args : ARGS for PARFS;
 inh dep : INTEGER for ARGS, ARGSX;
 syn name : STRING for PARF;
 
@@ -104,38 +105,107 @@ ENTITES -> DEFINTERFACE ENTITES #gen;
 -------------------------------------------------------
 -- definition d'une classe
 -------------------------------------------------------
-DEFCLASSE -> classe ident SUPER #gen CORPS;
+DEFCLASSE -> classe ident SUPER #gen CORPS #checkandinsert;
+global
+  c : CLASSE;
+
 #gen {
  local
    i : INFO
-   ic : INFOCLASSE
-   c : CLASSE
+   r : INFO
+   rc : CLASSE
  do
-   i := DEF^tds.chercherGlobalement(ident^txt);
+   i := DEFCLASSE^tds.chercherGlobalement(ident^txt);
    if i /= nil then
      error(B_11, ident^txt);
    else
-   c := new CLASSE(ident^txt);
-   ic := new INFOCLASSE(c);
-   call DEFCLASSE^tds.inserer(ident^txt, ic);
+     if(SUPER^ext.equals(""))
+       --pas d'héritage
+       c := new CLASSE(true);
+     else
+       -- héritage
+       r := DEFCLASSE^tds.chercherGlobalement(SUPER^ext);
+       if r /= nil
+         --l'identifiant est trouvé dans la TDS
+         rc := (CLASSE)(r.getType());
+         
+
+         if rc.isAClass() 
+           --si l'identifiant représente bien une classe
+           c := new CLASSE(rc);
+           call c.addSuperClass(SUPER^ext);
+         else
+           error(B_13,SUPER^ext); 
+         end
+
+       else
+         error(B_13,SUPER^ext); 
+       end
+     end
+   CORPS^tds = rc.getTDS();
+   end
  end
 }
 
-DEFINTERFACE -> interface ident SUPER #gen CORPS;
+#checkandinsert {
+ local
+  ic : INFOCLASSE;
+  r : INFO;
+  rc : INFOCLASSE;
+ do
+  ic := new INFOCLASSE(c);
+  if SUPER^imp.equals("")
+     --pas d'implémentation d'interfaces
+  else
+           -- héritage
+       r := DEFCLASSE^tds.chercherGlobalement(SUPER^imp);
+       if r /= nil
+
+         --l'identifiant est trouvé dans la TDS
+         rc := (CLASSE)(r.getType());
+         if c.implementsCorrectly(rc) = false
+           error(B14,ident^txt,SUPER^imp,c.implementGetError());
+         else 
+           call c.addSuperClass(SUPER^imp);
+         end    
+
+       else
+         error(B_13,SUPER^ext); 
+       end
+  end
+  
+  call DEFCLASSE^tds.inserer(ident^txt, ic);
+ end
+}
+
+
+DEFINTERFACE -> interface ident SUPER #gen CORPS #insert;
+global
+  c : CLASSE;
+
 #gen {
  local
    i : INFO
-   ic : INFOCLASSE
-   c : INTERFACE
+
  do
    i := DEF^tds.chercherGlobalement(ident^txt);
    if i /= nil then
      error(B_12, ident^txt);
    else
-   c := new INTERFACE(ident^txt);
-   ic := new INFOINTER(c);
+     c := new CLASSE(false);
+      CORPS^tds=c.getTDS();
+   end
+ end
+}
+
+#insert {
+ local
+   ic : INFOCLASSE
+ do
+   ic := new INFOCLASSE(c);
    call DEFINTERFACE^tds.inserer(ident^txt, ic);
  end
+  
 }
 
 -------------------------------------------------------
@@ -206,6 +276,7 @@ DEFS -> DEF #adr DEFS #gen;
    DEFS^hadr := DEF^adr;
  end
 }
+
 #gen {
  do
    DEFS^adr := DEFS1^adr;
@@ -229,7 +300,7 @@ DEF -> TYPE ident pv  #inf;
        error(B_02, ident^txt);
     else
    -- ajouter l'ident dans la TDS;
-    iv := new INFOVAR(TYPE^type, DEF^hadr, "LB");
+    iv := new INFOVAR(TYPE^type, DEF^hadr);
     call DEF^tds.inserer(ident^txt, iv);
     DEF^adr := DEF^hadr + TYPE^type.getTaille();
     DEF^code := DEF^machine.genDeclAtt(ident^txt, iv);
@@ -239,12 +310,44 @@ DEF -> TYPE ident pv  #inf;
 -------------------------------------------------------
 -- methode (fonction) 
 -------------------------------------------------------
-DEF -> TYPE ident paro PARFS parf MCORPS  ;
+DEF -> TYPE ident paro PARFS parf MCORPS #inf;
+#inf {
+ local
+   i : INFO;
+   iv : INFOVAR;
+ do
+    i := DEF^tds.chercherGlobalement(ident^txt);
+    if i /= nil then
+       error(B_02, ident^txt);
+    else
+   -- ajouter l'ident dans la TDS;
+    iv := new INFOMET(TYPE^type, PARFS^args);
+    call DEF^tds.inserer(ident^txt, iv);
+    DEF^adr := DEF^hadr;
+ end
+}
 
 -------------------------------------------------------
 -- methode (procedure)
 -------------------------------------------------------
-DEF -> void ident paro PARFS parf MCORPS  ;
+DEF -> void ident paro PARFS parf MCORPS  #inf;
+#inf {
+ local
+   i : INFO;
+   iv : INFOVAR;
+   t : TYPE;
+ do
+    i := DEF^tds.chercherGlobalement(ident^txt);
+    if i /= nil then
+       error(B_02, ident^txt);
+    else
+   -- ajouter l'ident dans la TDS;
+    t = new DTYPE("void",0);
+    iv := new INFOMET(t, PARFS^args);
+    call DEF^tds.inserer(ident^txt, iv);
+    DEF^adr := DEF^hadr;
+ end
+}
 
 -------------------------------------------------------
 -- dans classe ou dans interface
@@ -255,7 +358,22 @@ MCORPS -> BLOC ;
 -------------------------------------------------------
 -- constructeur
 -------------------------------------------------------
-DEF -> ident paro PARFS parf BLOC  ; 
+DEF -> ident paro PARFS parf BLOC #inf ; 
+#inf {
+ local
+   i : INFO;
+   iv : INFOVAR;
+ do
+    i := DEF^tds.chercherGlobalement(ident^txt);
+    if i /= nil then
+       error(B_02, ident^txt);
+    else
+   -- ajouter l'ident dans la TDS;
+    iv := new INFOMET(nil, PARFS^args);
+    call DEF^tds.inserer(ident^txt, iv);
+    DEF^adr := DEF^hadr;
+ end
+}
 
 -------------------------------------------------------
 -- les types

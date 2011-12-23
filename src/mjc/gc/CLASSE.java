@@ -1,58 +1,112 @@
 package mjc.gc;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
 public class CLASSE extends DTYPE {
-    private LMETHODES methodes;
-    private LATTRIBUTS attributs;
-    private String nom;
-    private CLASSE classemere;
+    private CLASSE classeMere;
+    private TDS tds;
+    private boolean isclass;
+    private ArrayList<String> acceptedSuperClasses;
 
     private StringBuffer buf;
 
-    public CLASSE(String nom) {
+    public CLASSE(boolean isclass) {
         super("class",0);
-        this.nom = nom;
-        methodes = new LMETHODES();
-        attributs = new LATTRIBUTS();
-        classemere = null;
+        classeMere = null;
+        this.tds = new TDS();
+        this.isclass=isclass;
+        if(!isclass) {
+            super.setNom("interface");
+        }
     }
 
-    public boolean implementsCorrectly(INTERFACE inter) {
-        boolean implementCorrect=true;
+    public CLASSE(CLASSE cl) {
+        super("class",0);        
+        this.tds = (TDS)cl.getTDS().clone();
+        classeMere = cl;
+    }
+
+    public boolean isAClass() {
+        return isclass;
+    }
+
+    public void addSuperClass(String name) {
+        acceptedSuperClasses.add(name);
+    }
+
+    public boolean isASuperClass(String name) {
+        for(String n : acceptedSuperClasses) {
+            if(n.equals(name)) {
+                return true;
+            }
+        }
+        if(classeMere==null) {
+            return false;
+        } else {
+            return classeMere.isASuperClass(name);
+        }
+    }
+
+    public boolean implementsCorrectly(CLASSE inter) {
         buf = new StringBuffer();
 
-        for ( METHODE m : methodes ) {
-            if(!inter.getMethodes().containsMethode(m)) {
-                buf.append("the " + m + "method is not implemented in the interface " + inter);
-                implementCorrect=false;
-            }
+        if(!isclass) {
+            buf.append("Une interface ne peut implémenter une autre interface");
+            return false;
+        } else if(inter.isAClass()) {
+            buf.append("Une classe ne peut en implémenter une autre");
+            return false;
+        }
+        
+        boolean implementCorrect=true;
+        TDS intertds = inter.getTDS();
+        Set<Map.Entry<String,INFO>> esi = intertds.entrySet();
+
+        for (Map.Entry<String,INFO> e : esi) {
+
+            // si l'entrée courante dans la TDS interface est bien une méthode
+            if (e.getValue() instanceof INFOMET ) {
+
+                ARGS eargs = ((INFOMET)(e.getValue())).getArgs();
+                DTYPE etype = e.getValue().getType();
+
+                INFO ret = this.tds.chercherLocalement(e.getKey());
+                
+                // si, dans la classe, une entrée à le même nom et est une méthode aussi
+                if( (ret != null) && (ret instanceof INFOMET )) {
+          
+                    // et si cette méthode à les mêmes arguments et le même type de retour
+                    if( ((INFOMET)ret).getArgs().equals(eargs) & ret.getType().equals(etype)) {
+                        // la méthode de l'interface est implémentée dans la classe
+
+                    } else {
+                        buf.append("La méthode " + e.getKey() + "n'est pas correctement implémentée dans la classe");
+                        implementCorrect=false;
+                    }
+
+                } else {
+                    buf.append("La méthode " + e.getKey() + "n'est pas implémentée dans la classe");
+                    implementCorrect=false;
+                }
+                
+            } 
+        }
+        
+        if(implementsCorrect) {
+            interfaceImplementee=inter;
         }
         
         return implementCorrect;
-    }
-
-    public void inherits(CLASSE cl) {
-        methodes = (LMETHODES)cl.getMethodes().clone();
-        attributs = (LATTRIBUTS)cl.getAttributs().clone();
-        classemere = cl;
     }
 
     public String implementGetError() {
         return buf.toString();
     }
 
-    public String toString() {
-        return super.toString() + nom;
+    public TDS getTDS() {
+        return tds;
     }
 
-    public LMETHODES getMethodes() {
-        return methodes;
-    }
-
-    public void updateTaille() {
-        super.setTaille(attributs.getTaille());
-    }
-    
-    public LATTRIBUTS getAttributs() {
-        return attributs;
-    }
 }

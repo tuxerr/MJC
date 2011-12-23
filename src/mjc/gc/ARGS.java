@@ -20,8 +20,4 @@ public class ARGS extends ArrayList<DTYPE> {
         return taille;
     }
 
-    public boolean equals(ARGS a) {
-        return this.equals(a);
-    }
-
 }

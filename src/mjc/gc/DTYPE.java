@@ -21,6 +21,10 @@ public class DTYPE {
         return nom;
     }
 
+    public void setNom(String n) {
+        nom=n;
+    }
+
     public DTYPE(String n, int t) {
         nom = n;
         taille = t;
