@@ -247,7 +247,7 @@ IMPL -> implemente ident #gen;
  end
 }
 
-CORPS -> aco #tds DEFS acf #gen;
+CORPS -> aco DEFS acf #gen;
 #gen {
  do
    CORPS^code := DEFS^code;
