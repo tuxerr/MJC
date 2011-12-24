@@ -142,7 +142,7 @@ global
          error(B_13,SUPER^ext); 
        end
      end
-   CORPS^tds = rc.getTDS();
+   CORPS^tds = c.getTDS();
    end
  end
 }
@@ -248,11 +248,6 @@ IMPL -> implemente ident #gen;
 }
 
 CORPS -> aco #tds DEFS acf #gen;
-#tds {
- do
-   DEFS^tds := new TDS(CORPS^tds);
- end
-}
 #gen {
  do
    CORPS^code := DEFS^code;
@@ -324,6 +319,7 @@ DEF -> TYPE ident paro PARFS parf MCORPS #inf;
     iv := new INFOMET(TYPE^type, PARFS^args);
     call DEF^tds.inserer(ident^txt, iv);
     DEF^adr := DEF^hadr;
+
    -- creation de la TDS de MCORPS
     MCORPS^tds := new TDS(DEF^tds);
  end
@@ -348,6 +344,7 @@ DEF -> void ident paro PARFS parf MCORPS  #inf;
     iv := new INFOMET(t, PARFS^args);
     call DEF^tds.inserer(ident^txt, iv);
     DEF^adr := DEF^hadr;
+
    -- creation de la TDS de MCORPS
     MCORPS^tds := new TDS(DEF^tds);
  end
@@ -357,12 +354,8 @@ DEF -> void ident paro PARFS parf MCORPS  #inf;
 -- dans classe ou dans interface
 -------------------------------------------------------
 MCORPS -> pv ;
-MCORPS -> BLOC ;#mcorps
-#mcorps{
-	local
-	do
-		BLOC^tds = MCORPS^tds;
-	}
+MCORPS -> BLOC ;
+
 -------------------------------------------------------
 -- constructeur
 -------------------------------------------------------
@@ -404,7 +397,7 @@ TYPE -> ident #type;
 #type {
  local
    i : INFO ;
-   it : INFOTYPE;
+   it : INFOCLASSE;
    t : DTYPE;
  do
    -- rechercher l'ident   
@@ -413,7 +406,7 @@ TYPE -> ident #type;
      error(B_03, ident^txt);
    else
      match i
-       with INFOTYPE then
+       with INFOCLASSE then
          it := i ;
          TYPE^type :=  it.getType();
        else
