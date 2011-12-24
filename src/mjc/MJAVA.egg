@@ -7,7 +7,7 @@ option k=3;
 inh source : MJAVASourceFile for PROGRAMME;
 syn type : DTYPE for TYPE, PARF, AFFX, E, ER, ERX, OPUN, ES, ESX, OPADD, T, TX, OPMUL, F, OPUN, Q;
 syn code : STRING for ENTITES, DEFCLASSE, DEFINTERFACE, BLOC, INSTS, INST, PARF, AFFX, E, ER, ERX, OPUN, ES, ESX, OPADD, T, TX, OPMUL, F, OPUN, Q;
-inh tds : TDS for ;
+inh tds : TDS for ENTITES, DEFCLASSE, DEFINTERFACE, CORPS, DEF, DEFS, MCORPS, BLOC;
 inh machine : ABSTRACTMACHINE for ;
 inh hident : STRING for Q;
 syn est_adresse : BOOLEAN for E, ER, ERX, ES, ESX, T, TX, F, Q;
@@ -188,7 +188,7 @@ global
    i : INFO
 
  do
-   i := DEF^tds.chercherGlobalement(ident^txt);
+   i := DEFINTERFACE^tds.chercherGlobalement(ident^txt);
    if i /= nil then
      error(B_12, ident^txt);
    else
@@ -250,7 +250,7 @@ IMPL -> implemente ident #gen;
 CORPS -> aco #tds DEFS acf #gen;
 #tds {
  do
-   INSTS^tds := new TDS(CORPS^tds);
+   DEFS^tds := new TDS(CORPS^tds);
  end
 }
 #gen {
@@ -270,7 +270,7 @@ DEFS -> #gen;
  end
 }
 
-DEFS -> DEF #adr DEFS #gen;
+DEFS -> DEF #adr DEFS #gen
 #adr {
  do
    DEFS^hadr := DEF^adr;
@@ -284,7 +284,6 @@ DEFS -> DEF #adr DEFS #gen;
  end
 }
 
-
 -------------------------------------------------------
 -- attribut
 -------------------------------------------------------
@@ -295,7 +294,8 @@ DEF -> TYPE ident pv  #inf;
    i : INFO;
    iv : INFOVAR;
  do
-    i := DEF^tds.chercherGlobalement(ident^txt);
+    
+    i := DEF^tds.chercherLocalement(ident^txt);
     if i /= nil then
        error(B_02, ident^txt);
     else
@@ -316,7 +316,7 @@ DEF -> TYPE ident paro PARFS parf MCORPS #inf;
    i : INFO;
    iv : INFOVAR;
  do
-    i := DEF^tds.chercherGlobalement(ident^txt);
+    i := DEF^tds.chercherLocalement(ident^txt);
     if i /= nil then
        error(B_02, ident^txt);
     else
@@ -324,6 +324,8 @@ DEF -> TYPE ident paro PARFS parf MCORPS #inf;
     iv := new INFOMET(TYPE^type, PARFS^args);
     call DEF^tds.inserer(ident^txt, iv);
     DEF^adr := DEF^hadr;
+   -- creation de la TDS de MCORPS
+    MCORPS^tds := new TDS(DEF^tds);
  end
 }
 
@@ -337,7 +339,7 @@ DEF -> void ident paro PARFS parf MCORPS  #inf;
    iv : INFOVAR;
    t : TYPE;
  do
-    i := DEF^tds.chercherGlobalement(ident^txt);
+    i := DEF^tds.chercherLocalement(ident^txt);
     if i /= nil then
        error(B_02, ident^txt);
     else
@@ -346,6 +348,8 @@ DEF -> void ident paro PARFS parf MCORPS  #inf;
     iv := new INFOMET(t, PARFS^args);
     call DEF^tds.inserer(ident^txt, iv);
     DEF^adr := DEF^hadr;
+   -- creation de la TDS de MCORPS
+    MCORPS^tds := new TDS(DEF^tds);
  end
 }
 
@@ -353,8 +357,12 @@ DEF -> void ident paro PARFS parf MCORPS  #inf;
 -- dans classe ou dans interface
 -------------------------------------------------------
 MCORPS -> pv ;
-MCORPS -> BLOC ;
-
+MCORPS -> BLOC ;#mcorps
+#mcorps{
+	local
+	do
+		BLOC^tds = MCORPS^tds;
+	}
 -------------------------------------------------------
 -- constructeur
 -------------------------------------------------------
