@@ -49,6 +49,8 @@ public abstract class AbstractMachine {
     abstract String genFree(int taille);
     //genDeclAtt : génère le code (commentaire) lors de la déclaration d'attributs, assez analogue à genDecl
     abstract String genDeclAtt(String ident, INFOVAR iv);
+    //genCall : muzukashi desu.
+    abstract String genCall(String fctapp, String code);
 
 }
 

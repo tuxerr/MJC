@@ -1,7 +1,8 @@
 Nagul's update :
 
-- Besoin d'une méthode getTds() dans INFOCLASSE pour chopper la tds de la classe en question.
-- Classe attribut à mon sens useless, on peut tout gérer avec INFOVAR qui fait exactement la même chose. Enfin ça dépend de si on considère les attributs comme étant private ou public, faudra se pencher sur la question mais à priori on peut tout faire avec INFOVAR.
-- J'ai fait le stockage des paramètres des méthodes. J'vais tenter de voir pour les appels paramétrer ce qu'il faut faire.
-- Y'a 2-3 trucs à raffiner au niveau des tests sur la TDS, typiquement faut empêcher de créer deux objets de même nom ayant la même signature, mais si leur signature est différente on peut se débrouiller.
-- Faut ajouter la notion de registre à infovar, ça sert pour gérer les appels de fonction et autres, je le ferai je sais ce qu'il faut faire.
+- INFOVAR updaté pour gérer les appels aux fonctions (rajout d'un champs "registre")
+- correction dans DEF-> TYPE ident paro PARFS parf MCORPS : pas besoin de créer une tds pour MCORPS, on la crée après.
+- corrections (syntaxe) dans DEFLASSE-> et DEFINTERFACE-> : pas besoin de faire des cast explicite.
+- ajout d'une classe LTYPES(liste de DTYPE), ça me simplifie la vie (copier coller du TP10 donc éventuelement need retouches).
+- j'suis en train de bosser sur le F-> nouveau ... et les 5 dernières règles.
+- y'a un soucis au niveau des DEFCLASSE-> et DEFINTERFACE-> : faut filer la tds AVANT corps, y'a surement moyen de fusionner #gen et #checkandinsert partielement.

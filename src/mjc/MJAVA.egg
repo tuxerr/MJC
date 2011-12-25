@@ -127,7 +127,7 @@ global
        r := DEFCLASSE^tds.chercherGlobalement(SUPER^ext);
        if r /= nil
          --l'identifiant est trouvé dans la TDS
-         rc := (CLASSE)(r.getType());
+         rc := r.getType();
          
 
          if rc.isAClass() 
@@ -162,7 +162,7 @@ global
        if r /= nil
 
          --l'identifiant est trouvé dans la TDS
-         rc := (CLASSE)(r.getType());
+         rc := r.getType();
          if c.implementsCorrectly(rc) = false
            error(B14,ident^txt,SUPER^imp,c.implementGetError());
          else 
@@ -265,7 +265,7 @@ DEFS -> #gen;
  end
 }
 
-DEFS -> DEF #adr DEFS #gen
+DEFS -> DEF #adr DEFS #gen;
 #adr {
  do
    DEFS^hadr := DEF^adr;
@@ -282,20 +282,18 @@ DEFS -> DEF #adr DEFS #gen
 -------------------------------------------------------
 -- attribut
 -------------------------------------------------------
---AFAIRE : "LB" ?
 DEF -> TYPE ident pv  #inf;
 #inf {
  local
    i : INFO;
    iv : INFOVAR;
  do
-    
     i := DEF^tds.chercherLocalement(ident^txt);
     if i /= nil then
        error(B_02, ident^txt);
     else
    -- ajouter l'ident dans la TDS;
-    iv := new INFOVAR(TYPE^type, DEF^hadr);
+    iv := new INFOVAR(TYPE^type, DEF^hadr, "LB");
     call DEF^tds.inserer(ident^txt, iv);
     DEF^adr := DEF^hadr + TYPE^type.getTaille();
     DEF^code := DEF^machine.genDeclAtt(ident^txt, iv);
@@ -319,9 +317,6 @@ DEF -> TYPE ident paro PARFS parf MCORPS #inf;
     iv := new INFOMET(TYPE^type, PARFS^args);
     call DEF^tds.inserer(ident^txt, iv);
     DEF^adr := DEF^hadr;
-
-   -- creation de la TDS de MCORPS
-    MCORPS^tds := new TDS(DEF^tds);
  end
 }
 
@@ -344,9 +339,6 @@ DEF -> void ident paro PARFS parf MCORPS  #inf;
     iv := new INFOMET(t, PARFS^args);
     call DEF^tds.inserer(ident^txt, iv);
     DEF^adr := DEF^hadr;
-
-   -- creation de la TDS de MCORPS
-    MCORPS^tds := new TDS(DEF^tds);
  end
 }
 
@@ -512,7 +504,7 @@ INST-> TYPE ident AFFX pv #gen;
    i := INST^tds.chercherLocalement(ident^txt);
    if i /= nil then
      error(B_06, ident^txt);
-   elseif ~AFFX^type.compareTo(new DTYPE("void", 1))&~TYPE^type.compareTo(AFFX^type) then
+   elseif ~AFFX^type.compareTo(new DTYPE("void", 0))&~TYPE^type.compareTo(AFFX^type) then
      error(B_00, TYPE^type, AFFX^type);
    else
      iv := new INFOVAR(TYPE^type, INST^hadr, "LB");
@@ -604,9 +596,9 @@ E -> ER AFFX #gen;
    if ER^est_adresse then
      if ~AFFX^type.compareTo(ER^type)) then
        error(B_00, ER^type, AFFX^type);
-     elseif ~AFFX^type.compareTo(new DTYPE("void", 1)) then
+     elseif ~AFFX^type.compareTo(new DTYPE("void", 0)) then
        E^est_adresse := false;
-       E^type := new DTYPE("void", 1);
+       E^type := new DTYPE("void", 0);
        E^code := AFFX^code + ER^code + E^machine.genWriteMem(ER^type.getTaille());
      else
        E^est_adresse := true;
@@ -614,7 +606,7 @@ E -> ER AFFX #gen;
        E^code := ER^code;
      end
    else
-     if ~AFFX^type.compareTo(new DTYPE("void", 1)) then
+     if ~AFFX^type.compareTo(new DTYPE("void", 0)) then
        error(B_10);
      else
        E^est_adresse := false;
@@ -640,7 +632,7 @@ AFFX -> affect ER #gen;
 AFFX -> #gen;
 #gen {
  do
-   AFFX^type := new DTYPE("void", 1);
+   AFFX^type := new DTYPE("void", 0);
    AFFX^code := "";
  end
 }
@@ -651,7 +643,7 @@ AFFX -> #gen;
 ER -> ES ERX #gen;
 #gen {
  do
-   if ~ERX^type.compareTo(new DTYPE("void", 1))&~ERX^type.compareTo(ES^type) then
+   if ~ERX^type.compareTo(new DTYPE("void", 0))&~ERX^type.compareTo(ES^type) then
      error(B_00, ES^type, ERX^type);
    elseif ~ERX^est_adresse then
      ER^est_adresse := false;
@@ -666,7 +658,7 @@ ER -> ES ERX #gen;
 ES -> T ESX #gen;
 #gen {
  do
-   if ~ESX^type.compareTo(new DTYPE("void", 1))&~ESX^type.compareTo(T^type) then
+   if ~ESX^type.compareTo(new DTYPE("void", 0))&~ESX^type.compareTo(T^type) then
      error(B_00, ESX^type, T^type);
    elseif ~ESX^est_adresse then
      ES^est_adresse := false;
@@ -691,7 +683,7 @@ ERX -> #gen;
 #gen {
  do
    ERX^est_adresse := true;
-   ERX^type := new DTYPE("void", 1);
+   ERX^type := new DTYPE("void", 0);
    ERX^code := "";
  end
 }
@@ -746,7 +738,7 @@ ESX -> OPADD T ESX #gen;
  do
    if ~T^type.compareTo(OPADD^type) then
      error(B_00, T^type, OPADD^type);
-   elseif ~ESX1^type.compareTo(new DTYPE("void", 1))&~T^type.compareTo(ESX1^type) then
+   elseif ~ESX1^type.compareTo(new DTYPE("void", 0))&~T^type.compareTo(ESX1^type) then
      error(B_00, T^type, ESX1^type);
    else
      ESX^est_adresse := false;
@@ -760,7 +752,7 @@ ESX -> #gen;
 #gen {
  do
    ESX^est_adresse := true;
-   ESX^type := new DTYPE("void", 1);
+   ESX^type := new DTYPE("void", 0);
    ESX^code := "";
  end
 }
@@ -814,7 +806,7 @@ TX -> OPMUL F TX #gen;
  do
    if ~F^type.compareTo(OPMUL^type) then
      error(B_00, F^type, OPMUL^type);
-   elseif ~TX1^type.compareTo(new DTYPE("void", 1))&~F^type.compareTo(TX1^type) then
+   elseif ~TX1^type.compareTo(new DTYPE("void", 0))&~F^type.compareTo(TX1^type) then
      error(B_00, F^type, TX1^type);
    else
      TX^est_adresse := false;
@@ -828,7 +820,7 @@ TX -> #gen;
 #gen {
  do
    TX^est_adresse := true;
-   TX^type := new DTYPE("void", 1);
+   TX^type := new DTYPE("void", 0);
    TX^code := "";
  end
 }
@@ -960,14 +952,20 @@ F -> paro E parf #gen;
 -------------------------------------------------------
 -- new
 -------------------------------------------------------
--- définir l'erreur d'arguments sur TYPE : AFAIRE
+-- AFAIRE
 F -> nouveau TYPE paro ARGS parf #gen;
 #gen {
+ local
+   i : INFOPOINTEUR;
  do
-   if then
-     error(B_01, TYPE^type)
+   if ~TYPE^ltype.compareTo(ARGS^ltype) then
+     error(B_16);
    else
-     F^type := TYPE^type;
+     i := new INFOPOINTEUR();
+     call F^tds.inserer(, i);
+     F^est_adresse := false;
+     F^type := new DTYPE("pointeur", 1);
+     F^code := "";
    end
  end
 }
@@ -1038,21 +1036,54 @@ Q -> pt ident #tra Q #gen;
  do
    Q^est_adresse := Q1^est_adresse;
    Q^type := Q1^type;
-   Q^code := Q1^type;
+   Q^code := Q1^code;
  end
 }
 
 -------------------------------------------------------
 -- arguments d'appel de methode
 -------------------------------------------------------
-Q -> paro  ARGS parf Q ;
+-- AFAIRE : manque la génération de code
+Q -> paro ARGS #check parf Q #gen;
+#check {
+ do
+   if ~ARGS^ltype.compareTo(Q^ltype) then
+     error(B_16);
+   end
+ end
+}
+#gen {
+ do
+   Q^code := Q^machine.genCall(Q^hident, ARGS^code) + Q1^code;
+ end
+}
 
-ARGS ->  E ARGSX ;
+ARGS -> E ARGSX #gen;
+#gen {
+ do
+   ARGS^code := ARGSX^code + E^code;
+ end
+}
 
-ARGS -> ;
+ARGS -> #gen;
+#gen {
+ do
+   ARGS^code := "";
+ end
+}
 
-ARGSX ->   virg E ARGSX ;
+ARGSX -> virg E ARGSX #gen;
+#gen {
+ do
+   ARGS^code := ARGSX^code + E^code;
+ end
+}
 
-ARGSX -> ;
+ARGSX -> #gen;
+#gen {
+ do
+   ARGSX^code := "";
+ end
+}
 
 end
