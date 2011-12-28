@@ -5,17 +5,17 @@ option k=3;
 
 -- les attributs semantiques
 inh source : MJAVASourceFile for PROGRAMME;
-syn type : DTYPE for TYPE, PARF, AFFX, E, ER, ERX, OPUN, ES, ESX, OPADD, T, TX, OPMUL, F, OPUN, Q;
-syn code : STRING for ENTITES, DEFCLASSE, DEFINTERFACE, BLOC, INSTS, INST, PARF, AFFX, E, ER, ERX, OPUN, ES, ESX, OPADD, T, TX, OPMUL, F, OPUN, Q;
+syn type : DTYPE for TYPE, PARF, AFFX, E, ER, ERX, ES, T, ESX, OPADD, F, TX, OPMUL, OPUN, Q;
+syn ltype : ARGS for PARFS, Q, ARGS;
+inh machine : ABSTRACTMACHINE for ENTITES, DEFCLASSE, DEFINTERFACE, CORPS, DEFS, DEF, BLOC, INSTS, INST, SIX, E, ER, ERX, ES, ESX, T, TX, F, OPASS, OPMUL, OPUN, Q;
+syn code : STRING for ENTITES, DEFCLASSE, DEFINTERFACE, CORPS, DEFS, DEF, BLOC, INSTS, INST, SIX, AFFX, E, ER, ERX, ES, ESX, T, TX, F, OPASS, OPMUL, OPUN, Q, ARGS, ARGSX;
 inh tds : TDS for ENTITES, DEFCLASSE, DEFINTERFACE, CORPS, DEF, DEFS, MCORPS, BLOC;
-inh machine : ABSTRACTMACHINE for ;
 inh hident : STRING for Q;
-syn est_adresse : BOOLEAN for E, ER, ERX, ES, ESX, T, TX, F, Q;
-syn adr : INTEGER for ENTITES, DEF, DEFS, INST, INSTS;
-inh hadr : INTEGER for ENTITES, DEFCLASSE, DEFINTERFACE, DEF, DEFS, INST, INSTS, BLOC;
+syn est_affectable : BOOLEAN for E, ER, ERX, ES, ESX, T, TX, F, Q;
+syn adr : INTEGER for DEF, DEFS, INST, INSTS;
+inh hadr : INTEGER for DEFCLASSE, DEFINTERFACE, DEF, DEFS, INST, INSTS, BLOC;
 syn ext : STRING for ETEND, SUPER;
 syn imp : STRING for IMPL, SUPER;
-syn args : ARGS for PARFS;
 inh dep : INTEGER for ARGS, ARGSX;
 syn name : STRING for PARF;
 
@@ -317,6 +317,7 @@ DEF -> TYPE ident paro PARFS parf MCORPS #inf;
     iv := new INFOMET(TYPE^type, PARFS^args);
     call DEF^tds.inserer(ident^txt, iv);
     DEF^adr := DEF^hadr;
+    DEF^code := DEF^machine.genDeclMet(ident^txt);
  end
 }
 
@@ -339,6 +340,7 @@ DEF -> void ident paro PARFS parf MCORPS  #inf;
     iv := new INFOMET(t, PARFS^args);
     call DEF^tds.inserer(ident^txt, iv);
     DEF^adr := DEF^hadr;
+    DEF^code := DEF^machine.genDeclMet(ident^txt);
  end
 }
 
@@ -366,6 +368,7 @@ DEF -> ident paro PARFS parf BLOC #inf ;
     iv := new INFOMET(new DTYPE("constructeur",0), PARFS^args);
     call DEF^tds.inserer(ident^txt, iv);
     DEF^adr := DEF^hadr;
+    DEF^code := DEF^machine.genComment("constructeur" + ident^txt);
  end
 }
 
@@ -421,10 +424,10 @@ PARFS -> PARF #tds PARFSX ;
    i : INFOVAR;
    d : INTEGER;
  do
-   d := PARF^type.getTaille() + PARFS^dep;
+   d := PARF^type.getTaille();
    i := new INFOVAR(PARF^type, -d, "LB");
    call PARFS^tds.inserer(PARF^name, i);
-   PARFSX^dep := PARFS^dep + d;
+   PARFSX^dep := d;
  end
 }
 
@@ -540,6 +543,7 @@ INST -> BLOC #gen;
 -------------------------------------------------------
 -- conditionnelle
 -------------------------------------------------------
+-- possibilite de declarations : modifier adr, hadr
 INST -> si paro E #type parf BLOC SIX #gen;
 #type {
 do
@@ -594,23 +598,25 @@ E -> ER AFFX #gen;
  local
    i : INFO;
  do
-   if ER^est_adresse then
-     if ~AFFX^type.compareTo(ER^type)) then
-       error(B_00, ER^type, AFFX^type);
-     elseif ~AFFX^type.compareTo(new DTYPE("void", 0)) then
-       E^est_adresse := false;
-       E^type := new DTYPE("void", 0);
-       E^code := AFFX^code + ER^code + E^machine.genWriteMem(ER^type.getTaille());
-     else
-       E^est_adresse := true;
+   if ER^est_affectable then
+     if AFFX^type.compareTo(new DTYPE("void", 0)) then
+       E^est_affectable := true;
        E^type := ER^type;
        E^code := ER^code;
+     else
+       if ~AFFX^type.compareTo(ER^type)) then
+         error(B_00, ER^type, AFFX^type);
+       else
+         E^est_affectable := false;
+         E^type := new DTYPE("void", 0);
+         E^code := AFFX^code + ER^code + E^machine.genWriteMem(ER^type.getTaille());
+       end
      end
    else
      if ~AFFX^type.compareTo(new DTYPE("void", 0)) then
        error(B_10);
      else
-       E^est_adresse := false;
+       E^est_affectable := false;
        E^type := ER^type;
        E^code := ER^code;
      end
@@ -646,10 +652,10 @@ ER -> ES ERX #gen;
  do
    if ~ERX^type.compareTo(new DTYPE("void", 0))&~ERX^type.compareTo(ES^type) then
      error(B_00, ES^type, ERX^type);
-   elseif ~ERX^est_adresse then
-     ER^est_adresse := false;
+   elseif ~ERX^est_affectable then
+     ER^est_affectable := false;
    else
-     ER^est_adresse := ES^est_adresse;
+     ER^est_affectable := ES^est_affectable;
    end
    ER^type := ES^type;
    ER^code := ES^code + ERX^code;
@@ -661,10 +667,10 @@ ES -> T ESX #gen;
  do
    if ~ESX^type.compareTo(new DTYPE("void", 0))&~ESX^type.compareTo(T^type) then
      error(B_00, ESX^type, T^type);
-   elseif ~ESX^est_adresse then
-     ES^est_adresse := false;
+   elseif ~ESX^est_affectable then
+     ES^est_affectable := false;
    else
-     ES^est_adresse := T^est_adresse;
+     ES^est_affectable := T^est_affectable;
    end
    ES^type := T^type;
    ES^code := T^code + ESX^code;
@@ -674,7 +680,7 @@ ES -> T ESX #gen;
 ERX -> OPREL ES #gen;
 #gen {
  do
-   ERX^est_adresse := false;
+   ERX^est_affectable := false;
    ERX^type := new DTYPE("booleen", 1);
    ERX^code := ES^code + OPREL^code;
  end
@@ -683,7 +689,7 @@ ERX -> OPREL ES #gen;
 ERX -> #gen;
 #gen {
  do
-   ERX^est_adresse := true;
+   ERX^est_affectable := true;
    ERX^type := new DTYPE("void", 0);
    ERX^code := "";
  end
@@ -742,7 +748,7 @@ ESX -> OPADD T ESX #gen;
    elseif ~ESX1^type.compareTo(new DTYPE("void", 0))&~T^type.compareTo(ESX1^type) then
      error(B_00, T^type, ESX1^type);
    else
-     ESX^est_adresse := false;
+     ESX^est_affectable := false;
      ESX^type := T^type;
      ESX^code := T^code + ESX1^code + OPADD^code;
    end
@@ -752,7 +758,7 @@ ESX -> OPADD T ESX #gen;
 ESX -> #gen;
 #gen {
  do
-   ESX^est_adresse := true;
+   ESX^est_affectable := true;
    ESX^type := new DTYPE("void", 0);
    ESX^code := "";
  end
@@ -788,10 +794,10 @@ T ->  F TX #gen;
    if ~F^type.compareTo(TX^type) then
      error(B_00, F^type, TX^type);
    else
-     if ~TX^est_adresse then
-       T^est_adresse := false;
+     if ~TX^est_affectable then
+       T^est_affectable := false;
      else
-       T^est_adresse := F^est_adresse;
+       T^est_affectable := F^est_affectable;
      end
      T^type := TX^type;
      T^code := F^code + TX^code;
@@ -810,7 +816,7 @@ TX -> OPMUL F TX #gen;
    elseif ~TX1^type.compareTo(new DTYPE("void", 0))&~F^type.compareTo(TX1^type) then
      error(B_00, F^type, TX1^type);
    else
-     TX^est_adresse := false;
+     TX^est_affectable := false;
      TX^type := F^type;
      TX^code := F^code + TX1^code + OPMUL^code;
    end
@@ -820,7 +826,7 @@ TX -> OPMUL F TX #gen;
 TX -> #gen;
 #gen {
  do
-   TX^est_adresse := true;
+   TX^est_affectable := true;
    TX^type := new DTYPE("void", 0);
    TX^code := "";
  end
@@ -864,7 +870,7 @@ OPMUL -> et #gen;
 F -> entier #gen;
 #gen {
  do
-   F^est_adresse := false;
+   F^est_affectable := false;
    F^type := new DTYPE("entier", 4);
    F^code := F^machine.genCst(entier^txt);
  end
@@ -873,7 +879,7 @@ F -> entier #gen;
 F -> vrai #gen;
 #gen {
  do
-   F^est_adresse := false;
+   F^est_affectable := false;
    F^type := new DTYPE("booleen", 1);
    F^code := F^machine.genCst("1");
  end
@@ -882,7 +888,7 @@ F -> vrai #gen;
 F -> faux #gen;
 #gen {
  do
-   F^est_adresse := false;
+   F^est_affectable := false;
    F^type := new DTYPE("booleen", 1);
    F^code := F^machine.genCst("0");
  end
@@ -897,7 +903,7 @@ F -> OPUN F #gen;
    if ~F1^type.compareTo(OPUN^type) then
      error(B_00, F1^type, OPUN^type);
    else
-     F^est_adresse := false;
+     F^est_affectable := false;
      F^type := F1^type;
      F^code := F1^code + OPUN^code;
    end
@@ -935,7 +941,7 @@ OPUN -> non #gen;
 F -> null #gen;
 #gen {
  do
-   F^est_adresse := false;
+   F^est_affectable := false;
    F^type := new POINTEUR(nil);
    F^code := "";
  end
@@ -944,7 +950,7 @@ F -> null #gen;
 F -> paro E parf #gen;
 #gen {
  do
-   F^est_adresse := E^est_adresse;
+   F^est_affectable := E^est_affectable;
    F^type := E^type;
    F^code := E^code;
  end
@@ -964,7 +970,7 @@ F -> nouveau TYPE paro ARGS parf #gen;
    else
      i := new INFOPOINTEUR();
      call F^tds.inserer(, i);
-     F^est_adresse := false;
+     F^est_affectable := false;
      F^type := new POINTEUR(nil);
      F^code := "";
    end
@@ -979,7 +985,7 @@ F -> ident #tra Q #gen;
 }
 #gen {
  do
-   F^est_adresse := Q^est_adresse;
+   F^est_affectable := Q^est_affectable;
    F^type := Q^type;
    F^code := Q^code;
  end
@@ -1002,7 +1008,7 @@ Q -> #gen;
    with INFOVAR then
      iv := i;
      Q^type := iv.getType();
-     Q^est_adresse := true;
+     Q^est_affectable := true;
      Q^code :=Q^machine.genAdr(iv.getDep(), iv.getReg());
    else
      error(B_08, ident^txt);
@@ -1035,7 +1041,7 @@ Q -> pt ident #tra Q #gen;
 }
 #gen {
  do
-   Q^est_adresse := Q1^est_adresse;
+   Q^est_affectable := Q1^est_affectable;
    Q^type := Q1^type;
    Q^code := Q1^code;
  end

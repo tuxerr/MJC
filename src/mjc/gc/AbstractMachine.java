@@ -51,6 +51,8 @@ public abstract class AbstractMachine {
     abstract String genDeclAtt(String ident, INFOVAR iv);
     //genCall : muzukashi desu.
     abstract String genCall(String fctapp, String code);
+    //genDeclMet : analogue à gen Decl ?
+    abstract String genDeclMet(String nom, INFOMET iv);
 
 }
 

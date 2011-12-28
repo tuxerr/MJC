@@ -8,7 +8,7 @@ public class TAM {
   private String nom;
 
   public TAM(String fname) {
-    if (fname.endsWith(".bloc")) {
+    if (fname.endsWith(".mjava")) {
       nom = fname.substring(0, fname.length() - 5);
     } else {
       nom = fname;
@@ -18,8 +18,21 @@ public class TAM {
   // genere le code pour une declaration (avec initialisation)
   public String genDecl(String n, INFOVAR i, String t) {
     int taille = i.getType().getTaille();
-    return "   ; decl de " + n + " en " + i.getDep() + "/SB" + " taille = "
+    return "   ; decl de var " + n + " en " + i.getDep() + "/" + i.getReg() + " taille = "
         + taille + "\n" + t;
+  }
+
+  // genere le code pour une declaration d'attributs
+  public String genDeclAtt(String n, INFOVAR i) {
+    int taille = i.getType().getTaille();
+    return "   ; decl d'att " + n + " en " + i.getDep() + "/" + i.getReg() + " taille = "
+        + taille + "\n";
+  }
+
+  // genere le code pour une declaration de methode
+  public String genDeclAtt(String n, INFOVAR i) {
+    int taille = i.getType().getTaille();
+    return "   ; decl de met " + n + "\n";
   }
 
   // compteur pour le generateur d'etiquettes
@@ -33,17 +46,6 @@ public class TAM {
   // genere le code pour l'arret de la machine
   public String genFin() {
     return "\tHALT\n";
-  }
-
-  public void genAsm(String code) {
-    try {
-      PrintWriter pw = new PrintWriter(new FileOutputStream(nom + ".tam"));
-      pw.println(";;; code TAM engendre pour " + nom + "\n");
-      pw.print(code + "\tHALT\n");
-      pw.close();
-    } catch (FileNotFoundException e) {
-      e.printStackTrace();
-    }
   }
 
   public String genCst(String v) {
@@ -91,59 +93,59 @@ public class TAM {
   }
 
   //génération des opérations basiques sur les expressions
-  public genOpPlus(){
+  public genOpPlus() {
     return "\tSUBR IAdd\n";
   }
 
-  public genOpMoins(){
+  public genOpMoins() {
     return "\tSUBR ISub\n";
   }
 
-  public genOpMul(){
+  public genOpMul() {
     return "\tSUBR IMul\n";
   }
 
-  public genOpDiv(){
+  public genOpDiv() {
     return "\tSUBR IDiv\n";
   }
 
-  public genOpMod(){
+  public genOpMod() {
     return "\tSUBR IMod\n";
   }
 
-  public genOpEq(){
+  public genOpEq() {
     return "\tSUBR IEq\n";
   }
 
-  public genOpNeq(){
+  public genOpNeq() {
     return "\tSUBR INeq\n";
   }
 
-  public genOpLss(){
+  public genOpLss() {
     return "\tSUBR ILss\n";
   }
 
-  public genOpLeq(){
+  public genOpLeq() {
     return "\tSUBR ILeq\n";
   }
 
-  public genOpGtr(){
+  public genOpGtr() {
     return "\tSUBR IGtr\n";
   }
 
-  public genOpGeq(){
+  public genOpGeq() {
     return "\tSUBR IGeq\n";
   }
 
-  public genOpNeg(){
+  public genOpNeg() {
     return "\tSUBR BNeg\n";
   }
 
-  public genOpOr(){
+  public genOpOr() {
     return "\tSUBR BOr\n";
   }
 
-  public genOpAnd(){
+  public genOpAnd() {
     return "\tSUBR BAnd\n";
   }
 
