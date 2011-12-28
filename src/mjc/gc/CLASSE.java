@@ -1,5 +1,6 @@
 package mjc.gc;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -92,10 +93,6 @@ public class CLASSE extends DTYPE {
                 }
                 
             } 
-        }
-        
-        if(implementsCorrect) {
-            interfaceImplementee=inter;
         }
         
         return implementCorrect;

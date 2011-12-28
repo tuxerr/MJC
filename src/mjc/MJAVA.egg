@@ -361,8 +361,9 @@ DEF -> ident paro PARFS parf BLOC #inf ;
     if i /= nil then
        error(B_02, ident^txt);
     else
+
    -- ajouter l'ident dans la TDS;
-    iv := new INFOMET(nil, PARFS^args);
+    iv := new INFOMET(new DTYPE("constructeur",0), PARFS^args);
     call DEF^tds.inserer(ident^txt, iv);
     DEF^adr := DEF^hadr;
  end
@@ -935,7 +936,7 @@ F -> null #gen;
 #gen {
  do
    F^est_adresse := false;
-   F^type := new DTYPE("null", 1);
+   F^type := new POINTEUR(nil);
    F^code := "";
  end
 }
@@ -964,7 +965,7 @@ F -> nouveau TYPE paro ARGS parf #gen;
      i := new INFOPOINTEUR();
      call F^tds.inserer(, i);
      F^est_adresse := false;
-     F^type := new DTYPE("pointeur", 1);
+     F^type := new POINTEUR(nil);
      F^code := "";
    end
  end
