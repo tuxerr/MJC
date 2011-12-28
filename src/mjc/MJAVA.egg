@@ -18,6 +18,7 @@ syn ext : STRING for ETEND, SUPER;
 syn imp : STRING for IMPL, SUPER;
 inh dep : INTEGER for ARGS, ARGSX;
 syn name : STRING for PARF;
+inh isclass : BOOLEAN for CORPS, DEFS, DEF, MCORPS;
 
 -- les terminaux 
 space separateur is  "[\r\n\t ]+";     
@@ -73,7 +74,7 @@ global
    machine := PROGRAMME^source.getMachine();
    ENTITES^machine := machine;
    ENTITES^tds := new TDS(nil);
-end
+ end
 }
 
 #gen {
@@ -128,7 +129,6 @@ global
        if r /= nil
          --l'identifiant est trouvé dans la TDS
          rc := r.getType();
-         
 
          if rc.isAClass() 
            --si l'identifiant représente bien une classe
@@ -143,6 +143,7 @@ global
        end
      end
    CORPS^tds = c.getTDS();
+   CORPS^isaclass = true;
    end
  end
 }
@@ -157,13 +158,13 @@ global
   if SUPER^imp.equals("")
      --pas d'implémentation d'interfaces
   else
-           -- héritage
+       -- héritage
        r := DEFCLASSE^tds.chercherGlobalement(SUPER^imp);
        if r /= nil
 
          --l'identifiant est trouvé dans la TDS
          rc := r.getType();
-         if c.implementsCorrectly(rc) = false
+         if ~c.implementsCorrectly(rc)
            error(B14,ident^txt,SUPER^imp,c.implementGetError());
          else 
            call c.addSuperClass(SUPER^imp);
@@ -193,8 +194,10 @@ global
      error(B_12, ident^txt);
    else
      c := new CLASSE(false);
-      CORPS^tds=c.getTDS();
+   
    end
+   CORPS^tds=c.getTDS();
+   CORPS^isaclass = false;
  end
 }
 
@@ -268,7 +271,7 @@ DEFS -> #gen;
 DEFS -> DEF #adr DEFS #gen;
 #adr {
  do
-   DEFS^hadr := DEF^adr;
+   DEFS1^hadr := DEF^adr;
  end
 }
 
@@ -288,7 +291,7 @@ DEF -> TYPE ident pv  #inf;
    i : INFO;
    iv : INFOVAR;
  do
-    i := DEF^tds.chercherLocalement(ident^txt);
+    i := DEF^tds.chercherGlobalement(ident^txt);
     if i /= nil then
        error(B_02, ident^txt);
     else
@@ -303,18 +306,32 @@ DEF -> TYPE ident pv  #inf;
 -------------------------------------------------------
 -- methode (fonction) 
 -------------------------------------------------------
-DEF -> TYPE ident paro PARFS parf MCORPS #inf;
+DEF -> TYPE ident paro #tds PARFS parf #transtds MCORPS #inf;
+#tds {
+ local
+ do
+   PARFS^tds := new TDS(DEF^tds);
+ end
+}
+
+#transtds {
+  local
+  do
+    MCORPS^tds := PARFS^tds
+  end
+}
+
 #inf {
  local
    i : INFO;
    iv : INFOVAR;
  do
-    i := DEF^tds.chercherLocalement(ident^txt);
+    i := DEF^tds.chercherGlobalement(ident^txt);
     if i /= nil then
        error(B_02, ident^txt);
     else
    -- ajouter l'ident dans la TDS;
-    iv := new INFOMET(TYPE^type, PARFS^args);
+    iv := new INFOMET(TYPE^type, PARFS^ltype);
     call DEF^tds.inserer(ident^txt, iv);
     DEF^adr := DEF^hadr;
     DEF^code := DEF^machine.genDeclMet(ident^txt);
@@ -324,7 +341,21 @@ DEF -> TYPE ident paro PARFS parf MCORPS #inf;
 -------------------------------------------------------
 -- methode (procedure)
 -------------------------------------------------------
-DEF -> void ident paro PARFS parf MCORPS  #inf;
+DEF -> void ident paro #tds PARFS parf #transtds MCORPS #inf;
+#tds {
+ local
+ do
+   PARFS^tds := new TDS(DEF^tds);
+ end
+}
+
+#transtds {
+  local
+  do
+    MCORPS^tds := PARFS^tds
+  end
+}
+
 #inf {
  local
    i : INFO;
@@ -347,13 +378,58 @@ DEF -> void ident paro PARFS parf MCORPS  #inf;
 -------------------------------------------------------
 -- dans classe ou dans interface
 -------------------------------------------------------
-MCORPS -> pv ;
-MCORPS -> BLOC ;
+MCORPS -> #check pv #gen;
+#check {
+  local
+  do
+    if MCORPS^isaclass then
+      error(B_17);
+    end
+  end
+}
+
+#gen {
+  local
+  do
+    MCORPS^code := ""
+  end
+}
+
+MCORPS -> #check BLOC #gen;
+#check {
+  local
+  do
+    if ~MCORPS^isaclass then
+      error(B_18);
+    end
+  end
+}
+
+#gen {
+  local
+  do
+    MCORPS^code := BLOC^code
+  end
+}
 
 -------------------------------------------------------
 -- constructeur
 -------------------------------------------------------
-DEF -> ident paro PARFS parf BLOC #inf ; 
+DEF -> ident paro #tds PARFS parf #transtds BLOC #inf ; 
+#tds {
+ local
+ do
+   PARFS^tds := new TDS(DEF^tds);
+ end
+}
+
+#transtds {
+  local
+  do
+    BLOC^tds := PARFS^tds
+  end
+}
+
 #inf {
  local
    i : INFO;
@@ -365,7 +441,7 @@ DEF -> ident paro PARFS parf BLOC #inf ;
     else
 
    -- ajouter l'ident dans la TDS;
-    iv := new INFOMET(new DTYPE("constructeur",0), PARFS^args);
+    iv := new INFOMET(new DTYPE("constructeur",0), PARFS^ltype);
     call DEF^tds.inserer(ident^txt, iv);
     DEF^adr := DEF^hadr;
     DEF^code := DEF^machine.genComment("constructeur" + ident^txt);
@@ -404,7 +480,7 @@ TYPE -> ident #type;
      match i
        with INFOCLASSE then
          it := i ;
-         TYPE^type :=  it.getType();
+         TYPE^type := it.getType();
        else
          error(B_04, ident^txt);
      end
@@ -444,7 +520,7 @@ PARFSX -> virg  PARF #tds PARFSX ;
    d := PARF^type.getTaille() + PARFSX^dep;
    i := new INFOVAR(PARF^type, -d, "LB");
    call PARFSX^tds.inserer(PARF^name, i);
-   PARFSX1^dep := PARFX^dep + d;
+   PARFSX1^dep := PARFSX^dep + d;
  end
 }
 
@@ -461,10 +537,12 @@ PARF -> TYPE ident #tds;
 -------------------------------------------------------
 BLOC -> aco #tds INSTS acf #gen;
 #tds {
- do
-   INSTS^tds := new TDS(BLOC^tds);
- end
+  local
+  do
+    INST^tds -> new TDS(BLOC^tds);
+  end
 }
+
 #gen {
  do
    --libérer les variables locales
@@ -505,10 +583,10 @@ INST-> TYPE ident AFFX pv #gen;
    i : INFO;
    iv : INFOVAR;
  do
-   i := INST^tds.chercherLocalement(ident^txt);
+   i := INST^tds.chercherGlobalement(ident^txt);
    if i /= nil then
-     error(B_06, ident^txt);
-   elseif ~AFFX^type.compareTo(new DTYPE("void", 0))&~TYPE^type.compareTo(AFFX^type) then
+     error(B_02, ident^txt);
+   elseif ~TYPE^type.compareTo(AFFX^type) then
      error(B_00, TYPE^type, AFFX^type);
    else
      iv := new INFOVAR(TYPE^type, INST^hadr, "LB");
@@ -552,6 +630,7 @@ do
  end
 end
 }
+
 #gen {
  do
    INST^adr := INST^hadr;
@@ -559,12 +638,7 @@ end
  end
 }
 
-SIX -> sinon #adr BLOC #gen;
-#adr {
- do
-   BLOC^hadr := SIX^hadr;
- end
-}
+SIX -> sinon BLOC #gen;
 #gen {
  do
    SIX^code := BLOC^code;
@@ -585,7 +659,7 @@ SIX -> #gen;
 INST -> retour E pv #gen;
 #gen {
  do
-   INST^adr := ????
+   INST^adr := INST^hadr;
    INST^code := INST^machine.genReturn(E^code);
  end
 }
@@ -618,7 +692,7 @@ E -> ER AFFX #gen;
      else
        E^est_affectable := false;
        E^type := ER^type;
-       E^code := ER^code;
+       E^code := ER^code + AFFX^code;
      end
    end
  end
@@ -943,7 +1017,7 @@ F -> null #gen;
  do
    F^est_affectable := false;
    F^type := new POINTEUR(nil);
-   F^code := "";
+   F^code := F^machine.genCst("0");
  end
 }
 
@@ -963,13 +1037,10 @@ F -> paro E parf #gen;
 F -> nouveau TYPE paro ARGS parf #gen;
 #gen {
  local
-   i : INFOPOINTEUR;
  do
    if ~TYPE^ltype.compareTo(ARGS^ltype) then
      error(B_16);
    else
-     i := new INFOPOINTEUR();
-     call F^tds.inserer(, i);
      F^est_affectable := false;
      F^type := new POINTEUR(nil);
      F^code := "";

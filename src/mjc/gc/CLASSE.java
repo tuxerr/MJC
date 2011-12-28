@@ -14,7 +14,7 @@ public class CLASSE extends DTYPE {
     private StringBuffer buf;
 
     public CLASSE(boolean isclass) {
-        super("class",0);
+        super("classe",0);
         classeMere = null;
         this.tds = new TDS();
         this.isclass=isclass;
@@ -24,7 +24,7 @@ public class CLASSE extends DTYPE {
     }
 
     public CLASSE(CLASSE cl) {
-        super("class",0);        
+        super("classe",0);        
         this.tds = (TDS)cl.getTDS().clone();
         classeMere = cl;
     }
