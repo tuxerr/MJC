@@ -133,7 +133,6 @@ global
          if rc.isAClass() 
            --si l'identifiant représente bien une classe
            c := new CLASSE(rc);
-           call c.addSuperClass(SUPER^ext);
          else
            error(B_13,SUPER^ext); 
          end
@@ -158,16 +157,16 @@ global
   if SUPER^imp.equals("")
      --pas d'implémentation d'interfaces
   else
-       -- héritage
+       -- impl d'interface
        r := DEFCLASSE^tds.chercherGlobalement(SUPER^imp);
        if r /= nil
 
          --l'identifiant est trouvé dans la TDS
-         rc := r.getType();
-         if ~c.implementsCorrectly(rc)
+         rc := r
+         if ~c.implementsCorrectly(rc.getType())
            error(B14,ident^txt,SUPER^imp,c.implementGetError());
          else 
-           call c.addSuperClass(SUPER^imp);
+           call c.addSuperClass(rc.getType());
          end    
 
        else
