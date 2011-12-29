@@ -9,7 +9,7 @@ public class CLASSE extends DTYPE {
     private CLASSE classeMere;
     private TDS tds;
     private boolean isclass;
-    private ArrayList<String> acceptedSuperClasses;
+    private ArrayList<CLASSE> acceptedSuperClasses;
 
     private StringBuffer buf;
 
@@ -29,24 +29,34 @@ public class CLASSE extends DTYPE {
         classeMere = cl;
     }
 
+    public boolean equals(DTYPE t) {
+        return (t==this);
+    }
+
     public boolean isAClass() {
         return isclass;
     }
 
-    public void addSuperClass(String name) {
-        acceptedSuperClasses.add(name);
+    public void addSuperClass(CLASSE cl) {
+        acceptedSuperClasses.add(cl);
     }
 
-    public boolean isASuperClass(String name) {
-        for(String n : acceptedSuperClasses) {
-            if(n.equals(name)) {
+    public boolean isASuperClass(CLASSE cl) {
+        if(cl==this) {
+            return true;
+        }
+
+        for(CLASSE c : acceptedSuperClasses) {
+            if (cl == c ) {
                 return true;
             }
+                        
         }
+
         if(classeMere==null) {
             return false;
         } else {
-            return classeMere.isASuperClass(name);
+            return classeMere.isASuperClass(cl);
         }
     }
 
