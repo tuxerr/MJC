@@ -41,6 +41,21 @@ public class CLASSE extends DTYPE {
         acceptedSuperClasses.add(cl);
     }
 
+    public INFOMET getConstructor() {
+        Set<Map.Entry<String,INFO>> esi = tds.entrySet();
+
+        for (Map.Entry<String,INFO> e : esi) {
+            if (e.getValue() instanceof INFOMET) {
+                INFOMET met = (INFOMET)e.getValue();
+                if(met.getType().equals(new DTYPE("constructeur",0))) {
+                    return met;
+                }
+            }
+        }
+
+        return null;
+    }
+
     public boolean isASuperClass(CLASSE cl) {
         if(cl==this) {
             return true;

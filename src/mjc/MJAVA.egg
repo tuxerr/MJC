@@ -1036,14 +1036,27 @@ F -> paro E parf #gen;
 F -> nouveau TYPE paro ARGS parf #gen;
 #gen {
  local
+   c : CLASSE
+   im : INFOMET
  do
-   if ~TYPE^ltype.compareTo(ARGS^ltype) then
-     error(B_16);
-   else
-     F^est_affectable := false;
-     F^type := new POINTEUR(nil);
-     F^code := "";
+   match TYPE^type 
+     with CLASSE then
+       c := TYPE^type;
+       im := c.getConstructor();
+
+       --im n'est pas null car la classe a forcément un constructeur, sinon elle ne serait pas passée à la compilation
+       if (ARGS^ltype.equals(im.getArgs())) 
+          F^type := new POINTEUR(c);          
+       else
+          error(B_20);
+       end
+       
+     else
+       error(B_19);
    end
+    
+   F^est_affectable := false;
+   F^code := "";
  end
 }
 
