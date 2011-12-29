@@ -1,0 +1,10 @@
+utiliser ltype partout, pour PARFS et ARGS
+check type return
+OP* refaire
+moins : gen 0
+
+modify Q F ident
+recheck new
+recheck égalité (E -> ER AFFX)
+recheck Q -> pt ident Q ;
+recheck de l'appel de méthode;
