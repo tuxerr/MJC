@@ -6,7 +6,8 @@ option k=3;
 -- les attributs semantiques
 inh source : MJAVASourceFile for PROGRAMME;
 syn type : DTYPE for TYPE, PARF, AFFX, E, ER, ERX, ES, T, ESX, OPADD, F, TX, OPMUL, OPUN, Q;
-syn ltype : ARGS for PARFS, Q, ARGS;
+syn ltype : ARGLIST for PARFS, ARGS;
+inh iltype : ARGLIST for PARF, PARFSX, ARGSX;
 inh machine : ABSTRACTMACHINE for ENTITES, DEFCLASSE, DEFINTERFACE, CORPS, DEFS, DEF, BLOC, INSTS, INST, SIX, E, ER, ERX, ES, ESX, T, TX, F, OPASS, OPMUL, OPUN, Q;
 syn code : STRING for ENTITES, DEFCLASSE, DEFINTERFACE, CORPS, DEFS, DEF, BLOC, INSTS, INST, SIX, AFFX, E, ER, ERX, ES, ESX, T, TX, F, OPASS, OPMUL, OPUN, Q, ARGS, ARGSX;
 inh tds : TDS for ENTITES, DEFCLASSE, DEFINTERFACE, CORPS, DEF, DEFS, MCORPS, BLOC;
@@ -492,9 +493,25 @@ TYPE -> ident #type;
 -- parametres de methodes
 -------------------------------------------------------
 -- ne rien faire !
-PARFS -> ;
+PARFS -> #ltypes;
+#ltypes {
+  do
+    PARFS^ltype := new ARGLIST();
+  end
+}
 
-PARFS -> PARF #tds PARFSX ;
+PARFS -> #ltypes PARF #tds PARFSX ;
+#ltypes {
+  local
+    a : ARGLIST;
+  do
+    a := new ARGLIST();
+    PARFS^ltype := a;
+    PARF^iltype := a;
+    PARFSX^iltype := a;
+  end
+}
+
 #tds {
  local
    i : INFOVAR;
@@ -524,12 +541,17 @@ PARFSX -> virg  PARF #tds PARFSX ;
  end
 }
 
-PARF -> TYPE ident #tds;
+
+PARF -> TYPE ident #tds #ltypes;
 #tds {
  do
    PARF^type := TYPE^type;
-   PARF^name := ident^txt
+   PARF^name := ident^txt;
  end
+}
+
+#ltypes {
+ call PARF^iltype.add(TYPE^type);
 }
 
 -------------------------------------------------------
@@ -1186,21 +1208,41 @@ Q -> paro ARGS #check parf Q #gen;
  end
 }
 
-ARGS -> E ARGSX #gen;
+ARGS -> E #ltypes ARGSX #gen;
+#ltypes {
+  local
+    a : ARGLIST
+  do
+    a := new ARGLIST();
+    ARGS^ltype := a;
+    call a.add(E^type);
+    ARGSX^iltype := a;
+  end
+}
+
 #gen {
  do
    ARGS^code := ARGSX^code + E^code;
  end
 }
 
-ARGS -> #gen;
+ARGS -> #ltypes #gen;
+#ltypes {
+  do
+    ARGS^ltype := new ARGLIST();
+  end
+}
+
 #gen {
  do
    ARGS^code := "";
  end
 }
 
-ARGSX -> virg E ARGSX #gen;
+ARGSX -> virg E #ltypes ARGSX #gen;
+#ltypes {
+   call ARGSX^iltype.add(E^type);
+}
 #gen {
  do
    ARGS^code := ARGSX^code + E^code;

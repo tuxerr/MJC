@@ -2,7 +2,7 @@ package mjc.gc;
 
 import java.util.ArrayList;
 
-public class ARGS extends ArrayList<DTYPE> {
+public class ARGLIST extends ArrayList<DTYPE> {
 
     public String toString() {
         StringBuffer sb = new StringBuffer();

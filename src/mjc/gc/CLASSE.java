@@ -95,7 +95,7 @@ public class CLASSE extends DTYPE {
             // si l'entrée courante dans la TDS interface est bien une méthode
             if (e.getValue() instanceof INFOMET ) {
 
-                ARGS eargs = ((INFOMET)(e.getValue())).getArgs();
+                ARGLIST eargs = ((INFOMET)(e.getValue())).getArgs();
                 DTYPE etype = e.getValue().getType();
 
                 INFO ret = this.tds.chercherLocalement(e.getKey());

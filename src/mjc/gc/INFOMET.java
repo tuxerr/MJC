@@ -1,14 +1,14 @@
 package mjc.gc;
 
 public class INFOMET extends INFO {
-    private ARGS args;
+    private ARGLIST args;
 
-    public INFOMET(DTYPE returnType,ARGS args) {
+    public INFOMET(DTYPE returnType,ARGLIST args) {
         super(returnType);
         this.args=args;
     }
 
-    public ARGS getArgs() {
+    public ARGLIST getArgs() {
         return args;
     }
 
