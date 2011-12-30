@@ -5,9 +5,10 @@ option k=3;
 
 -- les attributs semantiques
 inh source : MJAVASourceFile for PROGRAMME;
-syn type : DTYPE for TYPE, PARF, AFFX, E, ER, ERX, ES, T, ESX, OPADD, F, TX, OPMUL, OPUN, Q;
+syn type : DTYPE for TYPE, PARF, AFFX, E, ER, ERX, ES, T, ESX, F, TX, Q;
 syn ltype : ARGLIST for PARFS, ARGS;
 inh iltype : ARGLIST for PARF, PARFSX, ARGSX;
+syn acctypes : ACCEPTEDTYPES for OPREL, OPADD, OPMUL, OPUN;
 inh machine : ABSTRACTMACHINE for ENTITES, DEFCLASSE, DEFINTERFACE, CORPS, DEFS, DEF, BLOC, INSTS, INST, SIX, E, ER, ERX, ES, ESX, T, TX, F, OPASS, OPMUL, OPUN, Q;
 syn code : STRING for ENTITES, DEFCLASSE, DEFINTERFACE, CORPS, DEFS, DEF, BLOC, INSTS, INST, SIX, AFFX, E, ER, ERX, ES, ESX, T, TX, F, OPASS, OPMUL, OPUN, Q, ARGS, ARGSX;
 inh tds : TDS for ENTITES, DEFCLASSE, DEFINTERFACE, CORPS, DEF, DEFS, MCORPS, BLOC;
@@ -44,7 +45,7 @@ sugar classe is  "class";
 sugar interface is  "interface";
 sugar etend is  "extends";
 sugar implemente is  "implements";
-sugar retour is  "return";
+vsugar retour is  "return";
 sugar nouveau is  "new";
 sugar null is  "null";
 sugar inf is  "\<";
@@ -776,6 +777,9 @@ ES -> T ESX #gen;
 ERX -> OPREL ES #gen;
 #gen {
  do
+   if ~OPREL^acctypes.contains(ES^type) then
+     error(B_00, T^type, OPADD^type);
+   end
    ERX^est_affectable := false;
    ERX^type := new DTYPE("booleen", 1);
    ERX^code := ES^code + OPREL^code;
@@ -795,6 +799,8 @@ OPREL -> inf #gen;
 #gen {
  do
    OPREL^code := OPREL^machine.genOpLss();
+   OPREL^acctypes := new ACCEPTEDTYPES();
+   call OPREL^acctypes.add(new DTYPE("entier",4));
  end
 }
 
@@ -802,6 +808,8 @@ OPREL -> infeg #gen;
 #gen {
  do
    OPREL^code := OPREL^machine.genOpLeq();
+   OPREL^acctypes := new ACCEPTEDTYPES();
+   call OPREL^acctypes.add(new DTYPE("entier",4));
  end
 }
 
@@ -809,6 +817,8 @@ OPREL -> sup #gen;
 #gen {
  do
    OPREL^code := OPREL^machine.genOpGtr();
+   OPREL^acctypes := new ACCEPTEDTYPES();
+   call OPREL^acctypes.add(new DTYPE("entier",4));
  end
 }
 
@@ -816,6 +826,8 @@ OPREL -> supeg #gen;
 #gen {
  do
    OPREL^code := OPREL^machine.genOpGeq();
+   OPREL^acctypes := new ACCEPTEDTYPES();
+   call OPREL^acctypes.add(new DTYPE("entier",4));
  end
 }
 
@@ -823,6 +835,10 @@ OPREL -> eg #gen;
 #gen {
  do
    OPREL^code := OPREL^machine.genOpEq();
+   OPREL^acctypes := new ACCEPTEDTYPES();
+   call OPREL^acctypes.add(new DTYPE("entier",4));
+   call OPREL^acctypes.add(new DTYPE("booleen",1));
+   call OPREL^acctypes.add(new DTYPE("pointeur",1));
  end
 }
 
@@ -830,6 +846,10 @@ OPREL -> neg #gen;
 #gen {
  do
    OPREL^code := OPREL^machine.genOpNeq();
+   OPREL^acctypes := new ACCEPTEDTYPES();
+   call OPREL^acctypes.add(new DTYPE("entier",4));
+   call OPREL^acctypes.add(new DTYPE("booleen",1));
+   call OPREL^acctypes.add(new DTYPE("pointeur",1));
  end
 }
 
@@ -839,7 +859,7 @@ OPREL -> neg #gen;
 ESX -> OPADD T ESX #gen;
 #gen {
  do
-   if ~T^type.compareTo(OPADD^type) then
+   if ~OPADD^acctypes.contains(T^type) then
      error(B_00, T^type, OPADD^type);
    elseif ~ESX1^type.compareTo(new DTYPE("void", 0))&~T^type.compareTo(ESX1^type) then
      error(B_00, T^type, ESX1^type);
@@ -863,15 +883,17 @@ ESX -> #gen;
 OPADD -> plus #gen;
 #gen {
  do
-   OPADD^type := new DTYPE("entier", 4);
    OPADD^code := OPADD^machine.genOpAdd();
+   OPADD^acctypes := new ACCEPTEDTYPES();
+   call OPADD^acctypes.add(new DTYPE("entier",4));
  end
 }
 
 OPADD -> moins #gen;
 #gen {
  do
-   OPADD^type := new DTYPE("entier", 4);
+   OPADD^acctypes := new ACCEPTEDTYPES();
+   call OPADD^acctypes.add(new DTYPE("entier",4));
    OPADD^code := OPADD^machine.genOpSub();
  end
 }
@@ -879,7 +901,8 @@ OPADD -> moins #gen;
 OPADD -> ou #gen;
 #gen {
  do
-   OPADD^type := new DTYPE("booleen", 1);
+   OPADD^acctypes := new ACCEPTEDTYPES();
+   call OPADD^acctypes.add(new DTYPE("entier",4));
    OPADD^code := OPADD^machine.genOpOr();
  end
 }
@@ -907,7 +930,7 @@ T ->  F TX #gen;
 TX -> OPMUL F TX #gen;
 #gen {
  do
-   if ~F^type.compareTo(OPMUL^type) then
+   if ~OPMUL^acctypes.contains(F^type) then
      error(B_00, F^type, OPMUL^type);
    elseif ~TX1^type.compareTo(new DTYPE("void", 0))&~F^type.compareTo(TX1^type) then
      error(B_00, F^type, TX1^type);
@@ -931,7 +954,8 @@ TX -> #gen;
 OPMUL -> mult #gen;
 #gen {
  do
-   OPMUL^type := new DTYPE("entier", 4);
+   OPMUL^acctypes := new ACCEPTEDTYPES();
+   call OPMUL^acctypes.add(new DTYPE("entier",4));
    OPMUL^code := OPUN^machine.genOpMul();
  end
 }
@@ -939,7 +963,8 @@ OPMUL -> mult #gen;
 OPMUL -> div #gen;
 #gen {
  do
-   OPMUL^type := new DTYPE("entier", 4);
+   OPMUL^acctypes := new ACCEPTEDTYPES();
+   call OPMUL^acctypes.add(new DTYPE("entier",4));
    OPMUL^code := OPUN^machine.genOpDiv();
  end
 }
@@ -947,7 +972,8 @@ OPMUL -> div #gen;
 OPMUL -> mod #gen;
 #gen {
  do
-   OPMUL^type := new DTYPE("entier", 4);
+   OPMUL^acctypes := new ACCEPTEDTYPES();
+   call OPMUL^acctypes.add(new DTYPE("entier",4));
    OPMUL^code := OPUN^machine.genOpMod();
  end
 }
@@ -955,7 +981,8 @@ OPMUL -> mod #gen;
 OPMUL -> et #gen;
 #gen {
  do
-   OPMUL^type := new DTYPE("booleen", 1);
+   OPMUL^acctypes := new ACCEPTEDTYPES();
+   call OPMUL^acctypes.add(new DTYPE("booleen",1));
    OPMUL^code := OPUN^machine.genOpAnd();
  end
 }
@@ -996,7 +1023,7 @@ F -> faux #gen;
 F -> OPUN F #gen;
 #gen {
  do
-   if ~F1^type.compareTo(OPUN^type) then
+   if ~OPUN^acctypes.contains(F1^type) then
      error(B_00, F1^type, OPUN^type);
    else
      F^est_affectable := false;
@@ -1009,7 +1036,8 @@ F -> OPUN F #gen;
 OPUN -> plus #gen;
 #gen {
  do
-   OPUN^type := new DTYPE("entier", 4);
+   OPUN^acctypes := new ACCEPTEDTYPES();
+   call OPUN^acctypes.add(new DTYPE("entier",4));
    OPUN^code := OPUN^machine.genOpPlus();
  end
 }
@@ -1017,7 +1045,8 @@ OPUN -> plus #gen;
 OPUN -> moins #gen;
 #gen {
  do
-   OPUN^type := new DTYPE("entier", 4);
+   OPUN^acctypes := new ACCEPTEDTYPES();
+   call OPUN^acctypes.add(new DTYPE("entier",4));
    OPUN^code := OPUN^machine.genOpMoins();
  end
 }
@@ -1025,7 +1054,8 @@ OPUN -> moins #gen;
 OPUN -> non #gen;
 #gen {
  do
-   OPUN^type := new DTYPE("booleen", 1);
+   OPUN^acctypes := new ACCEPTEDTYPES();
+   call OPUN^acctypes.add(new DTYPE("booleen",4));
    OPUN^code := OPUN^machine.genOpNon();
  end
 }

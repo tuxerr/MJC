@@ -1,7 +1,6 @@
-utiliser ltype partout, pour PARFS et ARGS
 check type return
 OP* refaire
-opérateur unaire moins : gen 0
-modify Q F ident
 
+-- priorité plus basse
+opérateur unaire moins : gen 0
 check les compareTo (remplacer par equals)
