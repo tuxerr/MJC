@@ -4,7 +4,6 @@ OP* refaire
 moins : gen 0
 modify Q F ident
 
-recheck égalité (E -> ER AFFX)
 recheck Q -> pt ident Q ;
 recheck de l'appel de méthode;
 

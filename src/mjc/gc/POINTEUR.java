@@ -8,19 +8,19 @@ public class POINTEUR extends DTYPE {
         type = t;
     }
 
-    public DTYPE getType() {
+    public DTYPE getPointedType() {
         return type;
     }
 
     public boolean equals(DTYPE autre) {
         if (autre instanceof POINTEUR)
-            return type.equals(((POINTEUR) autre).getType());
+            return type.equals(((POINTEUR) autre).getPointedType());
         return false;
     }
 
-    public boolean canaccept(DTYPE autre) {
+    public boolean canAccept(DTYPE autre) {
         if (autre instanceof POINTEUR) {
-            DTYPE apt_type = ((POINTEUR)autre).getType();
+            DTYPE apt_type = ((POINTEUR)autre).getPointedType();
             if(type.equals(apt_type)) {
                 return true;
             } else {

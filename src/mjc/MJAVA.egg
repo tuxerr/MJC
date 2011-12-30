@@ -10,7 +10,8 @@ syn ltype : ARGS for PARFS, Q, ARGS;
 inh machine : ABSTRACTMACHINE for ENTITES, DEFCLASSE, DEFINTERFACE, CORPS, DEFS, DEF, BLOC, INSTS, INST, SIX, E, ER, ERX, ES, ESX, T, TX, F, OPASS, OPMUL, OPUN, Q;
 syn code : STRING for ENTITES, DEFCLASSE, DEFINTERFACE, CORPS, DEFS, DEF, BLOC, INSTS, INST, SIX, AFFX, E, ER, ERX, ES, ESX, T, TX, F, OPASS, OPMUL, OPUN, Q, ARGS, ARGSX;
 inh tds : TDS for ENTITES, DEFCLASSE, DEFINTERFACE, CORPS, DEF, DEFS, MCORPS, BLOC;
-inh hident : STRING for Q;
+inh qtype : DTYPE for Q;
+inh met : INFOMET for Q;
 syn est_affectable : BOOLEAN for E, ER, ERX, ES, ESX, T, TX, F, Q;
 syn adr : INTEGER for DEF, DEFS, INST, INSTS;
 inh hadr : INTEGER for DEFCLASSE, DEFINTERFACE, DEF, DEFS, INST, INSTS, BLOC;
@@ -585,7 +586,7 @@ INST-> TYPE ident AFFX pv #gen;
    i := INST^tds.chercherGlobalement(ident^txt);
    if i /= nil then
      error(B_02, ident^txt);
-   elseif ~TYPE^type.compareTo(AFFX^type) then
+   elseif ~TYPE^type.canAccept(AFFX^type) then
      error(B_00, TYPE^type, AFFX^type);
    else
      iv := new INFOVAR(TYPE^type, INST^hadr, "LB");
@@ -677,7 +678,7 @@ E -> ER AFFX #gen;
        E^type := ER^type;
        E^code := ER^code;
      else
-       if ~AFFX^type.compareTo(ER^type)) then
+       if ~ER^type.canAccept(AFFX^type)) then
          error(B_00, ER^type, AFFX^type);
        else
          E^est_affectable := false;
@@ -1062,8 +1063,16 @@ F -> nouveau TYPE paro ARGS parf #gen;
 
 F -> ident #tra Q #gen;
 #tra {
+ local
+   i : INFO
  do
-   Q^hident := ident^txt;
+   i := F^tds.chercherGlobalement(ident^txt);
+   if i = nil then
+     error(B_07,ident^txt)
+   else
+     Q^qtype := i.getType();
+   end
+   
  end
 }
 #gen {
@@ -1081,20 +1090,15 @@ Q -> #gen;
 #gen {
  local 
    iv : INFOVAR;
-   i : INFO;
  do
-   i := Q^tds.chercherGlobalement(Q^hident);
-   if i = nil then
-     error(B_07, ident^txt);
-   end
-   match i
+   match Q^qtype
    with INFOVAR then
-     iv := i;
-     Q^type := iv.getType();
+     iv := Q^qtype
+     Q^type := Q^qtype;
      Q^est_affectable := true;
      Q^code :=Q^machine.genAdr(iv.getDep(), iv.getReg());
    else
-     error(B_08, ident^txt);
+     error(B_09, ident^txt);
    end
  end
 }
@@ -1106,22 +1110,48 @@ Q -> pt ident #tra Q #gen;
 #tra {
  local
    i : INFO;
-   ic : INFOCLASSE;
+   im : INFOMET;
+   iv : INFOVAR;
+   c : CLASSE;
+   p : POINTEUR;
  do
-   i : Q^tds.chercherGlobalement(Q^hident);
-   if i = nil then
-     error(B_07, ident^txt);
-   end
-   match i
-   with INFOCLASSE then
-     ic := i;
-     Q1^hident := ident^txt;
-     Q1^tds := ic.getTds;
+   --vérifier le type de l'ident appellé avant cette règle
+   match Q^qtype
+   with POINTEUR then
+     p := Q^qtype
+
+     --vérifier que le type est bien un pointeur vers une CLASSE
+     match p.getPointedType() 
+     with CLASSE then
+       c := p.getPointedType()
+
+       -- chercher l'ident dans la TDS de la classe pointée
+       i := c.getTDS().chercherLocalement(ident^txt);
+       if i = nil then
+         error(B_07,ident);
+       else
+         match i 
+         with INFOMET
+           im := i
+           Q1^qtype := Q^qtype
+           Q1^met := im
+         else
+           iv := i
+           --forcément INFOVAR, un attribut
+           Q1^qtype := iv.getType();
+           Q1^met := nil
+         end
+       end
+     else
+       error(B_21)
+     end
    else
-     error(B_13, Q^hident);
+     error(B_21)     
    end
+
  end
 }
+
 #gen {
  do
    Q^est_affectable := Q1^est_affectable;
@@ -1133,17 +1163,25 @@ Q -> pt ident #tra Q #gen;
 -------------------------------------------------------
 -- arguments d'appel de methode
 -------------------------------------------------------
--- AFAIRE : manque la génération de code
 Q -> paro ARGS #check parf Q #gen;
 #check {
  do
-   if ~ARGS^ltype.compareTo(Q^ltype) then
-     error(B_16);
+   if Q^met = nil then
+     error(B_22);
+   else   
+     if ~ARGS^ltype.equals(Q^met.getArgs()) then
+       error(B_16);
+     else
+       Q1^qtype := Q^met.getType();
+       Q1^met := nil
+     end
    end
  end
 }
 #gen {
  do
+   Q^est_affectable := Q1^est_affectable;
+   Q^type := Q1^type;
    Q^code := Q^machine.genCall(Q^hident, ARGS^code) + Q1^code;
  end
 }

@@ -34,6 +34,10 @@ public class DTYPE {
         return nom.equals(autre.nom) & taille==autre.getTaille();
     }
 
+    public boolean canAccept(DTYPE autre) {
+        return equals(autre);
+    }
+
     public String toString() {
         return nom + "(" + taille + ")";
     }
