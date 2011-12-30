@@ -9,6 +9,7 @@ syn type : DTYPE for TYPE, PARF, AFFX, E, ER, ERX, ES, T, ESX, F, TX, Q;
 syn ltype : ARGLIST for PARFS, ARGS;
 inh iltype : ARGLIST for PARF, PARFSX, ARGSX;
 syn acctypes : ACCEPTEDTYPES for OPREL, OPADD, OPMUL, OPUN;
+inh returntype : DTYPE for MCORPS, INST, INSTS, BLOC;
 inh machine : ABSTRACTMACHINE for ENTITES, DEFCLASSE, DEFINTERFACE, CORPS, DEFS, DEF, BLOC, INSTS, INST, SIX, E, ER, ERX, ES, ESX, T, TX, F, OPASS, OPMUL, OPUN, Q;
 syn code : STRING for ENTITES, DEFCLASSE, DEFINTERFACE, CORPS, DEFS, DEF, BLOC, INSTS, INST, SIX, AFFX, E, ER, ERX, ES, ESX, T, TX, F, OPASS, OPMUL, OPUN, Q, ARGS, ARGSX;
 inh tds : TDS for ENTITES, DEFCLASSE, DEFINTERFACE, CORPS, DEF, DEFS, MCORPS, BLOC;
@@ -648,7 +649,7 @@ INST -> BLOC #gen;
 INST -> si paro E #type parf BLOC SIX #gen;
 #type {
 do
- if ~E^type.compareTo(new DTYPE("booleen", 1)) then
+ if ~E^type.equals(new DTYPE("booleen", 1)) then
    error(B_05, E^type);
  end
 end
@@ -682,6 +683,9 @@ SIX -> #gen;
 INST -> retour E pv #gen;
 #gen {
  do
+   if ~E^type.equals(returntype) then
+     error(B_23,returntype.toString(),E^type.toString());
+   end
    INST^adr := INST^hadr;
    INST^code := INST^machine.genReturn(E^code);
  end
@@ -696,7 +700,7 @@ E -> ER AFFX #gen;
    i : INFO;
  do
    if ER^est_affectable then
-     if AFFX^type.compareTo(new DTYPE("void", 0)) then
+     if AFFX^type.equals(new DTYPE("void", 0)) then
        E^est_affectable := true;
        E^type := ER^type;
        E^code := ER^code;
@@ -710,7 +714,7 @@ E -> ER AFFX #gen;
        end
      end
    else
-     if ~AFFX^type.compareTo(new DTYPE("void", 0)) then
+     if ~AFFX^type.equals(new DTYPE("void", 0)) then
        error(B_10);
      else
        E^est_affectable := false;
@@ -747,7 +751,7 @@ AFFX -> #gen;
 ER -> ES ERX #gen;
 #gen {
  do
-   if ~ERX^type.compareTo(new DTYPE("void", 0))&~ERX^type.compareTo(ES^type) then
+   if ~ERX^type.equals(new DTYPE("void", 0))&~ERX^type.equals(ES^type) then
      error(B_00, ES^type, ERX^type);
    elseif ~ERX^est_affectable then
      ER^est_affectable := false;
@@ -762,7 +766,7 @@ ER -> ES ERX #gen;
 ES -> T ESX #gen;
 #gen {
  do
-   if ~ESX^type.compareTo(new DTYPE("void", 0))&~ESX^type.compareTo(T^type) then
+   if ~ESX^type.equals(new DTYPE("void", 0))&~ESX^type.equals(T^type) then
      error(B_00, ESX^type, T^type);
    elseif ~ESX^est_affectable then
      ES^est_affectable := false;
@@ -861,7 +865,7 @@ ESX -> OPADD T ESX #gen;
  do
    if ~OPADD^acctypes.contains(T^type) then
      error(B_00, T^type, OPADD^type);
-   elseif ~ESX1^type.compareTo(new DTYPE("void", 0))&~T^type.compareTo(ESX1^type) then
+   elseif ~ESX1^type.equals(new DTYPE("void", 0))&~T^type.equals(ESX1^type) then
      error(B_00, T^type, ESX1^type);
    else
      ESX^est_affectable := false;
@@ -910,7 +914,7 @@ OPADD -> ou #gen;
 T ->  F TX #gen;
 #gen {
  do
-   if ~F^type.compareTo(TX^type) then
+   if ~F^type.equals(TX^type) then
      error(B_00, F^type, TX^type);
    else
      if ~TX^est_affectable then
@@ -932,7 +936,7 @@ TX -> OPMUL F TX #gen;
  do
    if ~OPMUL^acctypes.contains(F^type) then
      error(B_00, F^type, OPMUL^type);
-   elseif ~TX1^type.compareTo(new DTYPE("void", 0))&~F^type.compareTo(TX1^type) then
+   elseif ~TX1^type.equals(new DTYPE("void", 0))&~F^type.equals(TX1^type) then
      error(B_00, F^type, TX1^type);
    else
      TX^est_affectable := false;

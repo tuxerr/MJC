@@ -1,6 +1,1 @@
-check type return
-OP* refaire
-
--- priorité plus basse
 opérateur unaire moins : gen 0
-check les compareTo (remplacer par equals)
