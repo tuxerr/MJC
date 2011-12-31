@@ -4,16 +4,20 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
 
-public class TAM {
-  private String nom;
+public class TAM extends ABSTRACTMACHINE {
+/*  private String nom; */
 
-  public TAM(String fname) {
+/*  public TAM(String fname) {
     if (fname.endsWith(".mjava")) {
       nom = fname.substring(0, fname.length() - 5);
     } else {
       nom = fname;
     }
-  }
+    } */
+    
+    public TAM() {
+
+    }
 
   // genere le code pour une declaration (avec initialisation)
   public String genDecl(String n, INFOVAR i, String t) {
@@ -30,9 +34,21 @@ public class TAM {
   }
 
   // genere le code pour une declaration de methode
-  public String genDeclAtt(String n, INFOVAR i) {
+  public String genDeclMet(String n, INFOMET i) {
     int taille = i.getType().getTaille();
     return "   ; decl de met " + n + "\n";
+  }
+
+  public String genAdr(int dep, int reg) {
+    return " ; decl d'adresse de dep " + dep + "et de registre " + reg;   
+  }
+
+  public  String genCall(String fctapp, String code) {
+    return "   ; call de fonction " + fctapp + "de code " + code;
+  }
+
+  public String genReturn(String expr) {
+    return "   ; return de fonction " + expr;
   }
 
   // compteur pour le generateur d'etiquettes
@@ -93,59 +109,59 @@ public class TAM {
   }
 
   //génération des opérations basiques sur les expressions
-  public genOpPlus() {
+  public String genOpAdd() {
     return "\tSUBR IAdd\n";
   }
 
-  public genOpMoins() {
+  public String genOpSub() {
     return "\tSUBR ISub\n";
   }
 
-  public genOpMul() {
+  public String genOpMul() {
     return "\tSUBR IMul\n";
   }
 
-  public genOpDiv() {
+  public String genOpDiv() {
     return "\tSUBR IDiv\n";
   }
 
-  public genOpMod() {
+  public String genOpMod() {
     return "\tSUBR IMod\n";
   }
 
-  public genOpEq() {
+  public String genOpEq() {
     return "\tSUBR IEq\n";
   }
 
-  public genOpNeq() {
+  public String genOpNeq() {
     return "\tSUBR INeq\n";
   }
 
-  public genOpLss() {
+  public String genOpLss() {
     return "\tSUBR ILss\n";
   }
 
-  public genOpLeq() {
+  public String genOpLeq() {
     return "\tSUBR ILeq\n";
   }
 
-  public genOpGtr() {
+  public String genOpGtr() {
     return "\tSUBR IGtr\n";
   }
 
-  public genOpGeq() {
+  public String genOpGeq() {
     return "\tSUBR IGeq\n";
   }
 
-  public genOpNeg() {
+  public String genOpNeg() {
     return "\tSUBR BNeg\n";
   }
 
-  public genOpOr() {
+  public String genOpOr() {
     return "\tSUBR BOr\n";
   }
 
-  public genOpAnd() {
+  public String genOpAnd() {
     return "\tSUBR BAnd\n";
   }
 

@@ -1,11 +1,11 @@
 package mjc.compiler;
 
 import mg.egg.eggc.compiler.libjava.SourceUnit;
-import mjc.gc.AbstractMachine;
+import mjc.gc.ABSTRACTMACHINE;
 import mjc.gc.TAM;
 
 public class MJAVASourceFile extends SourceUnit {
-	private AbstractMachine machine;
+	private ABSTRACTMACHINE machine;
 	private boolean verbose;
 	private String fileName;
 
@@ -77,7 +77,7 @@ public class MJAVASourceFile extends SourceUnit {
 		}
 	}
 
-	public AbstractMachine getMachine() {
+	public ABSTRACTMACHINE getMachine() {
 		return machine;
 	}
 

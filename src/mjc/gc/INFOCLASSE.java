@@ -6,6 +6,16 @@ public class INFOCLASSE extends INFO {
     public INFOCLASSE(CLASSE t) {
         super(t);
     }
+
+    public CLASSE getType() {
+        DTYPE t = super.getType();
+        if(t instanceof CLASSE) {
+            return (CLASSE)t;
+        } else {
+            return null;
+        }
+    }
+
     public String toString() {
         return "; CLASSE : " + "type=" + type;
     }
