@@ -185,7 +185,7 @@ global
          with INFOCLASSE then
            rc := r;
            if ~c.implementsCorrectly(rc.getType()) then
-             error(B14,ident^txt,SUPER^imp,c.implementGetError());
+             error(B_14,ident^txt,SUPER^imp,c.implementGetError());
            else 
              call c.addSuperClass(rc.getType());
            end
@@ -789,11 +789,14 @@ ER -> ES ERX #gen;
    if ~ERX^type.equals(new DTYPE("void", 0))&~ERX^type.equals(ES^type) then
      error(B_00, ES^type, ERX^type);
    elseif ~ERX^est_affectable then
+     --ERX contient une OPREL
      ER^est_affectable := false;
+     ER^type := new DTYPE("booleen",1);
    else
+     --ERX est vide
      ER^est_affectable := ES^est_affectable;
+     ER^type := ES^type;
    end
-   ER^type := ES^type;
    ER^code := ES^code + ERX^code;
  end
 }
@@ -820,7 +823,7 @@ ERX -> OPREL ES #gen;
      error(B_00, ES^type, OPREL^acctypes.toString());
    end
    ERX^est_affectable := false;
-   ERX^type := new DTYPE("booleen", 1);
+   ERX^type := ES^type;
    ERX^code := ES^code + OPREL^code;
  end
 }
@@ -973,10 +976,10 @@ OPADD -> ou #gen;
  end
 }
 
-T ->  F TX #gen;
+T -> F TX #gen;
 #gen {
  do
-   if ~F^type.equals(TX^type) then
+   if ~TX^type.equals(new DTYPE("void", 0))&~F^type.equals(TX^type) then
      error(B_00, F^type, TX^type);
    else
      if ~TX^est_affectable then
@@ -984,7 +987,7 @@ T ->  F TX #gen;
      else
        T^est_affectable := F^est_affectable;
      end
-     T^type := TX^type;
+     T^type := F^type;
      T^code := F^code + TX^code;
    end
  end
