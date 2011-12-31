@@ -334,7 +334,7 @@ DEF -> TYPE ident pv  #inf;
 -------------------------------------------------------
 -- methode (fonction) 
 -------------------------------------------------------
-DEF -> TYPE ident paro #tds PARFS parf MCORPS #inf;
+DEF -> TYPE ident paro #tds PARFS parf #inf MCORPS;
 
 #tds {
  local
