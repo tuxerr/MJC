@@ -131,6 +131,7 @@ global
    r : INFO;
    t : DTYPE;
    rc : CLASSE;
+   ic : INFOCLASSE;
  do
    i := DEFCLASSE^tds.chercherGlobalement(ident^txt);
    if i /= nil then
@@ -162,17 +163,18 @@ global
      end
    CORPS^tds := c.getTDS();
    CORPS^isaclass := true;
+   ic := new INFOCLASSE(c);
+   call DEFCLASSE^tds.inserer(ident^txt, ic);
    end
  end
 }
 
 #checkandinsert {
  local
-  ic : INFOCLASSE;
   r : INFO;
   rc : INFOCLASSE;
  do
-  ic := new INFOCLASSE(c);
+
   if SUPER^imp.equals("") then
      --pas d'implémentation d'interfaces
   else
@@ -196,7 +198,7 @@ global
        end
   end
   
-  call DEFCLASSE^tds.inserer(ident^txt, ic);
+
   DEFCLASSE^code := CORPS^code;
  end
 }
@@ -1217,8 +1219,16 @@ F -> ident #tra Q #gen;
    if i = nil then
      error(B_07,ident^txt);
    else
-     Q^qinf := i;
-     Q^qmet := nil;
+     match i 
+     with INFOVAR then
+       Q^qinf := i;
+       Q^qmet := nil;
+     with INFOMET then
+       Q^qinf := nil;
+       Q^qmet := i;
+     else
+       error(B_25,ident^txt);
+     end
    end
    
  end
@@ -1238,6 +1248,7 @@ Q -> #gen;
 #gen {
  local 
    iv : INFOVAR;
+   im : INFOMET;
  do
    match Q^qinf
    with INFOVAR then
@@ -1267,41 +1278,44 @@ Q -> pt ident #tra Q #gen;
    at : DTYPE;
  do
    --vérifier le type de l'ident appellé avant cette règle
-   at := Q^qinf.getType();
-   match at
-   with POINTEUR then
-     t := at.getPointedType();
-
-     --vérifier que le type est bien un pointeur vers une CLASSE
-     match t
-     with CLASSE then
-       c := t;
-       ctds := c.getTDS();
-
-       -- chercher l'ident dans la TDS de la classe pointée
-       i := ctds.chercherLocalement(ident^txt);
-       if i = nil then
-         error(B_07,ident^txt);
-       else
-         match i 
-         with INFOMET then
-           im := i;
-           Q1^qinf := Q^qinf;
-           Q1^qmet := im;
-         with INFOVAR then
-           iv := i;
-           --forcément INFOVAR, un attribut
-           Q1^qinf := iv;
-           Q1^qmet := nil;
+   if Q^qinf = nil then
+     error(B_21);
+   else
+     at := Q^qinf.getType();
+     match at
+     with POINTEUR then
+       t := at.getPointedType();
+  
+       --vérifier que le type est bien un pointeur vers une CLASSE
+       match t
+       with CLASSE then
+         c := t;
+         ctds := c.getTDS();
+  
+         -- chercher l'ident dans la TDS de la classe pointée
+         i := ctds.chercherLocalement(ident^txt);
+         if i = nil then
+           error(B_07,ident^txt);
+         else
+           match i 
+           with INFOMET then
+             im := i;
+             Q1^qinf := Q^qinf;
+             Q1^qmet := im;
+           with INFOVAR then
+             iv := i;
+             --forcément INFOVAR, un attribut
+             Q1^qinf := iv;
+             Q1^qmet := nil;
+           end
          end
+       else
+         error(B_21);
        end
      else
-       error(B_21);
+       error(B_21);  
      end
-   else
-     error(B_21);  
    end
-
  end
 }
 
@@ -1323,12 +1337,19 @@ Q -> paro #init ARGS #check parf Q #gen;
  end
 }
 #check {
+ local
+   s1 : STRING;
+   s2 : STRING;
+   a : ARGLIST;
  do
    if Q^qmet = nil then
      error(B_22);
    else   
      if ~ARGS^ltype.equals(Q^qmet.getArgs()) then
-       error(B_16);
+       s1 := ARGS^ltype.toString();
+       a := Q^qmet.getArgs();
+       s2 := a.toString();
+       error(B_16,s1,s2);
      else
        Q1^qinf := new INFOVAR(Q^qmet.getType(),0,"LB");
        Q1^qmet := nil;

@@ -20,4 +20,19 @@ public class ARGLIST extends ArrayList<DTYPE> {
         return taille;
     }
 
+    public boolean equals(ARGLIST autre) {
+        int lc = size();
+        int lca = autre.size();
+        if (lc != lca)
+            return false;
+        for (int i = 0; i < lc; i++) {
+            DTYPE c = get(i);
+            DTYPE ca = autre.get(i);
+
+            if (!c.equals(ca))
+                return false;
+        }
+        return true;
+    }
+
 }
