@@ -13,10 +13,10 @@ public class CLASSE extends DTYPE {
 
     private StringBuffer buf;
 
-    public CLASSE(boolean isclass) {
+    public CLASSE(boolean isclass,TDS globaltds) {
         super("classe",0);
         classeMere = null;
-        this.tds = new TDS();
+        this.tds = new TDS(globaltds);
         this.isclass=isclass;
         if(!isclass) {
             super.setNom("interface");

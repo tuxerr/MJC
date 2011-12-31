@@ -21,7 +21,9 @@ public class POINTEUR extends DTYPE {
     public boolean canAccept(DTYPE autre) {
         if (autre instanceof POINTEUR) {
             DTYPE apt_type = ((POINTEUR)autre).getPointedType();
-            if(type.equals(apt_type)) {
+            if(apt_type==null) {
+                return true;
+            } else if(type.equals(apt_type)) {
                 return true;
             } else {
                 if( (type instanceof CLASSE) & (apt_type instanceof CLASSE) ) {

@@ -139,7 +139,7 @@ global
    else
      if(SUPER^ext.equals("")) then
        --pas d'héritage
-       c := new CLASSE(true);
+       c := new CLASSE(true,DEFCLASSE^tds);
      else
        -- héritage
        r := DEFCLASSE^tds.chercherGlobalement(SUPER^ext);
@@ -217,7 +217,7 @@ global
    if i /= nil then
      error(B_12, ident^txt);
    else
-     c := new CLASSE(false);
+     c := new CLASSE(false,DEFINTERFACE^tds);
    end
    CORPS^tds := c.getTDS();
    CORPS^isaclass := false;
@@ -319,13 +319,20 @@ DEF -> TYPE ident pv  #inf;
  local
    i : INFO;
    iv : INFOVAR;
+   t : POINTEUR;
  do
     i := DEF^tds.chercherGlobalement(ident^txt);
     if i /= nil then
        error(B_02, ident^txt);
     else
       -- ajouter l'ident dans la TDS;
-      iv := new INFOVAR(TYPE^type, DEF^hadr, "LB");
+      match TYPE^type
+      with CLASSE then
+        t := new POINTEUR(TYPE^type);
+        iv := new INFOVAR(t, DEF^hadr, "LB");  
+      else
+        iv := new INFOVAR(TYPE^type, DEF^hadr, "LB");  
+      end
       call DEF^tds.inserer(ident^txt, iv);
       DEF^adr := DEF^hadr + TYPE^type.getTaille();
       DEF^code := DEF^machine.genDeclAtt(ident^txt, iv);
