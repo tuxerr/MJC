@@ -10,7 +10,7 @@ public class CLASSE extends DTYPE {
     private TDS tds;
     private boolean isclass;
     private ArrayList<CLASSE> acceptedSuperClasses;
-
+    private INFOMET constructor;
     private StringBuffer buf;
 
     public CLASSE(boolean isclass,TDS globaltds) {
@@ -42,18 +42,11 @@ public class CLASSE extends DTYPE {
     }
 
     public INFOMET getConstructor() {
-        Set<Map.Entry<String,INFO>> esi = tds.entrySet();
+        return constructor;
+    }
 
-        for (Map.Entry<String,INFO> e : esi) {
-            if (e.getValue() instanceof INFOMET) {
-                INFOMET met = (INFOMET)e.getValue();
-                if(met.getType().equals(new DTYPE("constructeur",0))) {
-                    return met;
-                }
-            }
-        }
-
-        return null;
+    public void setConstructor(INFOMET met) {
+        constructor=met;
     }
 
     public boolean isASuperClass(CLASSE cl) {

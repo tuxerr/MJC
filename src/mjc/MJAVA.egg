@@ -22,7 +22,8 @@ syn ext : STRING for ETEND, SUPER;
 syn imp : STRING for IMPL, SUPER;
 inh dep : INTEGER for ARGS, ARGSX, PARFSX;
 syn name : STRING for PARF;
-inh isaclass : BOOLEAN for CORPS, DEFS, DEF, MCORPS;
+inh class : CLASSE for CORPS, DEFS, DEF, MCORPS;
+inh classname : STRING for CORPS, DEFS, DEF;
 
 -- les terminaux 
 space separateur is  "[\r\n\t ]+";     
@@ -162,7 +163,8 @@ global
        end
      end
    CORPS^tds := c.getTDS();
-   CORPS^isaclass := true;
+   CORPS^class := c;
+   CORPS^classname := ident^txt;
    ic := new INFOCLASSE(c);
    call DEFCLASSE^tds.inserer(ident^txt, ic);
    end
@@ -220,7 +222,8 @@ global
      c := new CLASSE(false,DEFINTERFACE^tds);
    end
    CORPS^tds := c.getTDS();
-   CORPS^isaclass := false;
+   CORPS^class := c;
+   CORPS^classname := ident^txt;
  end
 }
 
@@ -416,7 +419,7 @@ MCORPS -> #check pv #gen;
 #check {
   local
   do
-    if MCORPS^isaclass then
+    if MCORPS^class.isAClass() then
       error(B_17);
     end
   end
@@ -433,7 +436,7 @@ MCORPS -> #check BLOC #gen;
 #check {
   local
   do
-    if ~MCORPS^isaclass then
+    if ~MCORPS^class.isAClass() then
       error(B_18);
     end
     BLOC^hadr := 0;
@@ -471,20 +474,17 @@ DEF -> ident paro #tds PARFS parf #transtds BLOC #inf ;
 
 #inf {
  local
-   i : INFO;
    iv : INFOMET;
  do
-    i := DEF^tds.chercherGlobalement(ident^txt);
-    if i /= nil then
-       error(B_02, ident^txt);
-    else
-
-      -- ajouter l'ident dans la TDS;
-      iv := new INFOMET(new DTYPE("constructeur",0), PARFS^ltype);
-      call DEF^tds.inserer(ident^txt, iv);
-      DEF^adr := DEF^hadr;
-      DEF^code := DEF^machine.genComment("constructeur" + ident^txt);
-    end
+   if ident^txt.equals(DEF^classname) & DEF^class.isAClass()  then
+     -- ajouter l'ident dans la TDS;
+     iv := new INFOMET(new DTYPE("constructeur",0), PARFS^ltype);
+     call DEF^class.setConstructor(iv);
+     DEF^adr := DEF^hadr;
+     DEF^code := DEF^machine.genComment("constructeur" + ident^txt);
+   else
+     error(B_26, ident^txt);
+   end
  end
 }
 
@@ -519,7 +519,7 @@ TYPE -> ident #type;
    else
      match i
        with INFOCLASSE then
-         it := i ;
+         it := i;
          TYPE^type := it.getType();
        else
          error(B_04, ident^txt);
