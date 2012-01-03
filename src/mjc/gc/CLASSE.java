@@ -25,7 +25,7 @@ public class CLASSE extends DTYPE {
 
     public CLASSE(CLASSE cl) {
         super("classe",0);        
-        this.tds = (TDS)cl.getTDS().clone();
+        this.tds = new TDS(cl.getTDS());
         classeMere = cl;
     }
 

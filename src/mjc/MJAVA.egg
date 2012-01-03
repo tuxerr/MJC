@@ -361,18 +361,34 @@ DEF -> TYPE ident paro #tds PARFS parf #inf MCORPS;
 
 #inf {
  local
-   i : INFO;
+   il : INFO;
+   ig : INFO;
    iv : INFOMET;
  do
-    i := DEF^tds.chercherGlobalement(ident^txt);
-    if i /= nil then
+    il := DEF^tds.chercherLocalement(ident^txt);
+    ig := DEF^tds.chercherGlobalement(ident^txt);
+    if il /= nil then
        error(B_02, ident^txt);
     else
-      -- ajouter l'ident dans la TDS;
-      iv := new INFOMET(TYPE^type, PARFS^ltype);
-      call DEF^tds.inserer(ident^txt, iv);
-      DEF^adr := DEF^hadr;
-      DEF^code := DEF^machine.genDeclMet(ident^txt,iv);
+      if ig /= nil then
+        match ig 
+        with INFOMET then
+         -- redéfinition d'une méthode héritée  
+         -- ajouter l'ident dans la TDS;
+          iv := new INFOMET(TYPE^type, PARFS^ltype);
+          call DEF^tds.inserer(ident^txt, iv);
+          DEF^adr := DEF^hadr;
+          DEF^code := DEF^machine.genDeclMet(ident^txt,iv);
+        else 
+          error(B_02, ident^txt);
+        end
+      else
+        -- ajouter l'ident dans la TDS;
+        iv := new INFOMET(TYPE^type, PARFS^ltype);
+        call DEF^tds.inserer(ident^txt, iv);
+        DEF^adr := DEF^hadr;
+        DEF^code := DEF^machine.genDeclMet(ident^txt,iv);
+      end
     end
  end
 }
@@ -1205,7 +1221,7 @@ F -> nouveau #init TYPE paro ARGS parf #gen;
        if (ARGS^ltype.equals(im.getArgs())) then
           F^type := new POINTEUR(c);          
        else
-          error(B_20);
+          error(B_16,ARGS^ltype,im.getArgs());
        end
        
      else
