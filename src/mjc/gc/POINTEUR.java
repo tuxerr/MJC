@@ -1,14 +1,14 @@
 package mjc.gc;
 
 public class POINTEUR extends DTYPE {
-    private DTYPE type;
+    private CLASSE type;
 
-    public POINTEUR(DTYPE t) {
+    public POINTEUR(CLASSE t) {
         super("pointeur", 1);
         type = t;
     }
 
-    public DTYPE getPointedType() {
+    public CLASSE getPointedType() {
         return type;
     }
 
@@ -26,8 +26,8 @@ public class POINTEUR extends DTYPE {
             } else if(type.equals(apt_type)) {
                 return true;
             } else {
-                if( (type instanceof CLASSE) & (apt_type instanceof CLASSE) ) {
-                    return ((CLASSE)type).isASuperClass((CLASSE)apt_type);
+                if(apt_type instanceof CLASSE) {
+                    return type.isASuperClass((CLASSE)apt_type);
                 } else {
                     return false;
                 }

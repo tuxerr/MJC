@@ -41,16 +41,16 @@ public abstract class ABSTRACTMACHINE {
     abstract public String genIf(String si, String inst1, String inst2);
     abstract public String genFin();
     abstract public String genReturn(String expr);
-    abstract public String genDecl(String ident, INFOVAR iv, String code);
+    abstract public String genDecl(String ident, VAR iv, String code);
     abstract public String genAdr(int dep, int reg);
     abstract public String genWriteMem(int taille);
     abstract public String genFree(int taille);
     //genDeclAtt : génère le code (commentaire) lors de la déclaration d'attributs, assez analogue à genDecl
-    abstract public String genDeclAtt(String ident, INFOVAR iv);
+    abstract public String genDeclAtt(String ident, VAR iv);
     //genCall : muzukashi desu.
     abstract public String genCall(String fctapp, String code);
     //genDeclMet : analogue à gen Decl ?
-    abstract public String genDeclMet(String n, INFOMET i);
+    abstract public String genDeclMet(String n, METHODE i);
 
 }
 

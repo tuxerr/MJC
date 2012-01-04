@@ -13,8 +13,9 @@ inh returntype : DTYPE for MCORPS, INST, INSTS, BLOC, SIX;
 inh machine : ABSTRACTMACHINE for ENTITES, DEFCLASSE, DEFINTERFACE, MCORPS, CORPS, DEFS, DEF, BLOC, INSTS, INST, SIX, E, ER, ERX, ES, ESX, T, TX, F, OPADD, OPMUL, OPUN, OPREL, Q, AFFX, ARGS, ARGSX;
 syn code : STRING for ENTITES, DEFCLASSE, DEFINTERFACE, CORPS, MCORPS, DEFS, DEF, BLOC, INSTS, INST, SIX, AFFX, E, ER, ERX, ES, ESX, T, TX, F, OPADD, OPMUL, OPUN, OPREL, Q, ARGS, ARGSX;
 inh tds : TDS for ENTITES, DEFCLASSE, DEFINTERFACE, CORPS, DEF, DEFS, MCORPS, BLOC, TYPE, PARF, PARFSX, PARFS, INSTS, INST, SIX, F, T, TX, E, ER, ERX, ES, ESX, AFFX, ARGS, ARGSX, Q;
-inh qinf : INFO for Q;
-inh qmet : INFOMET for Q;
+inh qident : STRING for Q;
+inh qtype : DTYPE for Q;
+inh qisvar : BOOLEAN for Q;
 syn est_affectable : BOOLEAN for E, ER, ERX, ES, ESX, T, TX, F, Q;
 syn adr : INTEGER for DEF, DEFS, INST, INSTS;
 inh hadr : INTEGER for DEFCLASSE, DEFINTERFACE, DEF, DEFS, INST, INSTS, BLOC, SIX;
@@ -78,7 +79,7 @@ global
  do
    machine := PROGRAMME^source.getMachine();
    ENTITES^machine := machine;
-   ENTITES^tds := new TDS(nil);
+   ENTITES^tds := new TDS();
  end
 }
 
@@ -128,36 +129,27 @@ global
 
 #gen {
  local
-   i : INFO;
-   r : INFO;
-   t : DTYPE;
-   rc : CLASSE;
-   ic : INFOCLASSE;
+   i : CLASSE;
+   r : CLASSE;
  do
-   i := DEFCLASSE^tds.chercherGlobalement(ident^txt);
+   i := DEFCLASSE^tds.chercherGlobalementClasse(ident^txt);
    if i /= nil then
      error(B_11, ident^txt);
    else
      if(SUPER^ext.equals("")) then
        --pas d'héritage
-       c := new CLASSE(true,DEFCLASSE^tds);
+       c := new CLASSE(true,DEFCLASSE^tds,ident^txt);
      else
        -- héritage
-       r := DEFCLASSE^tds.chercherGlobalement(SUPER^ext);
+       r := DEFCLASSE^tds.chercherGlobalementClasse(SUPER^ext);
        if r /= nil then
-         --l'identifiant est trouvé dans la TDS
-         t := r.getType();
-         match t 
-         with CLASSE then
-           rc := t;
-           if rc.isAClass() then
+           --l'identifiant est trouvé dans la TDS
+           if r.isAClass() then
              --si l'identifiant représente bien une classe
-             c := new CLASSE(rc);
+             c := new CLASSE(r,ident^txt);
            else
              error(B_13,SUPER^ext); 
            end
-          end
-
        else
          error(B_13,SUPER^ext); 
        end
@@ -165,41 +157,34 @@ global
    CORPS^tds := c.getTDS();
    CORPS^class := c;
    CORPS^classname := ident^txt;
-   ic := new INFOCLASSE(c);
-   call DEFCLASSE^tds.inserer(ident^txt, ic);
+   call DEFCLASSE^tds.inserer(ident^txt, c);
    end
  end
 }
 
 #checkandinsert {
  local
-  r : INFO;
-  rc : INFOCLASSE;
+  r : CLASSE;
  do
 
   if SUPER^imp.equals("") then
      --pas d'implémentation d'interfaces
   else
        -- impl d'interface
-       r := DEFCLASSE^tds.chercherGlobalement(SUPER^imp);
+       r := DEFCLASSE^tds.chercherGlobalementClasse(SUPER^imp);
        if r /= nil then
 
          --l'identifiant est trouvé dans la TDS
-         match r
-         with INFOCLASSE then
-           rc := r;
-           if ~c.implementsCorrectly(rc.getType()) then
+           if ~c.implementsCorrectly(r) then
              error(B_14,ident^txt,SUPER^imp,c.implementGetError());
            else 
-             call c.addSuperClass(rc.getType());
+             call c.addSuperClass(r);
            end
-         end
 
        else
          error(B_13,SUPER^ext); 
        end
   end
-  
 
   DEFCLASSE^code := CORPS^code;
  end
@@ -212,14 +197,14 @@ global
 
 #gen {
  local
-   i : INFO;
+   i : CLASSE;
 
  do
-   i := DEFINTERFACE^tds.chercherGlobalement(ident^txt);
+   i := DEFINTERFACE^tds.chercherGlobalementClasse(ident^txt);
    if i /= nil then
      error(B_12, ident^txt);
    else
-     c := new CLASSE(false,DEFINTERFACE^tds);
+     c := new CLASSE(false,DEFINTERFACE^tds,ident^txt);
    end
    CORPS^tds := c.getTDS();
    CORPS^class := c;
@@ -229,13 +214,10 @@ global
 
 #insert {
  local
-   ic : INFOCLASSE;
  do
-   ic := new INFOCLASSE(c);
-   call DEFINTERFACE^tds.inserer(ident^txt, ic);
+   call DEFINTERFACE^tds.inserer(ident^txt, c);
    DEFINTERFACE^code := CORPS^code;
  end
-  
 }
 
 -------------------------------------------------------
@@ -320,11 +302,11 @@ DEFS -> DEF #adr DEFS #gen;
 DEF -> TYPE ident pv  #inf;
 #inf {
  local
-   i : INFO;
-   iv : INFOVAR;
+   i : VAR;
    t : POINTEUR;
+   in : VAR;
  do
-    i := DEF^tds.chercherGlobalement(ident^txt);
+    i := DEF^tds.chercherGlobalementVar(ident^txt);
     if i /= nil then
        error(B_02, ident^txt);
     else
@@ -332,13 +314,13 @@ DEF -> TYPE ident pv  #inf;
       match TYPE^type
       with CLASSE then
         t := new POINTEUR(TYPE^type);
-        iv := new INFOVAR(t, DEF^hadr, "LB");  
+        in := new VAR(t, DEF^hadr, "LB");  
       else
-        iv := new INFOVAR(TYPE^type, DEF^hadr, "LB");  
+        in := new VAR(TYPE^type, DEF^hadr, "LB");  
       end
-      call DEF^tds.inserer(ident^txt, iv);
+      call DEF^tds.inserer(ident^txt, in);
       DEF^adr := DEF^hadr + TYPE^type.getTaille();
-      DEF^code := DEF^machine.genDeclAtt(ident^txt, iv);
+      DEF^code := DEF^machine.genDeclAtt(ident^txt, in);
     end
  end
 }
@@ -361,34 +343,17 @@ DEF -> TYPE ident paro #tds PARFS parf #inf MCORPS;
 
 #inf {
  local
-   il : INFO;
-   ig : INFO;
-   iv : INFOMET;
+   il : METHODE;
+   m : METHODE;
  do
-    il := DEF^tds.chercherLocalement(ident^txt);
-    ig := DEF^tds.chercherGlobalement(ident^txt);
+    il := DEF^tds.chercherLocalementMethod(ident^txt,PARFS^ltype);
     if il /= nil then
-       error(B_02, ident^txt);
+      error(B_27, ident^txt);
     else
-      if ig /= nil then
-        match ig 
-        with INFOMET then
-         -- redéfinition d'une méthode héritée  
-         -- ajouter l'ident dans la TDS;
-          iv := new INFOMET(TYPE^type, PARFS^ltype);
-          call DEF^tds.inserer(ident^txt, iv);
-          DEF^adr := DEF^hadr;
-          DEF^code := DEF^machine.genDeclMet(ident^txt,iv);
-        else 
-          error(B_02, ident^txt);
-        end
-      else
-        -- ajouter l'ident dans la TDS;
-        iv := new INFOMET(TYPE^type, PARFS^ltype);
-        call DEF^tds.inserer(ident^txt, iv);
-        DEF^adr := DEF^hadr;
-        DEF^code := DEF^machine.genDeclMet(ident^txt,iv);
-      end
+      m := new METHODE(TYPE^type, PARFS^ltype);
+      call DEF^tds.inserer(ident^txt, m);
+      DEF^adr := DEF^hadr;
+      DEF^code := DEF^machine.genDeclMet(ident^txt,m);
     end
  end
 }
@@ -410,20 +375,20 @@ DEF -> void ident paro #tds PARFS parf MCORPS #inf;
 
 #inf {
  local
-   i : INFO;
-   iv : INFOMET;
+   i : METHODE;
    t : DTYPE;
+   m : METHODE;
  do
-    i := DEF^tds.chercherLocalement(ident^txt);
+    i := DEF^tds.chercherLocalementMethod(ident^txt,PARFS^ltype);
     if i /= nil then
-       error(B_02, ident^txt);
+       error(B_27, ident^txt);
     else
       -- ajouter l'ident dans la TDS;
       t := new DTYPE("void",0);
-      iv := new INFOMET(t, PARFS^ltype);
-      call DEF^tds.inserer(ident^txt, iv);
+      m := new METHODE(t, PARFS^ltype);
+      call DEF^tds.inserer(ident^txt, m);
       DEF^adr := DEF^hadr;
-      DEF^code := DEF^machine.genDeclMet(ident^txt,iv);
+      DEF^code := DEF^machine.genDeclMet(ident^txt,m);
     end
  end
 }
@@ -490,12 +455,14 @@ DEF -> ident paro #tds PARFS parf #transtds BLOC #inf ;
 
 #inf {
  local
-   iv : INFOMET;
+   m : METHODE;
+   t : DTYPE;
  do
    if ident^txt.equals(DEF^classname) & DEF^class.isAClass()  then
      -- ajouter l'ident dans la TDS;
-     iv := new INFOMET(new DTYPE("constructeur",0), PARFS^ltype);
-     call DEF^class.setConstructor(iv);
+     t := new DTYPE("constructeur",0);
+     m := new METHODE(t, PARFS^ltype);
+     call DEF^tds.inserer(ident^txt,m);
      DEF^adr := DEF^hadr;
      DEF^code := DEF^machine.genComment("constructeur" + ident^txt);
    else
@@ -524,22 +491,14 @@ TYPE -> bool #type;
 TYPE -> ident #type;
 #type {
  local
-   i : INFO ;
-   it : INFOCLASSE;
-   t : DTYPE;
+   i : CLASSE ;
  do
    -- rechercher l'ident   
-   i := TYPE^tds.chercherGlobalement(ident^txt);
+   i := TYPE^tds.chercherGlobalementClasse(ident^txt);
    if i = nil then
      error(B_03, ident^txt);
    else
-     match i
-       with INFOCLASSE then
-         it := i;
-         TYPE^type := it.getType();
-       else
-         error(B_04, ident^txt);
-     end
+     TYPE^type := i;
    end
  end
 }
@@ -569,13 +528,13 @@ PARFS -> #ltypes PARF #tds PARFSX ;
 
 #tds {
  local
-   i : INFOVAR;
+   i : VAR;
    d : INTEGER;
    dm : INTEGER;
  do
    d := PARF^type.getTaille();
    dm := 0-d;
-   i := new INFOVAR(PARF^type, dm, "LB");
+   i := new VAR(PARF^type, dm, "LB");
    call PARFS^tds.inserer(PARF^name, i);
    PARFSX^dep := d;
  end
@@ -588,13 +547,13 @@ PARFSX -> ;
 PARFSX -> virg  PARF #tds PARFSX ;
 #tds {
  local
-   i : INFOVAR;
+   i : VAR;
    d : INTEGER;
    dm : INTEGER;
  do
    d := PARF^type.getTaille() + PARFSX^dep;
    dm := 0-d;
-   i := new INFOVAR(PARF^type, dm, "LB");
+   i := new VAR(PARF^type, dm, "LB");
    call PARFSX^tds.inserer(PARF^name, i);
    PARFSX1^dep := PARFSX^dep + d;
  end
@@ -663,19 +622,19 @@ INSTS -> INST #adr INSTS #gen;
 INST-> TYPE ident AFFX pv #gen;
 #gen {
  local
-   i : INFO;
-   iv : INFOVAR;
+   v : VAR;
+   vn : VAR;
  do
-   i := INST^tds.chercherGlobalement(ident^txt);
-   if i /= nil then
+   v := INST^tds.chercherGlobalementVar(ident^txt);
+   if v /= nil then
      error(B_02, ident^txt);
    elseif ~TYPE^type.canAccept(AFFX^type) then
      error(B_00, TYPE^type, AFFX^type);
    else
-     iv := new INFOVAR(TYPE^type, INST^hadr, "LB");
-     call INST^tds.inserer(ident^txt, iv);
+     vn := new VAR(TYPE^type, INST^hadr, "LB");
+     call INST^tds.inserer(ident^txt, vn);
      INST^adr := INST^hadr + TYPE^type.getTaille();
-     INST^code := INST^machine.genDecl(ident^txt, iv, AFFX^code);
+     INST^code := INST^machine.genDecl(ident^txt, vn, AFFX^code);
    end
  end
 }
@@ -891,7 +850,8 @@ OPREL -> sup #gen;
  local
    a : ACCEPTEDTYPES;
  do
-   OPREL^code := OPREL^machine.genOpGtr();
+
+ OPREL^code := OPREL^machine.genOpGtr();
    a := new ACCEPTEDTYPES();
    call a.add(new DTYPE("entier",4));
    OPREL^acctypes := a;
@@ -1210,18 +1170,18 @@ F -> nouveau #init TYPE paro ARGS parf #gen;
 #gen {
  local
    c : CLASSE;
-   im : INFOMET;
+   cname : STRING;
+   met : METHODE;
  do
    match TYPE^type 
      with CLASSE then
        c := TYPE^type;
-       im := c.getConstructor();
-
-       --im n'est pas null car la classe a forcément un constructeur, sinon elle ne serait pas passée à la compilation
-       if (ARGS^ltype.equals(im.getArgs())) then
+       cname := c.getNom();
+       met := F^tds.chercherGlobalementMethod(cname,ARGS^ltype);
+       if met = nil then
           F^type := new POINTEUR(c);          
        else
-          error(B_16,ARGS^ltype,im.getArgs());
+          error(B_28,cname,ARGS^ltype);
        end
        
      else
@@ -1236,24 +1196,10 @@ F -> nouveau #init TYPE paro ARGS parf #gen;
 F -> ident #tra Q #gen;
 #tra {
  local
-   i : INFO;
- do
-   i := F^tds.chercherGlobalement(ident^txt);
-   if i = nil then
-     error(B_07,ident^txt);
-   else
-     match i 
-     with INFOVAR then
-       Q^qinf := i;
-       Q^qmet := nil;
-     with INFOMET then
-       Q^qinf := nil;
-       Q^qmet := i;
-     else
-       error(B_25,ident^txt);
-     end
-   end
-   
+ do 
+   Q^qident := ident^txt;   
+   Q^qisvar := true;
+   Q^qtype := nil;
  end
 }
 #gen {
@@ -1270,17 +1216,21 @@ F -> ident #tra Q #gen;
 Q -> #gen;
 #gen {
  local 
-   iv : INFOVAR;
-   im : INFOMET;
- do
-   match Q^qinf
-   with INFOVAR then
-     iv := Q^qinf;
-     Q^type := iv.getType();
-     Q^est_affectable := true;
-     Q^code :=Q^machine.genAdr(iv.getDep(), 0);
+   v : VAR;
+ do 
+   if Q^qisvar then
+     v := Q^tds.chercherGlobalementVar(Q^qident);
+     if v /= nil then
+       Q^type := v.getType();
+       Q^est_affectable := true;
+       Q^code :=Q^machine.genAdr(v.getDep(), 0);
+     else
+       error(B_24);
+     end
    else
-     error(B_24);
+     Q^type := Q^qtype;
+     Q^est_affectable := false;
+     Q^code := "";
    end
  end
 }
@@ -1291,52 +1241,36 @@ Q -> #gen;
 Q -> pt ident #tra Q #gen;
 #tra {
  local
-   i : INFO;
-   im : INFOMET;
-   iv : INFOVAR;
+   v : VAR;
+   vt : DTYPE;
    c : CLASSE;
-   p : POINTEUR;
-   t : DTYPE;
-   ctds : TDS;
-   at : DTYPE;
+   
  do
-   --vérifier le type de l'ident appellé avant cette règle
-   if Q^qinf = nil then
-     error(B_21);
-   else
-     at := Q^qinf.getType();
-     match at
-     with POINTEUR then
-       t := at.getPointedType();
-  
-       --vérifier que le type est bien un pointeur vers une CLASSE
-       match t
-       with CLASSE then
-         c := t;
-         ctds := c.getTDS();
-  
-         -- chercher l'ident dans la TDS de la classe pointée
-         i := ctds.chercherLocalement(ident^txt);
-         if i = nil then
-           error(B_07,ident^txt);
-         else
-           match i 
-           with INFOMET then
-             im := i;
-             Q1^qinf := Q^qinf;
-             Q1^qmet := im;
-           with INFOVAR then
-             iv := i;
-             --forcément INFOVAR, un attribut
-             Q1^qinf := iv;
-             Q1^qmet := nil;
-           end
-         end
-       else
+   if Q^qisvar then
+     v := Q^tds.chercherGlobalementVar(Q^qident);
+     if v /= nil then
+       vt := v.getType();
+       match vt
+       with POINTEUR then
+         c := vt.getPointedType();
+         Q1^tds := c.getTDS();
+         Q1^qident := ident^txt;
+         Q1^qisvar := true;
+       else  
          error(B_21);
        end
      else
-       error(B_21);  
+       error(B_07,Q^qident);    
+     end
+   else
+     match Q^qtype
+     with POINTEUR then
+       c := Q^qtype.getPointedType();
+       Q1^tds := c.getTDS();
+       Q1^qident := ident^txt;
+       Q1^qisvar := true;
+     else
+       error(B_29);
      end
    end
  end
@@ -1361,22 +1295,16 @@ Q -> paro #init ARGS #check parf Q #gen;
 }
 #check {
  local
-   s1 : STRING;
-   s2 : STRING;
-   a : ARGLIST;
+   m : METHODE;
+   t : DTYPE;
  do
-   if Q^qmet = nil then
-     error(B_22);
-   else   
-     if ~ARGS^ltype.equals(Q^qmet.getArgs()) then
-       s1 := ARGS^ltype.toString();
-       a := Q^qmet.getArgs();
-       s2 := a.toString();
-       error(B_16,s1,s2);
-     else
-       Q1^qinf := new INFOVAR(Q^qmet.getType(),0,"LB");
-       Q1^qmet := nil;
-     end
+   m := Q^tds.chercherGlobalementMethod(Q^qident,ARGS^ltype);
+   if m /= nil then
+     t := m.getReturnType();
+     Q1^qtype:=t;
+     Q1^qisvar:=false;
+   else 
+     error(B_28,Q^qident,ARGS^ltype);
    end
  end
 }

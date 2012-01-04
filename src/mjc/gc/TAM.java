@@ -20,22 +20,22 @@ public class TAM extends ABSTRACTMACHINE {
     }
 
   // genere le code pour une declaration (avec initialisation)
-  public String genDecl(String n, INFOVAR i, String t) {
+  public String genDecl(String n, VAR i, String t) {
     int taille = i.getType().getTaille();
     return "   ; decl de var " + n + " en " + i.getDep() + "/" + i.getReg() + " taille = "
         + taille + "\n" + t;
   }
 
   // genere le code pour une declaration d'attributs
-  public String genDeclAtt(String n, INFOVAR i) {
+  public String genDeclAtt(String n, VAR i) {
     int taille = i.getType().getTaille();
     return "   ; decl d'att " + n + " en " + i.getDep() + "/" + i.getReg() + " taille = "
         + taille + "\n";
   }
 
   // genere le code pour une declaration de methode
-  public String genDeclMet(String n, INFOMET i) {
-    int taille = i.getType().getTaille();
+  public String genDeclMet(String n, METHODE i) {
+    int taille = i.getReturnType().getTaille();
     return "   ; decl de met " + n + "\n";
   }
 

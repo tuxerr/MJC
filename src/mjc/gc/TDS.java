@@ -4,42 +4,83 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class TDS extends HashMap<String, INFO> {
+public class TDS {
+    public HashMap<String, LMETHODE> hmMethode;
+    public HashMap<String, VAR> hmVar;
+    public HashMap<String, CLASSE> hmClasse;
 
     private TDS parente;
 
     public TDS() {
-        this(null);
+        this.hmMethode=new HashMap<String,LMETHODE>();
+        this.hmVar=new HashMap<String,VAR>();
+        this.hmClasse=new HashMap<String,CLASSE>();
+        this.parente=null;
     }
 
     public TDS(TDS p) {
         super();
-        parente = p;
+        this.parente = p;
     }
 
-    public INFO chercherLocalement(String n) {
-        return get(n);
+    public HashMap<String,LMETHODE> getMethodHM() {
+        return this.hmMethode;
     }
 
-    public INFO chercherGlobalement(String n) {
-        INFO i = chercherLocalement(n);
+    public VAR chercherLocalementVar(String n) {
+        return this.hmVar.get(n);
+    }
+
+    public VAR chercherGlobalementVar(String n) {
+        VAR i = this.chercherLocalementVar(n);
         if (i == null)
-            if (parente != null)
-                return parente.chercherGlobalement(n);
+            if (this.parente != null)
+                return this.parente.chercherGlobalementVar(n);
         return i;
     }
 
-    public void inserer(String n, INFO i) {
-        put(n, i);
+    public void inserer(String n, VAR i) {
+        this.hmVar.put(n, i);
     }
 
-    public String toString() {
-        StringBuffer sb = new StringBuffer();
-        Set<Map.Entry<String, INFO>> s = entrySet();
-        for (Map.Entry<String, INFO> e : s){
-            sb.append("; " + e.getKey() + " : " + e.getValue() + '\n');
-		
-        }
-        return sb.toString();
+    public METHODE chercherLocalementMethod(String n,ARGLIST arg) {
+        LMETHODE lm = this.hmMethode.get(n);
+        return lm.getMethod(arg);
     }
+
+    public METHODE chercherGlobalementMethod(String n,ARGLIST arg) {
+        METHODE i = this.chercherLocalementMethod(n,arg);
+        if (i == null)
+            if (this.parente != null)
+                return this.parente.chercherGlobalementMethod(n,arg);
+        return i;
+    }
+
+    public void inserer(String n, METHODE i) {
+        LMETHODE lm = this.hmMethode.get(n);
+        if(lm==null) {
+            LMETHODE newlm = new LMETHODE();
+            this.hmMethode.put(n, newlm);
+            newlm.addMethod(i);
+        } else {
+            lm.addMethod(i);            
+        }
+    }
+
+    public CLASSE chercherLocalementClasse(String n) {
+        return this.hmClasse.get(n);
+    }
+
+    public CLASSE chercherGlobalementClasse(String n) {
+        CLASSE i = this.chercherLocalementClasse(n);
+        if (i == null)
+            if (this.parente != null)
+                return this.parente.chercherGlobalementClasse(n);
+        return i;
+    }
+
+    public void inserer(String n, CLASSE i) {
+        this.hmClasse.put(n, i);
+    }
+
 }

@@ -10,21 +10,17 @@ public class CLASSE extends DTYPE {
     private TDS tds;
     private boolean isclass;
     private ArrayList<CLASSE> acceptedSuperClasses;
-    private INFOMET constructor;
     private StringBuffer buf;
 
-    public CLASSE(boolean isclass,TDS globaltds) {
-        super("classe",0);
+    public CLASSE(boolean isclass,TDS globaltds,String name) {
+        super(name,0);
         classeMere = null;
         this.tds = new TDS(globaltds);
         this.isclass=isclass;
-        if(!isclass) {
-            super.setNom("interface");
-        }
     }
 
-    public CLASSE(CLASSE cl) {
-        super("classe",0);        
+    public CLASSE(CLASSE cl,String name) {
+        super(name,0);        
         this.tds = new TDS(cl.getTDS());
         classeMere = cl;
     }
@@ -39,14 +35,6 @@ public class CLASSE extends DTYPE {
 
     public void addSuperClass(CLASSE cl) {
         acceptedSuperClasses.add(cl);
-    }
-
-    public INFOMET getConstructor() {
-        return constructor;
-    }
-
-    public void setConstructor(INFOMET met) {
-        constructor=met;
     }
 
     public boolean isASuperClass(CLASSE cl) {
@@ -81,27 +69,27 @@ public class CLASSE extends DTYPE {
         
         boolean implementCorrect=true;
         TDS intertds = inter.getTDS();
-        Set<Map.Entry<String,INFO>> esi = intertds.entrySet();
+        Set<Map.Entry<String,LMETHODE>> esi = intertds.getMethodHM().entrySet();
 
-        for (Map.Entry<String,INFO> e : esi) {
+        for (Map.Entry<String,LMETHODE> e : esi) {
 
             // si l'entrée courante dans la TDS interface est bien une méthode
-            if (e.getValue() instanceof INFOMET ) {
+            for(METHODE met : e.getValue()) {
 
-                ARGLIST eargs = ((INFOMET)(e.getValue())).getArgs();
-                DTYPE etype = e.getValue().getType();
+                ARGLIST eargs = met.getArgs();
+                DTYPE etype = met.getReturnType();
 
-                INFO ret = this.tds.chercherLocalement(e.getKey());
+                METHODE ret = this.tds.chercherLocalementMethod(e.getKey(),eargs);
                 
                 // si, dans la classe, une entrée à le même nom et est une méthode aussi
-                if( (ret != null) && (ret instanceof INFOMET )) {
+                if(ret != null) {
           
                     // et si cette méthode à les mêmes arguments et le même type de retour
-                    if( ((INFOMET)ret).getArgs().equals(eargs) & ret.getType().equals(etype)) {
+                    if(ret.getReturnType().equals(etype))  {
                         // la méthode de l'interface est implémentée dans la classe
 
                     } else {
-                        buf.append("La méthode " + e.getKey() + "n'est pas correctement implémentée dans la classe");
+                        buf.append("La méthode " + e.getKey() + "n'est pas implémentée dans la classe");
                         implementCorrect=false;
                     }
 
@@ -109,8 +97,9 @@ public class CLASSE extends DTYPE {
                     buf.append("La méthode " + e.getKey() + "n'est pas implémentée dans la classe");
                     implementCorrect=false;
                 }
+
+            }
                 
-            } 
         }
         
         return implementCorrect;
