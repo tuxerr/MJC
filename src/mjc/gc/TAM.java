@@ -6,7 +6,7 @@ import java.io.PrintWriter;
 
 public class TAM extends ABSTRACTMACHINE {
 /*  private String nom; */
-
+/* A FAIRE : Génération FIN, NEW ...
 /*  public TAM(String fname) {
     if (fname.endsWith(".mjava")) {
       nom = fname.substring(0, fname.length() - 5);
