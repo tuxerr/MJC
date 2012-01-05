@@ -492,13 +492,15 @@ TYPE -> ident #type;
 #type {
  local
    i : CLASSE ;
+   p : POINTEUR;
  do
    -- rechercher l'ident   
    i := TYPE^tds.chercherGlobalementClasse(ident^txt);
    if i = nil then
      error(B_03, ident^txt);
    else
-     TYPE^type := i;
+     p := new POINTEUR(i);
+     TYPE^type := p;
    end
  end
 }
@@ -1174,12 +1176,12 @@ F -> nouveau #init TYPE paro ARGS parf #gen;
    met : METHODE;
  do
    match TYPE^type 
-     with CLASSE then
-       c := TYPE^type;
+     with POINTEUR then
+       c := TYPE^type.getPointedType();
        cname := c.getNom();
        met := F^tds.chercherGlobalementMethod(cname,ARGS^ltype);
-       if met = nil then
-          F^type := new POINTEUR(c);          
+       if met /= nil then
+          F^type := TYPE^type;
        else
           error(B_28,cname,ARGS^ltype);
        end
@@ -1260,7 +1262,7 @@ Q -> pt ident #tra Q #gen;
          error(B_21);
        end
      else
-       error(B_07,Q^qident);    
+       error(B_07,Q^tds);    
      end
    else
      match Q^qtype

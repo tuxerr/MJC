@@ -19,7 +19,9 @@ public class TDS {
     }
 
     public TDS(TDS p) {
-        super();
+        this.hmMethode=new HashMap<String,LMETHODE>();
+        this.hmVar=new HashMap<String,VAR>();
+        this.hmClasse=new HashMap<String,CLASSE>();
         this.parente = p;
     }
 
@@ -40,19 +42,24 @@ public class TDS {
     }
 
     public void inserer(String n, VAR i) {
+        System.out.println("INSERVAR : "+n+i);
         this.hmVar.put(n, i);
     }
 
     public METHODE chercherLocalementMethod(String n,ARGLIST arg) {
         LMETHODE lm = this.hmMethode.get(n);
-        return lm.getMethod(arg);
+        if(lm==null) {
+            return null;
+        } else {
+            return lm.getMethod(arg);
+        }
     }
 
     public METHODE chercherGlobalementMethod(String n,ARGLIST arg) {
-        METHODE i = this.chercherLocalementMethod(n,arg);
+        METHODE i = chercherLocalementMethod(n,arg);
         if (i == null)
             if (this.parente != null)
-                return this.parente.chercherGlobalementMethod(n,arg);
+                return parente.chercherGlobalementMethod(n,arg);
         return i;
     }
 
@@ -81,6 +88,37 @@ public class TDS {
 
     public void inserer(String n, CLASSE i) {
         this.hmClasse.put(n, i);
+    }
+
+    public String toString() {
+        StringBuffer sb = new StringBuffer();
+
+        Set<Map.Entry<String, VAR>> sv = hmVar.entrySet();
+        sb.append("VARIABLES:\n");
+        for (Map.Entry<String, VAR> e : sv){
+            sb.append("; " + e.getKey() + " : " + e.getValue() + '\n');
+
+        }
+
+        Set<Map.Entry<String, LMETHODE>> sm = hmMethode.entrySet();
+        sb.append("METHODES:\n");
+        for (Map.Entry<String, LMETHODE> e : sm){
+            sb.append("; " + e.getKey() + " : " + e.getValue() + '\n');
+
+        }
+
+        Set<Map.Entry<String, CLASSE>> sc = hmClasse.entrySet();
+        sb.append("CLASSE:\n");
+        for (Map.Entry<String, CLASSE> e : sc){
+            sb.append("; " + e.getKey() + " : " + e.getValue() + '\n');
+
+        }
+
+        if(parente==null) {
+            return sb.toString();
+        } else {
+            return parente.toString() + sb.toString();
+        }
     }
 
 }

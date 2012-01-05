@@ -3,6 +3,12 @@ class Point {
   int y;
   Point origine;
 
+  Point() {
+    x = 0;
+    y = 0;
+    origine = null;
+  }
+
   Point(int a, int b){
     x = a;
     y = b;
@@ -38,7 +44,7 @@ class Point {
     y = y + d;
     }
     
-  Point milieu (Point p){
+  Point milieu (Point p) {
     Point m = new Point();
     m.init((x + p.x)/2, (y + p.y)/2);
     return m;
