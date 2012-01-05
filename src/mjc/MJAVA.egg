@@ -467,7 +467,7 @@ DEF -> ident paro #tds PARFS parf #transtds BLOC #inf ;
      DEF^adr := DEF^hadr;
      DEF^code := DEF^machine.genComment("constructeur" + ident^txt);
    else
-     error(B_26, ident^txt);
+     error(B_26, ident^txt, DEF^class.isAClass());
    end
  end
 }

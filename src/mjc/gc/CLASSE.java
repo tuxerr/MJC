@@ -23,6 +23,7 @@ public class CLASSE extends DTYPE {
         super(name,0);        
         this.tds = new TDS(cl.getTDS());
         classeMere = cl;
+        this.isclass = true;
     }
 
     public boolean equals(DTYPE t) {
