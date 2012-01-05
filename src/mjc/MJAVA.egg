@@ -13,6 +13,7 @@ inh returntype : DTYPE for MCORPS, INST, INSTS, BLOC, SIX;
 inh machine : ABSTRACTMACHINE for ENTITES, DEFCLASSE, DEFINTERFACE, MCORPS, CORPS, DEFS, DEF, BLOC, INSTS, INST, SIX, E, ER, ERX, ES, ESX, T, TX, F, OPADD, OPMUL, OPUN, OPREL, Q, AFFX, ARGS, ARGSX;
 syn code : STRING for ENTITES, DEFCLASSE, DEFINTERFACE, CORPS, MCORPS, DEFS, DEF, BLOC, INSTS, INST, SIX, AFFX, E, ER, ERX, ES, ESX, T, TX, F, OPADD, OPMUL, OPUN, OPREL, Q, ARGS, ARGSX;
 inh tds : TDS for ENTITES, DEFCLASSE, DEFINTERFACE, CORPS, DEF, DEFS, MCORPS, BLOC, TYPE, PARF, PARFSX, PARFS, INSTS, INST, SIX, F, T, TX, E, ER, ERX, ES, ESX, AFFX, ARGS, ARGSX, Q;
+inh tdsinit : TDS for Q;
 inh qident : STRING for Q;
 inh qtype : DTYPE for Q;
 inh qisvar : BOOLEAN for Q;
@@ -1202,6 +1203,7 @@ F -> ident #tra Q #gen;
    Q^qident := ident^txt;   
    Q^qisvar := true;
    Q^qtype := nil;
+   Q^tdsinit := F^tds;
  end
 }
 #gen {
@@ -1262,7 +1264,7 @@ Q -> pt ident #tra Q #gen;
          error(B_21);
        end
      else
-       error(B_07,Q^tds);    
+       error(B_07,ident^txt);    
      end
    else
      match Q^qtype
@@ -1292,6 +1294,7 @@ Q -> pt ident #tra Q #gen;
 Q -> paro #init ARGS #check parf Q #gen;
 #init {
  do
+  ARGS^tds := Q^tdsinit;
   ARGS^dep := 0;
  end
 }

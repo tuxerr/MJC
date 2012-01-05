@@ -42,7 +42,6 @@ public class TDS {
     }
 
     public void inserer(String n, VAR i) {
-        System.out.println("INSERVAR : "+n+i);
         this.hmVar.put(n, i);
     }
 
