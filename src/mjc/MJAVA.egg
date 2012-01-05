@@ -312,13 +312,7 @@ DEF -> TYPE ident pv  #inf;
        error(B_02, ident^txt);
     else
       -- ajouter l'ident dans la TDS;
-      match TYPE^type
-      with CLASSE then
-        t := new POINTEUR(TYPE^type);
-        in := new VAR(t, DEF^hadr, "LB");  
-      else
-        in := new VAR(TYPE^type, DEF^hadr, "LB");  
-      end
+      in := new VAR(TYPE^type, DEF^hadr, "LB");
       call DEF^tds.inserer(ident^txt, in);
       DEF^adr := DEF^hadr + TYPE^type.getTaille();
       DEF^code := DEF^machine.genDeclAtt(ident^txt, in);
@@ -1175,12 +1169,14 @@ F -> nouveau #init TYPE paro ARGS parf #gen;
    c : CLASSE;
    cname : STRING;
    met : METHODE;
+   ctds : TDS;
  do
    match TYPE^type 
      with POINTEUR then
        c := TYPE^type.getPointedType();
        cname := c.getNom();
-       met := F^tds.chercherGlobalementMethod(cname,ARGS^ltype);
+       ctds := c.getTDS();
+       met := ctds.chercherGlobalementMethod(cname,ARGS^ltype);
        if met /= nil then
           F^type := TYPE^type;
        else

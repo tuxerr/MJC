@@ -35,7 +35,7 @@ public class DTYPE {
     }
 
     public boolean canAccept(DTYPE autre) {
-        return equals(autre);
+        return this.equals (autre)| autre.equals(new DTYPE("void", 0));
     }
 
     public String toString() {

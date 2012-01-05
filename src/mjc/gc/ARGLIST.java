@@ -29,7 +29,7 @@ public class ARGLIST extends ArrayList<DTYPE> {
             DTYPE c = get(i);
             DTYPE ca = autre.get(i);
 
-            if (!c.equals(ca))
+            if (!c.canAccept(ca))
                 return false;
         }
         return true;

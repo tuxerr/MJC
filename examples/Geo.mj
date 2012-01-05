@@ -61,6 +61,12 @@ class PointCol extends Point {
     col = ci;
     }
 
+PointCol () {
+    x = 0;
+    y = 0;
+    col = 0;
+    }
+
   void changer(int val){
     col = val;
     }

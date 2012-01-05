@@ -10,6 +10,7 @@ public class CLASSE extends DTYPE {
     private TDS tds;
     private boolean isclass;
     private ArrayList<CLASSE> acceptedSuperClasses;
+    private ArrayList<CLASSE> acceptedChildClasses;
     private StringBuffer buf;
 
     public CLASSE(boolean isclass,TDS globaltds,String name) {
@@ -17,6 +18,7 @@ public class CLASSE extends DTYPE {
         classeMere = null;
         this.tds = new TDS(globaltds);
         this.isclass=isclass;
+	acceptedSuperClasses=new ArrayList<CLASSE>();
     }
 
     public CLASSE(CLASSE cl,String name) {
@@ -24,6 +26,7 @@ public class CLASSE extends DTYPE {
         this.tds = new TDS(cl.getTDS());
         classeMere = cl;
         this.isclass = true;
+	acceptedSuperClasses=new ArrayList<CLASSE>();
     }
 
     public boolean equals(DTYPE t) {

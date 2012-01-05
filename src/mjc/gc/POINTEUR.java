@@ -20,20 +20,16 @@ public class POINTEUR extends DTYPE {
 
     public boolean canAccept(DTYPE autre) {
         if (autre instanceof POINTEUR) {
-            DTYPE apt_type = ((POINTEUR)autre).getPointedType();
+            CLASSE apt_type = ((POINTEUR)autre).getPointedType();
             if(apt_type==null) {
                 return true;
             } else if(type.equals(apt_type)) {
                 return true;
             } else {
-                if(apt_type instanceof CLASSE) {
-                    return type.isASuperClass((CLASSE)apt_type);
-                } else {
-                    return false;
-                }
+                return apt_type.isASuperClass(type);
             }
         } else {
-            return false;
+            return autre.equals(new DTYPE("void", 0));
         }
     }
 

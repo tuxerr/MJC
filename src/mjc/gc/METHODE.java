@@ -3,6 +3,7 @@ package mjc.gc;
 public class METHODE {
     private ARGLIST args;
     private DTYPE returnType;
+    private String label;
 
     public METHODE(DTYPE returnType,ARGLIST args) {
         this.returnType=returnType;
@@ -15,6 +16,14 @@ public class METHODE {
 
     public ARGLIST getArgs() {
         return args;
+    }
+  
+    public String getlabel() {
+	return label;
+    }
+
+    public void setLabel(String lab) {
+        label=lab;
     }
 
     public boolean equals(METHODE m) {
