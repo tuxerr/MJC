@@ -51,7 +51,7 @@ public abstract class ABSTRACTMACHINE {
     abstract public String genCall(String fctapp, String code);
     //genDeclMet : analogue à gen Decl ?
     abstract public String genDeclMet(String n, METHODE i);
-
+    abstract public String genAffect(String ident, VAR info, String code);
 }
 
 

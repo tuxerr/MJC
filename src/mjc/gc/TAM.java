@@ -14,51 +14,74 @@ public class TAM extends ABSTRACTMACHINE {
       nom = fname;
     }
     } */
-    
+   
+  // compteur pour le generateur d'etiquettes
+  private static int cpt = 0;
+
+   
     public TAM() {
 
     }
+  // genere une etiquette differente des autres
+  public String genEtiq() {
+    return "X" + cpt++;
+  }
 
-  // genere le code pour une declaration (avec initialisation)
+
+  // genere le code pour une declaration (avec initialisation)  DONE
   public String genDecl(String n, VAR i, String t) {
     int taille = i.getType().getTaille();
     return "   ; decl de var " + n + " en " + i.getDep() + "/" + i.getReg() + " taille = "
-        + taille + "\n" + t;
+        + taille + "\n"
+	+ "\tLOADL " + t +" \n";
+	
   }
 
-  // genere le code pour une declaration d'attributs
+  // genere le code pour une declaration d'attributs  DONE
   public String genDeclAtt(String n, VAR i) {
     int taille = i.getType().getTaille();
     return "   ; decl d'att " + n + " en " + i.getDep() + "/" + i.getReg() + " taille = "
         + taille + "\n";
   }
 
-  // genere le code pour une declaration de methode
+  // genere le code pour une declaration de methode   DONE
   public String genDeclMet(String n, METHODE i) {
     int taille = i.getReturnType().getTaille();
-    return "   ; decl de met " + n + "\n";
+    int String label = i.setLabel(genEtiq());
+   return "   ; decl de met " + n +" taille " + taille + "\n"
+	  + label; 
   }
 
+  //genere l'affectation (hors déclaration) : y = 2  DONE
+
+  public String genAffect(String n, VAR i, String t){
+    int taille = i.getType().getTaille();
+   return "  ; affectation de var" + n + "en " i.getDep() + "/" + i.getReg() + "taille ="
+        + taille + "\n"
+	+ t +"\n"
+        + "\tSTORE " + "("+ taille  +") "+ i.getDep()+"["+i.getReg()+"]";
+
+  // generation d'adresse 
   public String genAdr(int dep, int reg) {
     return " ; decl d'adresse de dep " + dep + "et de registre " + reg;   
   }
 
-  public  String genCall(String fctapp, String code) {
-    return "   ; call de fonction " + fctapp + "de code " + code;
+  // generation Call
+  public  String genCall(String s,METHODE m) {
+    return "   ; call de fonction " + s + "de label " + m.getLabel()"\n"
+	+ "\tJUMP "+ m.getLabel();	
   }
-
-  public String genReturn(String expr) {
-    return "   ; return de fonction " + expr;
+  // RETURN (EGG NOT DONE) String : nom de fonction,  Liste d'arg, Variable retour
+  public String genReturn(String name,ARGLIST ltype,VAR ret) {
+    return "   ; return de fonction " + expr"\n"
+	+"\tRETURN "+"("+ltype.getTaille()+") "+ ret ;
   }
-
-  // compteur pour le generateur d'etiquettes
-  private static int cpt = 0;
-
-  // genere une etiquette differente des autres
-  public String genEtiq() {
-    return "X" + cpt++;
+  
+  // generation call variable value DONE
+  public String genCallVar(String s, VAR i){
+    return"   ; call cariable "+s+" taille : "+i.getTaille()+"\n"
+	+"\tLOADL " + "("+i.getType().getTaille()+") "+i.getDep()+"["+igetReg()+"]"; 
   }
-
   // genere le code pour l'arret de la machine
   public String genFin() {
     return "\tHALT\n";
@@ -164,5 +187,11 @@ public class TAM extends ABSTRACTMACHINE {
   public String genOpAnd() {
     return "\tSUBR BAnd\n";
   }
+
+
+
+
+
+
 
 }
