@@ -93,12 +93,12 @@ public class CLASSE extends DTYPE {
                         // la méthode de l'interface est implémentée dans la classe
 
                     } else {
-                        buf.append("La méthode " + e.getKey() + "n'est pas implémentée dans la classe");
+                        buf.append("La méthode " + e.getKey() + " n'est pas implémentée dans la classe");
                         implementCorrect=false;
                     }
 
                 } else {
-                    buf.append("La méthode " + e.getKey() + "n'est pas implémentée dans la classe");
+                    buf.append("La méthode " + e.getKey() + " n'est pas implémentée dans la classe");
                     implementCorrect=false;
                 }
 

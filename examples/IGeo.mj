@@ -21,6 +21,12 @@ class Point extends Object implements IPoint{
   int numero ;
   Point origine;
 
+  Point() {
+   x=0;
+   y=0;
+   origine=null;
+  }
+
   Point(int a, int b){
     x = a;
     y = b;
@@ -57,7 +63,6 @@ class Point extends Object implements IPoint{
     
   Point milieu (Point p){
     Point m = new Point();
-    m.init((x + p.x)/2, (y + p.y)/2);
     return m;
     }
   }
