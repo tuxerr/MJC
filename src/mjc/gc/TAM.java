@@ -27,13 +27,18 @@ public class TAM extends ABSTRACTMACHINE {
     return "X" + cpt++;
   }
 
+  //**** LES VARIABLES ******//
+  public String genCst(String v) {
+    return "\tLOADL " + v + "\n";
+  }
 
-  // genere le code pour une declaration (avec initialisation)  DONE
-  public String genDecl(String n, VAR i, String t) {
+  // genere le code pour une affectation  DONE
+  public String genAffect(String n, VAR i, String t) {
     int taille = i.getType().getTaille();
     return "   ; decl de var " + n + " en " + i.getDep() + "/" + i.getReg() + " taille = "
         + taille + "\n"
-	+ "\tLOADL " + t +" \n";
+	+ t + "\n"
+	+ "\tSTORE " + "(" + taille ") " + i.getDep()+"["+i.getReg()+"]"+"\n";
 	
   }
 
@@ -44,6 +49,14 @@ public class TAM extends ABSTRACTMACHINE {
         + taille + "\n";
   }
 
+  // generation call variable value DONE EGG NOT DONE
+  public String genCallVar(String s, VAR i){
+    return"   ; call cariable "+s+" taille : "+i.getTaille()+"\n"
+	+"\tLOADL " + "("+i.getType().getTaille()+") "+i.getDep()+"["+igetReg()+"]"; 
+  }
+
+  //**** METHODES *****//
+
   // genere le code pour une declaration de methode   DONE
   public String genDeclMet(String n, METHODE i) {
     int taille = i.getReturnType().getTaille();
@@ -52,43 +65,33 @@ public class TAM extends ABSTRACTMACHINE {
 	  + label; 
   }
 
-  //genere l'affectation (hors déclaration) : y = 2  DONE
-
-  public String genAffect(String n, VAR i, String t){
-    int taille = i.getType().getTaille();
-   return "  ; affectation de var" + n + "en " i.getDep() + "/" + i.getReg() + "taille ="
-        + taille + "\n"
-	+ t +"\n"
-        + "\tSTORE " + "("+ taille  +") "+ i.getDep()+"["+i.getReg()+"]";
-
-  // generation d'adresse 
-  public String genAdr(int dep, int reg) {
-    return " ; decl d'adresse de dep " + dep + "et de registre " + reg;   
-  }
-
-  // generation Call
+   // generation Call
   public  String genCall(String s,METHODE m) {
     return "   ; call de fonction " + s + "de label " + m.getLabel()"\n"
 	+ "\tJUMP "+ m.getLabel();	
   }
+
   // RETURN (EGG NOT DONE) String : nom de fonction,  Liste d'arg, Variable retour
   public String genReturn(String name,ARGLIST ltype,VAR ret) {
     return "   ; return de fonction " + expr"\n"
 	+"\tRETURN "+"("+ltype.getTaille()+") "+ ret ;
   }
   
-  // generation call variable value DONE
-  public String genCallVar(String s, VAR i){
-    return"   ; call cariable "+s+" taille : "+i.getTaille()+"\n"
-	+"\tLOADL " + "("+i.getType().getTaille()+") "+i.getDep()+"["+igetReg()+"]"; 
+  //**** MEMOIRE *****//  
+  // generation d'adresse 
+  public String genAdr(int dep, int reg) {
+    return " ; decl d'adresse de dep " + dep + "et de registre " + reg;   
   }
-  // genere le code pour l'arret de la machine
-  public String genFin() {
-    return "\tHALT\n";
+  public String genMalloc(int taille) {
+    return "\tLOADL " + taille + "\n" + "\tSUBR Malloc\n";
   }
 
-  public String genCst(String v) {
-    return "\tLOADL " + v + "\n";
+  public String genAdr(int dep) {
+    return "\tLOADA " + dep + "[SB]\n";
+  }
+
+  public String genAdrField(int dep) {
+    return "\tLOADL " + dep + "\n\tSUBR Iadd\n";
   }
 
   public String genFree(int i) {
@@ -107,6 +110,19 @@ public class TAM extends ABSTRACTMACHINE {
     return "\tSTOREI(" + taille + ")\n";
   }
 
+
+ 
+  // STUFFS
+  public String genFin() {
+    return "\tHALT\n";
+  }
+
+  public String genComment(String c){
+    return "; " + c + "\n";
+  }
+
+
+  // OPERATEURS
   public String genIf(String code, String code2, String code3) {
     String sinon = genEtiq();
     String fin = genEtiq();
@@ -115,23 +131,7 @@ public class TAM extends ABSTRACTMACHINE {
         + fin + "\n" + "\t; fin if\n";
   }
 
-  public String genMalloc(int taille) {
-    return "\tLOADL " + taille + "\n" + "\tSUBR Malloc\n";
-  }
 
-  public String genAdr(int dep) {
-    return "\tLOADA " + dep + "[SB]\n";
-  }
-
-  public String genAdrField(int dep) {
-    return "\tLOADL " + dep + "\n\tSUBR Iadd\n";
-  }
-
-  public String genComment(String c){
-    return "; " + c + "\n";
-  }
-
-  //génération des opérations basiques sur les expressions
   public String genOpAdd() {
     return "\tSUBR IAdd\n";
   }

@@ -631,7 +631,7 @@ INST-> TYPE ident AFFX pv #gen;
      vn := new VAR(TYPE^type, INST^hadr, "LB");
      call INST^tds.inserer(ident^txt, vn);
      INST^adr := INST^hadr + TYPE^type.getTaille();
-     INST^code := INST^machine.genDecl(ident^txt, vn, AFFX^code);
+     INST^code := INST^machine.genAffect(ident^txt, vn, AFFX^code);
    end
  end
 }

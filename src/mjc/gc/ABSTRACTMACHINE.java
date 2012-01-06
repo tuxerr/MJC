@@ -19,9 +19,13 @@ public abstract class ABSTRACTMACHINE {
             throw new MJCException(e.getMessage());
         }
     }
-
+    // variable
     abstract public String genCst(String v);
+    abstract public String genDeclAtt(String ident, VAR iv);
+    abstract public String genAffect(String ident, VAR info, String code);
+    abstract public String genCallVar(String s, VAR i);
 
+    //Operateurs
     abstract public String genOpAdd();
     abstract public String genOpSub();
     abstract public String genOpMul();
@@ -36,22 +40,27 @@ public abstract class ABSTRACTMACHINE {
     abstract public String genOpNeg();
     abstract public String genOpOr();
     abstract public String genOpAnd();
-    abstract public String genComment(String c);
-
     abstract public String genIf(String si, String inst1, String inst2);
+    // programme
     abstract public String genFin();
+    abstract public String genComment(String c);
+   
+    // methodes
     abstract public String genReturn(String expr);
-    abstract public String genDecl(String ident, VAR iv, String code);
-    abstract public String genAdr(int dep, int reg);
-    abstract public String genWriteMem(int taille);
-    abstract public String genFree(int taille);
-    //genDeclAtt : génère le code (commentaire) lors de la déclaration d'attributs, assez analogue à genDecl
-    abstract public String genDeclAtt(String ident, VAR iv);
-    //genCall : muzukashi desu.
-    abstract public String genCall(String fctapp, String code);
-    //genDeclMet : analogue à gen Decl ?
     abstract public String genDeclMet(String n, METHODE i);
-    abstract public String genAffect(String ident, VAR info, String code);
-}
+    abstract public String genCall(String fctapp, String code);  
+  
+    // memoire
+    abstract public String genAdr(int dep, int reg);// a quoi ca sert ?
+    abstract public String genAdrField(int dep);    // idem
+
+    abstract public String genMem(int i);
+    abstract public String ReadMem(int taille);
+    abstract public String genWriteMem(int taille);
+
+    abstract public String genFree(int taille);
+    abstract public String genMalloc(int taille);
+
+  }
 
 
