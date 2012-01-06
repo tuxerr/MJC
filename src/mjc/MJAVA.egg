@@ -631,7 +631,7 @@ INST-> TYPE ident AFFX pv #gen;
      vn := new VAR(TYPE^type, INST^hadr, "LB");
      call INST^tds.inserer(ident^txt, vn);
      INST^adr := INST^hadr + TYPE^type.getTaille();
-     INST^code := INST^machine.genDecl(ident^txt, vn, AFFX^code);
+     INST^code := INST^machine.genAffect(ident^txt, vn, AFFX^code);
    end
  end
 }
@@ -1288,6 +1288,8 @@ Q -> pt ident #tra Q #gen;
 -- arguments d'appel de methode
 -------------------------------------------------------
 Q -> paro #init ARGS #check parf Q #gen;
+global:
+ m : METHODE;
 #init {
  do
   ARGS^tds := Q^tdsinit;
@@ -1296,7 +1298,6 @@ Q -> paro #init ARGS #check parf Q #gen;
 }
 #check {
  local
-   m : METHODE;
    t : DTYPE;
  do
    m := Q^tds.chercherGlobalementMethod(Q^qident,ARGS^ltype);
@@ -1313,8 +1314,7 @@ Q -> paro #init ARGS #check parf Q #gen;
  do
    Q^est_affectable := Q1^est_affectable;
    Q^type := Q1^type;
---   Q^code := Q^machine.genCall(Q^hident, ARGS^code) + Q1^code;
-   Q^code := "";
+   Q^code := Q^machine.genCall(Q^qident,m) + Q1^code;
  end
 }
 
