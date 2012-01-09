@@ -45,6 +45,24 @@ public class TDS {
         this.hmVar.put(n, i);
     }
 
+    public HashMap<String,METHODE> getAllAccessibleMethods() {
+        // utilisé pour la génération des vtables
+        HashMap<String,METHODE> retHM;
+        if(parente==null) {
+            retHM = new HashMap<String,METHODE>();
+        } else {
+            retHM = parente.getAllAccessibleMethods();
+        }
+
+        Set<Map.Entry<String,LMETHODE>> esi = hmMethode.entrySet();
+        for (Map.Entry<String,LMETHODE> e : esi) {
+            for(METHODE met : e.getValue()) {
+                retHM.put(e.getKey(),met);
+            }
+        }
+        return retHM;
+    }
+
     public METHODE chercherLocalementMethod(String n,ARGLIST arg) {
         LMETHODE lm = this.hmMethode.get(n);
         if(lm==null) {

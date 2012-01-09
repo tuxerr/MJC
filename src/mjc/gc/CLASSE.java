@@ -109,6 +109,35 @@ public class CLASSE extends DTYPE {
         return implementCorrect;
     }
 
+    public ArrayList<String> createVtable(CLASSE realclass) {
+        ArrayList<String> retList = new ArrayList<String>();
+        HashMap<String,METHODE> hmMet = tds.getAllAccessibleMethods();
+
+        Set<Map.Entry<String,METHODE>> esi = hmMet.entrySet();
+        for(Map.Entry<String,METHODE> e : esi) {
+            METHODE realMet = realclass.getTDS().chercherGlobalementMethod(e.getKey(),e.getValue().getArgs());
+            retList.add(realMet.getLabel());
+        }
+
+        return retList;
+    }
+
+    public int getMethodNumber(String name, ARGLIST args) {
+        int number=0;
+        HashMap<String,METHODE> hmMet = tds.getAllAccessibleMethods();
+
+        Set<Map.Entry<String,METHODE>> esi = hmMet.entrySet();
+        for(Map.Entry<String,METHODE> e : esi) {
+            if(name.equals(e.getKey()) && args.equals(e.getValue().getArgs())) {
+                return number;
+            } else {
+                number++;
+            }
+        }
+
+        return -1;
+    }
+
     public String implementGetError() {
         return buf.toString();
     }
