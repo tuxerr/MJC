@@ -46,16 +46,16 @@ public abstract class ABSTRACTMACHINE {
     abstract public String genComment(String c);
    
     // methodes
-    abstract public String genReturn(String expr);
+    abstract public String genReturn(String code, ARGLIST ltype, DTYPE ret);
     abstract public String genDeclMet(String n, METHODE i);
-    abstract public String genCall(String fctapp, String code);  
+    abstract public String genCall(String s, METHODE m);  
   
     // memoire
     abstract public String genAdr(int dep, int reg);// a quoi ca sert ?
     abstract public String genAdrField(int dep);    // idem
 
-    abstract public String genMem(int i);
-    abstract public String ReadMem(int taille);
+    abstract public String genMem(int i, int taille);
+    abstract public String genReadMem(int taille);
     abstract public String genWriteMem(int taille);
 
     abstract public String genFree(int taille);

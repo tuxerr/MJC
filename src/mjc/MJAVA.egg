@@ -8,6 +8,7 @@ inh source : MJAVASourceFile for PROGRAMME;
 syn type : DTYPE for TYPE, PARF, AFFX, E, ER, ERX, ES, T, ESX, F, TX, Q;
 syn ltype : ARGLIST for PARFS, ARGS;
 inh iltype : ARGLIST for PARF, PARFSX, ARGSX;
+inh rltype : ARGLIST for MCORPS, BLOC, INSTS, INST, SIX;
 syn acctypes : ACCEPTEDTYPES for OPREL, OPADD, OPMUL, OPUN;
 inh returntype : DTYPE for MCORPS, INST, INSTS, BLOC, SIX;
 inh machine : ABSTRACTMACHINE for ENTITES, DEFCLASSE, DEFINTERFACE, MCORPS, CORPS, DEFS, DEF, BLOC, INSTS, INST, SIX, E, ER, ERX, ES, ESX, T, TX, F, OPADD, OPMUL, OPUN, OPREL, Q, AFFX, ARGS, ARGSX;
@@ -187,7 +188,7 @@ global
        end
   end
 
-  DEFCLASSE^code := CORPS^code;
+  DEFCLASSE^code := DEFCLASSE^machine.genComment("   decl de classe " + ident^txt) + CORPS^code;
  end
 }
 
@@ -323,7 +324,7 @@ DEF -> TYPE ident pv  #inf;
 -------------------------------------------------------
 -- methode (fonction) 
 -------------------------------------------------------
-DEF -> TYPE ident paro #tds PARFS parf #inf MCORPS;
+DEF -> TYPE ident paro #tds PARFS parf #transret #inf MCORPS;
 
 #tds {
  local
@@ -335,7 +336,11 @@ DEF -> TYPE ident paro #tds PARFS parf #inf MCORPS;
    MCORPS^returntype := TYPE^type;
  end
 }
-
+#transret {
+ do
+   MCORPS^rltype := PARFS^ltype;
+ end
+}
 #inf {
  local
    il : METHODE;
@@ -356,7 +361,7 @@ DEF -> TYPE ident paro #tds PARFS parf #inf MCORPS;
 -------------------------------------------------------
 -- methode (procedure)
 -------------------------------------------------------
-DEF -> void ident paro #tds PARFS parf MCORPS #inf;
+DEF -> void ident paro #tds PARFS parf #transret #inf MCORPS;
 #tds {
  local
    t : TDS;
@@ -367,7 +372,11 @@ DEF -> void ident paro #tds PARFS parf MCORPS #inf;
    PARFS^tds := t;
  end
 }
-
+#transret {
+ do
+   MCORPS^rltype := PARFS^ltype;
+ end
+}
 #inf {
  local
    i : METHODE;
@@ -443,8 +452,9 @@ DEF -> ident paro #tds PARFS parf #transtds BLOC #inf ;
 #transtds {
   local
   do
+    BLOC^rltype := PARFS^ltype;
     BLOC^hadr := 0;
-    BLOC^returntype := new DTYPE("void",0);
+    BLOC^returntype := new DTYPE("void", 0);
   end
 }
 
@@ -600,7 +610,7 @@ INSTS -> #gen;
  end
 }
 
-INSTS -> INST #adr INSTS #gen;
+INSTS ->INST #adr INSTS #gen;
 #adr {
  do
    INSTS1^hadr := INST^adr;
@@ -703,7 +713,7 @@ INST -> retour E pv #gen;
      error(B_23,INST^returntype.toString(),E^type.toString());
    end
    INST^adr := INST^hadr;
-   INST^code := INST^machine.genReturn(E^code);
+   INST^code := INST^machine.genReturn(E^code, INST^rltype, INST^returntype);
  end
 }
 
@@ -712,8 +722,6 @@ INST -> retour E pv #gen;
 -------------------------------------------------------
 E -> ER AFFX #gen;
 #gen {
- local
-   i : INFO;
  do
    if ER^est_affectable then
      if AFFX^type.equals(new DTYPE("void", 0)) then
@@ -1288,7 +1296,7 @@ Q -> pt ident #tra Q #gen;
 -- arguments d'appel de methode
 -------------------------------------------------------
 Q -> paro #init ARGS #check parf Q #gen;
-global:
+global
  m : METHODE;
 #init {
  do

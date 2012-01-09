@@ -38,7 +38,7 @@ public class TAM extends ABSTRACTMACHINE {
     return "   ; decl de var " + n + " en " + i.getDep() + "/" + i.getReg() + " taille = "
         + taille + "\n"
 	+ t + "\n"
-	+ "\tSTORE " + "(" + taille ") " + i.getDep()+"["+i.getReg()+"]"+"\n";
+	+ "\tSTORE " + "(" + taille + ") " + i.getDep()+"["+i.getReg()+"]"+"\n";
 	
   }
 
@@ -51,8 +51,8 @@ public class TAM extends ABSTRACTMACHINE {
 
   // generation call variable value DONE EGG NOT DONE
   public String genCallVar(String s, VAR i){
-    return"   ; call cariable "+s+" taille : "+i.getTaille()+"\n"
-	+"\tLOADL " + "("+i.getType().getTaille()+") "+i.getDep()+"["+igetReg()+"]"; 
+    return"   ; call cariable "+s+" taille : "+i.getType().getTaille()+"\n"
+	+"\tLOADL " + "("+i.getType().getTaille()+") "+i.getDep()+"["+i.getReg()+"]"; 
   }
 
   //**** METHODES *****//
@@ -60,21 +60,20 @@ public class TAM extends ABSTRACTMACHINE {
   // genere le code pour une declaration de methode   DONE
   public String genDeclMet(String n, METHODE i) {
     int taille = i.getReturnType().getTaille();
-    int String label = i.setLabel(genEtiq());
-   return "   ; decl de met " + n +" taille " + taille + "\n"
-	  + label; 
+    i.setLabel("X" + (cpt+1));
+    return genEtiq() + "   ; decl de met " + n +" taille " + taille + "\n"; 
   }
 
    // generation Call
   public  String genCall(String s,METHODE m) {
-    return "   ; call de fonction " + s + "de label " + m.getLabel()"\n"
+    return "   ; call de fonction " + s + "de label " + m.getLabel() + "\n"
 	+ "\tJUMP "+ m.getLabel();	
   }
 
   // RETURN (EGG NOT DONE) String : nom de fonction,  Liste d'arg, Variable retour
-  public String genReturn(String name,ARGLIST ltype,VAR ret) {
-    return "   ; return de fonction " + expr"\n"
-	+"\tRETURN "+"("+ltype.getTaille()+") "+ ret ;
+  public String genReturn(String code, ARGLIST ltype, DTYPE ret) {
+    return "   ; return de fonction \n"
+	+ code +"\tRETURN " + "(" + ret.getTaille() + ") " + ltype.getTaille();
   }
   
   //**** MEMOIRE *****//  
