@@ -19,8 +19,10 @@ inh qident : STRING for Q;
 inh qtype : DTYPE for Q;
 inh qisvar : BOOLEAN for Q;
 syn est_affectable : BOOLEAN for E, ER, ERX, ES, ESX, T, TX, F, Q;
-syn adr : INTEGER for DEF, DEFS, INST, INSTS;
+syn adr : INTEGER for CORPS, DEF, DEFS, INST, INSTS;
 inh hadr : INTEGER for DEFCLASSE, DEFINTERFACE, DEF, DEFS, INST, INSTS, BLOC, SIX;
+syn gadr : INTEGER for ENTITES, DEFCLASSE, DEFINTERFACE;
+inh ghadr : INTEGER for ENTITES, DEFCLASSE, DEFINTERFACE;
 syn ext : STRING for ETEND, SUPER;
 syn imp : STRING for IMPL, SUPER;
 inh dep : INTEGER for ARGS, ARGSX, PARFSX;
@@ -80,6 +82,7 @@ global
 #init {
  do
    machine := PROGRAMME^source.getMachine();
+   ENTITES^ghadr := 0;
    ENTITES^machine := machine;
    ENTITES^tds := new TDS();
  end
@@ -94,31 +97,43 @@ global
 ENTITES -> #gen;
 #gen {
  do
+   ENTITES^gadr := ENTITES^ghadr;
    ENTITES^code := ENTITES^machine.genFin();
  end
 }
 
-ENTITES -> #init DEFCLASSE ENTITES #gen;
+ENTITES -> #init DEFCLASSE #trans ENTITES #gen;
 #init {
  do
    DEFCLASSE^hadr := 0;
  end
 }
+#trans {
+ do
+   ENTITES1^ghadr := DEFCLASSE^gadr;
+ end
+}
 #gen {
  do
+   ENTITES^gadr := ENTITES1^gadr;
    ENTITES^code := DEFCLASSE^code + ENTITES1^code;
- 
  end
 }
 
-ENTITES -> #init DEFINTERFACE ENTITES #gen;
+ENTITES -> #init DEFINTERFACE #trans ENTITES #gen;
 #init {
  do
    DEFINTERFACE^hadr := 0;
  end
 }
+#trans {
+ do
+   ENTITES1^ghadr := DEFINTERFACE^gadr;
+ end
+}
 #gen {
  do
+   ENTITES^gadr := ENTITES1^gadr;
    ENTITES^code := DEFINTERFACE^code + ENTITES1^code;
  end
 }
@@ -188,6 +203,7 @@ global
        end
   end
 
+  DEFCLASSE^gadr := DEFCLASSE^ghadr + CORPS^adr;
   DEFCLASSE^code := DEFCLASSE^machine.genComment("   decl de classe " + ident^txt) + CORPS^code;
  end
 }
@@ -218,6 +234,7 @@ global
  local
  do
    call DEFINTERFACE^tds.inserer(ident^txt, c);
+   DEFINTERFACE^gadr := DEFINTERFACE^ghadr + CORPS^adr;
    DEFINTERFACE^code := CORPS^code;
  end
 }
@@ -269,6 +286,7 @@ CORPS -> aco #init DEFS acf #gen;
 }
 #gen {
  do
+   CORPS^adr := DEFS^adr;
    CORPS^code := DEFS^code;
  end
 }
