@@ -18,7 +18,7 @@ public class METHODE {
         return args;
     }
   
-    public String getlabel() {
+    public String getLabel() {
 	return label;
     }
 
