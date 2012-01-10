@@ -19,8 +19,10 @@ inh qident : STRING for Q;
 inh qtype : DTYPE for Q;
 inh qisvar : BOOLEAN for Q;
 syn est_affectable : BOOLEAN for E, ER, ERX, ES, ESX, T, TX, F, Q;
-syn adr : INTEGER for DEF, DEFS, INST, INSTS;
+syn adr : INTEGER for CORPS, DEF, DEFS, INST, INSTS;
 inh hadr : INTEGER for DEFCLASSE, DEFINTERFACE, DEF, DEFS, INST, INSTS, BLOC, SIX;
+syn gadr : INTEGER for ENTITES, DEFCLASSE, DEFINTERFACE;
+inh ghadr : INTEGER for ENTITES, DEFCLASSE, DEFINTERFACE;
 syn ext : STRING for ETEND, SUPER;
 syn imp : STRING for IMPL, SUPER;
 inh dep : INTEGER for ARGS, ARGSX, PARFSX;
@@ -80,6 +82,7 @@ global
 #init {
  do
    machine := PROGRAMME^source.getMachine();
+   ENTITES^ghadr := 0;
    ENTITES^machine := machine;
    ENTITES^tds := new TDS();
  end
@@ -94,31 +97,43 @@ global
 ENTITES -> #gen;
 #gen {
  do
+   ENTITES^gadr := ENTITES^ghadr;
    ENTITES^code := ENTITES^machine.genFin();
  end
 }
 
-ENTITES -> #init DEFCLASSE ENTITES #gen;
+ENTITES -> #init DEFCLASSE #trans ENTITES #gen;
 #init {
  do
    DEFCLASSE^hadr := 0;
  end
 }
+#trans {
+ do
+   ENTITES1^ghadr := DEFCLASSE^gadr;
+ end
+}
 #gen {
  do
+   ENTITES^gadr := ENTITES1^gadr;
    ENTITES^code := DEFCLASSE^code + ENTITES1^code;
- 
  end
 }
 
-ENTITES -> #init DEFINTERFACE ENTITES #gen;
+ENTITES -> #init DEFINTERFACE #trans ENTITES #gen;
 #init {
  do
    DEFINTERFACE^hadr := 0;
  end
 }
+#trans {
+ do
+   ENTITES1^ghadr := DEFINTERFACE^gadr;
+ end
+}
 #gen {
  do
+   ENTITES^gadr := ENTITES1^gadr;
    ENTITES^code := DEFINTERFACE^code + ENTITES1^code;
  end
 }
@@ -188,7 +203,8 @@ global
        end
   end
 
-  DEFCLASSE^code := DEFCLASSE^machine.genComment("   decl de classe " + ident^txt) + CORPS^code;
+  DEFCLASSE^gadr := DEFCLASSE^ghadr + CORPS^adr;
+  DEFCLASSE^code := DEFCLASSE^machine.genClasse(ident^txt, DEFCLASSE^ghadr) + CORPS^code;
  end
 }
 
@@ -218,7 +234,8 @@ global
  local
  do
    call DEFINTERFACE^tds.inserer(ident^txt, c);
-   DEFINTERFACE^code := CORPS^code;
+   DEFINTERFACE^gadr := DEFINTERFACE^ghadr + CORPS^adr;
+   DEFINTERFACE^code := DEFINTERFACE^machine.genComment("decl d'interface " + ident^txt) + CORPS^code;
  end
 }
 
@@ -269,6 +286,7 @@ CORPS -> aco #init DEFS acf #gen;
 }
 #gen {
  do
+   CORPS^adr := DEFS^adr;
    CORPS^code := DEFS^code;
  end
 }
@@ -324,8 +342,9 @@ DEF -> TYPE ident pv  #inf;
 -------------------------------------------------------
 -- methode (fonction) 
 -------------------------------------------------------
-DEF -> TYPE ident paro #tds PARFS parf #transret #inf MCORPS;
-
+DEF -> TYPE ident paro #tds PARFS parf #transret #inf MCORPS #gen;
+ global
+   m : METHODE;
 #tds {
  local
   t : TDS;
@@ -344,7 +363,6 @@ DEF -> TYPE ident paro #tds PARFS parf #transret #inf MCORPS;
 #inf {
  local
    il : METHODE;
-   m : METHODE;
  do
     il := DEF^tds.chercherLocalementMethod(ident^txt,PARFS^ltype);
     if il /= nil then
@@ -353,15 +371,20 @@ DEF -> TYPE ident paro #tds PARFS parf #transret #inf MCORPS;
       m := new METHODE(TYPE^type, PARFS^ltype);
       call DEF^tds.inserer(ident^txt, m);
       DEF^adr := DEF^hadr;
-      DEF^code := DEF^machine.genDeclMet(ident^txt,m);
     end
  end
 }
-
+#gen {
+ do
+   DEF^code := DEF^machine.genDeclMet(ident^txt,m) + MCORPS^code;
+ end
+}
 -------------------------------------------------------
 -- methode (procedure)
 -------------------------------------------------------
-DEF -> void ident paro #tds PARFS parf #transret #inf MCORPS;
+DEF -> void ident paro #tds PARFS parf #transret #inf MCORPS #gen;
+ global
+   m : METHODE;
 #tds {
  local
    t : TDS;
@@ -381,7 +404,6 @@ DEF -> void ident paro #tds PARFS parf #transret #inf MCORPS;
  local
    i : METHODE;
    t : DTYPE;
-   m : METHODE;
  do
     i := DEF^tds.chercherLocalementMethod(ident^txt,PARFS^ltype);
     if i /= nil then
@@ -392,11 +414,14 @@ DEF -> void ident paro #tds PARFS parf #transret #inf MCORPS;
       m := new METHODE(t, PARFS^ltype);
       call DEF^tds.inserer(ident^txt, m);
       DEF^adr := DEF^hadr;
-      DEF^code := DEF^machine.genDeclMet(ident^txt,m);
     end
  end
 }
-
+#gen {
+ do
+   DEF^code := DEF^machine.genDeclMet(ident^txt,m) + MCORPS^code;
+ end
+}
 -------------------------------------------------------
 -- dans classe ou dans interface
 -------------------------------------------------------
@@ -469,7 +494,7 @@ DEF -> ident paro #tds PARFS parf #transtds BLOC #inf ;
      m := new METHODE(t, PARFS^ltype);
      call DEF^tds.inserer(ident^txt,m);
      DEF^adr := DEF^hadr;
-     DEF^code := DEF^machine.genComment("constructeur" + ident^txt);
+     DEF^code := DEF^machine.genDeclCons(ident^txt, m) + BLOC^code;
    else
      error(B_26, ident^txt, DEF^class.isAClass());
    end
@@ -641,7 +666,7 @@ INST-> TYPE ident AFFX pv #gen;
      vn := new VAR(TYPE^type, INST^hadr, "LB");
      call INST^tds.inserer(ident^txt, vn);
      INST^adr := INST^hadr + TYPE^type.getTaille();
-     INST^code := INST^machine.genAffect(ident^txt, vn, AFFX^code);
+     INST^code := INST^machine.genVarLoc(ident^txt, vn, AFFX^code);
    end
  end
 }
@@ -727,7 +752,7 @@ E -> ER AFFX #gen;
      if AFFX^type.equals(new DTYPE("void", 0)) then
        E^est_affectable := true;
        E^type := ER^type;
-       E^code := ER^code;
+       E^code := ER^code + E^machine.genReadMem(ER^type.getTaille());
      else
        if ~ER^type.canAccept(AFFX^type) then
          error(B_00, ER^type, AFFX^type);
@@ -743,7 +768,7 @@ E -> ER AFFX #gen;
      else
        E^est_affectable := false;
        E^type := ER^type;
-       E^code := ER^code + AFFX^code;
+       E^code := ER^code;
      end
    end
  end
@@ -757,7 +782,11 @@ AFFX -> affect ER #gen;
 #gen {
  do
    AFFX^type := ER^type;
-   AFFX^code := ER^code;
+   if ER^est_affectable then
+     AFFX^code := ER^code + AFFX^machine.genReadMem(ER^type.getTaille());
+   else
+     AFFX^code := ER^code;
+   end
  end
 }
 
@@ -781,12 +810,17 @@ ER -> ES ERX #gen;
      --ERX contient une OPREL
      ER^est_affectable := false;
      ER^type := new DTYPE("booleen",1);
+     if ES^est_affectable then
+       ER^code := ES^code+ ER^machine.genReadMem(ES^type.getTaille()) + ERX^code;
+     else
+       ER^code := ES^code + ERX^code;
+     end
    else
      --ERX est vide
      ER^est_affectable := ES^est_affectable;
      ER^type := ES^type;
+     ER^code := ES^code + ERX^code;
    end
-   ER^code := ES^code + ERX^code;
  end
 }
 
@@ -797,11 +831,16 @@ ES -> T ESX #gen;
      error(B_00, ESX^type, T^type);
    elseif ~ESX^est_affectable then
      ES^est_affectable := false;
+     if T^est_affectable then
+       ES^code := T^code+ ES^machine.genReadMem(T^type.getTaille()) + ESX^code;
+     else
+       ES^code := T^code + ESX^code;
+     end
    else
      ES^est_affectable := T^est_affectable;
+     ES^code := T^code + ESX^code;
    end
    ES^type := T^type;
-   ES^code := T^code + ESX^code;
  end
 }
 
@@ -813,7 +852,11 @@ ERX -> OPREL ES #gen;
    end
    ERX^est_affectable := false;
    ERX^type := ES^type;
-   ERX^code := ES^code + OPREL^code;
+   if ES^est_affectable then
+     ERX^code := ES^code + ERX^machine.genReadMem(ES^type.getTaille()) + OPREL^code;
+   else
+     ERX^code := ES^code + OPREL^code;
+   end
  end
 }
 
@@ -916,7 +959,11 @@ ESX -> OPADD T ESX #gen;
    else
      ESX^est_affectable := false;
      ESX^type := T^type;
-     ESX^code := T^code + ESX1^code + OPADD^code;
+     if T^est_affectable then
+       ESX^code := T^code + ESX^machine.genReadMem(T^type.getTaille()) + ESX1^code + OPADD^code;
+     else
+       ESX^code := T^code + ESX1^code + OPADD^code;
+     end
    end
  end
 }
@@ -974,11 +1021,16 @@ T -> F TX #gen;
    else
      if ~TX^est_affectable then
        T^est_affectable := false;
+       if F^est_affectable then
+         T^code := F^code + T^machine.genReadMem(F^type.getTaille()) + TX^code;
+       else
+         T^code := F^code + TX^code;
+       end
      else
        T^est_affectable := F^est_affectable;
+       T^code := F^code + TX^code;
      end
      T^type := F^type;
-     T^code := F^code + TX^code;
    end
  end
 }
@@ -996,7 +1048,11 @@ TX -> OPMUL F TX #gen;
    else
      TX^est_affectable := false;
      TX^type := F^type;
-     TX^code := F^code + TX1^code + OPMUL^code;
+     if F^est_affectable then
+       TX^code := F^code + TX^machine.genReadMem(F^type.getTaille()) + TX1^code + OPMUL^code;
+     else
+       TX^code := F^code + TX1^code + OPMUL^code;
+     end
    end
  end
 }
@@ -1099,7 +1155,11 @@ F -> OPUN F #gen;
    else
      F^est_affectable := false;
      F^type := F1^type;
-     F^code := F1^code + OPUN^code;
+     if F1^est_affectable then
+       F^code := F1^code + F^machine.genReadMem(F1^type.getTaille()) + OPUN^code;
+     else
+       F^code := F1^code + OPUN^code;
+     end
    end
  end
 }
@@ -1231,7 +1291,7 @@ Q -> #gen;
      if v /= nil then
        Q^type := v.getType();
        Q^est_affectable := true;
-       Q^code :=Q^machine.genAdr(v.getDep(), 0);
+       Q^code := Q^machine.genAdr(Q^qident, v.getDep(), v.getReg());
      else
        error(B_24);
      end

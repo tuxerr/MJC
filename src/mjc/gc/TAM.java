@@ -15,14 +15,14 @@ public class TAM extends ABSTRACTMACHINE {
     }
     } */
    
-  // compteur pour le generateur d'etiquettes
+  // compteur pour le generateur d'etiquettes OK
   private static int cpt = 0;
 
    
     public TAM() {
 
     }
-  // genere une etiquette differente des autres
+  // genere une etiquette differente des autres OK
   public String genEtiq() {
     return "X" + cpt++;
   }
@@ -32,55 +32,85 @@ public class TAM extends ABSTRACTMACHINE {
     return "\tLOADL " + v + "\n";
   }
 
-  // genere le code pour une affectation  DONE
+  // genere le code pour une affectation
   public String genAffect(String n, VAR i, String t) {
     int taille = i.getType().getTaille();
     return "   ; decl de var " + n + " en " + i.getDep() + "/" + i.getReg() + " taille = "
         + taille + "\n"
 	+ t + "\n"
 	+ "\tSTORE " + "(" + taille + ") " + i.getDep()+"["+i.getReg()+"]"+"\n";
-	
+  }
+  // genere le code pour les decl de var locales OK
+  public String genVarLoc(String n, VAR i, String affx) {
+    int taille = i.getType().getTaille();
+    if (affx.equals("")) {
+      return "     ; decl de var loc sans init " + n + " en " + i.getDep() + "/" + i.getReg() + " taille = "
+          + taille + "\n"
+	  + "\tPUSH " + taille + "\n";
+    } else {
+      return "     ;   decl de var loc avec init " + n + " en " + i.getDep() + "/" + i.getReg() + " taille = "
+          + taille + "\n"
+	  + affx;
+    }
   }
 
-  // genere le code pour une declaration d'attributs  DONE
+  // genere le code pour une declaration d'attributs OK
   public String genDeclAtt(String n, VAR i) {
     int taille = i.getType().getTaille();
     return "   ; decl d'att " + n + " en " + i.getDep() + "/" + i.getReg() + " taille = "
-        + taille + "\n";
+        + taille + "\n"
+        + "\tPUSH " + taille + "\n";
   }
 
-  // generation call variable value DONE EGG NOT DONE
+  // generation call variable value
   public String genCallVar(String s, VAR i){
-    return"   ; call cariable "+s+" taille : "+i.getType().getTaille()+"\n"
-	+"\tLOADL " + "("+i.getType().getTaille()+") "+i.getDep()+"["+i.getReg()+"]"; 
+    return "\tLOAD " + "("+i.getType().getTaille()+") "+i.getDep()+"["+i.getReg()+"]   ; appel variable "+s+"\n"; 
   }
 
   //**** METHODES *****//
 
-  // genere le code pour une declaration de methode   DONE
+  // genere le code pour une declaration de constructeur
+  public String genDeclCons(String n, METHODE i) {
+    int taille = i.getReturnType().getTaille();
+    i.setLabel("X" + (cpt+1));
+    return genEtiq() + " ; decl de cons " + n +" taille " + taille + "\n"; 
+  }
+
+
+  // genere le code pour une declaration de methode
   public String genDeclMet(String n, METHODE i) {
     int taille = i.getReturnType().getTaille();
     i.setLabel("X" + (cpt+1));
-    return genEtiq() + "   ; decl de met " + n +" taille " + taille + "\n"; 
+    return genEtiq() + " ; decl de met " + n +" taille " + taille + "\n"; 
   }
 
    // generation Call
   public  String genCall(String s,METHODE m) {
-    return "   ; call de fonction " + s + "de label " + m.getLabel() + "\n"
-	+ "\tJUMP "+ m.getLabel();	
+    return "   ; call de fonction " + s + " de label " + m.getLabel() + "\n"
+	+ "\tJUMP "+ m.getLabel() + "\n";	
   }
 
-  // RETURN (EGG NOT DONE) String : nom de fonction,  Liste d'arg, Variable retour
+  // RETURN String : nom de fonction,  Liste d'arg, Variable retour
   public String genReturn(String code, ARGLIST ltype, DTYPE ret) {
-    return "   ; return de fonction \n"
-	+ code +"\tRETURN " + "(" + ret.getTaille() + ") " + ltype.getTaille();
+    return "     ; return de fonction \n"
+	+ code +"\tRETURN " + "(" + ret.getTaille() + ") " + ltype.getTaille() +"\n";
   }
   
+  //**** CLASSES *****//
+
+  // genere le code pour une declaration de classe OK
+  public String genClasse(String nom, int adr) {
+    return " ; decl de classe " + nom + " d'adresse " +adr + "/SB\n";
+  }
+
   //**** MEMOIRE *****//  
   // generation d'adresse 
-  public String genAdr(int dep, int reg) {
-    return " ; decl d'adresse de dep " + dep + "et de registre " + reg;   
+  public String genAdr(String nom, int dep, String reg) {
+    return "\tLOADA " + dep + "[" + reg + "]"
+        +"   ; chargement de l'adresse de " + nom + " de dep " + dep + " et de registre " + reg + "\n";   
   }
+
+
   public String genMalloc(int taille) {
     return "\tLOADL " + taille + "\n" + "\tSUBR Malloc\n";
   }
@@ -89,12 +119,10 @@ public class TAM extends ABSTRACTMACHINE {
     return "\tLOADA " + dep + "[SB]\n";
   }
 
-  public String genAdrField(int dep) {
-    return "\tLOADL " + dep + "\n\tSUBR Iadd\n";
-  }
 
   public String genFree(int i) {
-    return "\tPOP(0)" + i + "\n";
+    return "     ; liberation des var locales\n"
+        +"\tPOP(0)" + i + "\n";
   }
 
   public String genMem(int dep, int taille) {
@@ -102,18 +130,19 @@ public class TAM extends ABSTRACTMACHINE {
   }
 
   public String genReadMem(int taille) {
-    return "\tLOADI(" + taille + ")\n";
+    return "\tLOADI(" + taille + ")" + "      ; lecture de l'adresse\n";
   }
 
   public String genWriteMem(int taille) {
-    return "\tSTOREI(" + taille + ")\n";
+    return "\tSTOREI(" + taille + ")" + "     ; ecriture a l'adresse\n";
   }
 
 
  
-  // STUFFS
+  // STUFFS OK
   public String genFin() {
-    return "\tHALT\n";
+    return "   ; fin du programme\n"
+        +"\tHALT\n";
   }
 
   public String genComment(String c){
@@ -121,7 +150,7 @@ public class TAM extends ABSTRACTMACHINE {
   }
 
 
-  // OPERATEURS
+  // OPERATEURS OK
   public String genIf(String code, String code2, String code3) {
     String sinon = genEtiq();
     String fin = genEtiq();
