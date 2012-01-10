@@ -24,6 +24,7 @@ public abstract class ABSTRACTMACHINE {
     abstract public String genDeclAtt(String ident, VAR iv);
     abstract public String genAffect(String ident, VAR info, String code);
     abstract public String genCallVar(String s, VAR i);
+    abstract public String genVarLoc(String n, VAR i, String affx);
 
     //Operateurs
     abstract public String genOpAdd();
@@ -41,18 +42,22 @@ public abstract class ABSTRACTMACHINE {
     abstract public String genOpOr();
     abstract public String genOpAnd();
     abstract public String genIf(String si, String inst1, String inst2);
+    
     // programme
     abstract public String genFin();
     abstract public String genComment(String c);
+    
+    // classe
+    abstract public String genClasse(String nom, int adr);
    
     // methodes
+    abstract public String genDeclCons(String n, METHODE i);
     abstract public String genReturn(String code, ARGLIST ltype, DTYPE ret);
     abstract public String genDeclMet(String n, METHODE i);
     abstract public String genCall(String s, METHODE m);  
   
     // memoire
-    abstract public String genAdr(int dep, int reg);// a quoi ca sert ?
-    abstract public String genAdrField(int dep);    // idem
+    abstract public String genAdr(String nom, int dep, String reg);// a quoi ca sert ?
 
     abstract public String genMem(int i, int taille);
     abstract public String genReadMem(int taille);
