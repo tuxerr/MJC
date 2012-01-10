@@ -139,12 +139,11 @@ public class TAM extends ABSTRACTMACHINE {
  
   // STUFFS OK
   public String genFin() {
-    return "   ; fin du programme\n"
-        +"\tHALT\n";
+    return "\tHALT\n";
   }
   
   public String genDeb() {
-    return "\tCALL (LB) main";
+    return "\tCALL (LB) main\n";
   }
 
   public String genComment(String c){

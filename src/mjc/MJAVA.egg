@@ -1365,7 +1365,7 @@ global
  do
    Q^est_affectable := Q1^est_affectable;
    Q^type := Q1^type;
-   Q^code := Q^machine.genCall(Q^qident,m) + Q1^code;
+   Q^code := ARGS^code + Q^machine.genCall(Q^qident,m) + Q1^code;
  end
 }
 
