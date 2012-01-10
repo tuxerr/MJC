@@ -313,7 +313,7 @@ DEF -> TYPE ident pv  #inf;
        error(B_02, ident^txt);
     else
       -- ajouter l'ident dans la TDS;
-      in := new VAR(TYPE^type, DEF^hadr, "LB");
+      in := new VAR(TYPE^type, DEF^hadr, "LB", true);
       call DEF^tds.inserer(ident^txt, in);
       DEF^adr := DEF^hadr + TYPE^type.getTaille();
       DEF^code := DEF^machine.genDeclAtt(ident^txt, in);
@@ -548,7 +548,7 @@ PARFS -> #ltypes PARF #tds PARFSX ;
  do
    d := PARF^type.getTaille();
    dm := 0-d;
-   i := new VAR(PARF^type, dm, "LB");
+   i := new VAR(PARF^type, dm, "LB", false);
    call PARFS^tds.inserer(PARF^name, i);
    PARFSX^dep := d;
  end
@@ -567,7 +567,7 @@ PARFSX -> virg  PARF #tds PARFSX ;
  do
    d := PARF^type.getTaille() + PARFSX^dep;
    dm := 0-d;
-   i := new VAR(PARF^type, dm, "LB");
+   i := new VAR(PARF^type, dm, "LB", false);
    call PARFSX^tds.inserer(PARF^name, i);
    PARFSX1^dep := PARFSX^dep + d;
  end
@@ -645,7 +645,7 @@ INST-> TYPE ident AFFX pv #gen;
    elseif ~TYPE^type.canAccept(AFFX^type) then
      error(B_00, TYPE^type, AFFX^type);
    else
-     vn := new VAR(TYPE^type, INST^hadr, "LB");
+     vn := new VAR(TYPE^type, INST^hadr, "LB", false);
      call INST^tds.inserer(ident^txt, vn);
      INST^adr := INST^hadr + TYPE^type.getTaille();
      INST^code := INST^machine.genVarLoc(ident^txt, vn, AFFX^code);
@@ -1274,7 +1274,11 @@ Q -> #gen;
      if v /= nil then
        Q^type := v.getType();
        Q^est_affectable := true;
-       Q^code := Q^machine.genAdr(Q^qident, v.getDep(), v.getReg());
+       if v.isAttr() then
+         Q^code := Q^machine.genAtt(Q^qident, v);
+       else
+         Q^code := Q^machine.genAdr(Q^qident, v.getDep(), v.getReg());
+       end
      else
        error(B_21);
      end

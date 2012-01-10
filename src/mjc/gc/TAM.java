@@ -32,6 +32,14 @@ public class TAM extends ABSTRACTMACHINE {
     return "\tLOADL " + v + "\n";
   }
 
+  //genere le code pour un attribut lol
+  public String genAtt(String s, VAR i) {
+    return "\tLOADL " + i.getDep() +"\n"
+        +"\tLOAD (1) -1[LB]\n"
+        +"\tSUBR IAdd\n"
+        +"; appel variable "+s+"\n";
+  }
+
   // genere le code pour une affectation
   public String genAffect(String n, VAR i, String t) {
     int taille = i.getType().getTaille();
