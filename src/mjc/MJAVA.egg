@@ -21,8 +21,6 @@ inh qisvar : BOOLEAN for Q;
 syn est_affectable : BOOLEAN for E, ER, ERX, ES, ESX, T, TX, F, Q;
 syn adr : INTEGER for CORPS, DEF, DEFS, INST, INSTS;
 inh hadr : INTEGER for DEFCLASSE, DEFINTERFACE, DEF, DEFS, INST, INSTS, BLOC, SIX;
-syn gadr : INTEGER for ENTITES, DEFCLASSE, DEFINTERFACE;
-inh ghadr : INTEGER for ENTITES, DEFCLASSE, DEFINTERFACE;
 syn ext : STRING for ETEND, SUPER;
 syn imp : STRING for IMPL, SUPER;
 inh dep : INTEGER for ARGS, ARGSX, PARFSX;
@@ -82,7 +80,6 @@ global
 #init {
  do
    machine := PROGRAMME^source.getMachine();
-   ENTITES^ghadr := 0;
    ENTITES^machine := machine;
    ENTITES^tds := new TDS();
  end
@@ -90,50 +87,37 @@ global
 
 #gen {
  do
-   call machine.writeCode(PROGRAMME^source.getFileName(), ENTITES^code);
+   call machine.writeCode(PROGRAMME^source.getFileName(),machine.genDeb() + machine.genFin() + ENTITES^code);
  end
 }
 
 ENTITES -> #gen;
 #gen {
  do
-   ENTITES^gadr := ENTITES^ghadr;
-   ENTITES^code := ENTITES^machine.genFin();
+   ENTITES^code := "";
  end
 }
 
-ENTITES -> #init DEFCLASSE #trans ENTITES #gen;
+ENTITES -> #init DEFCLASSE ENTITES #gen;
 #init {
  do
    DEFCLASSE^hadr := 0;
  end
 }
-#trans {
- do
-   ENTITES1^ghadr := DEFCLASSE^gadr;
- end
-}
 #gen {
  do
-   ENTITES^gadr := ENTITES1^gadr;
    ENTITES^code := DEFCLASSE^code + ENTITES1^code;
  end
 }
 
-ENTITES -> #init DEFINTERFACE #trans ENTITES #gen;
+ENTITES -> #init DEFINTERFACE ENTITES #gen;
 #init {
  do
    DEFINTERFACE^hadr := 0;
  end
 }
-#trans {
- do
-   ENTITES1^ghadr := DEFINTERFACE^gadr;
- end
-}
 #gen {
  do
-   ENTITES^gadr := ENTITES1^gadr;
    ENTITES^code := DEFINTERFACE^code + ENTITES1^code;
  end
 }
@@ -193,7 +177,7 @@ global
 
          --l'identifiant est trouvé dans la TDS
            if ~c.implementsCorrectly(r) then
-             error(B_14,ident^txt,SUPER^imp,c.implementGetError());
+             error(B_11,ident^txt,SUPER^imp,c.implementGetError());
            else 
              call c.addSuperClass(r);
            end
@@ -203,8 +187,7 @@ global
        end
   end
 
-  DEFCLASSE^gadr := DEFCLASSE^ghadr + CORPS^adr;
-  DEFCLASSE^code := DEFCLASSE^machine.genClasse(ident^txt, DEFCLASSE^ghadr) + CORPS^code;
+  DEFCLASSE^code := DEFCLASSE^machine.genClasse(ident^txt) + CORPS^code;
  end
 }
 
@@ -234,8 +217,7 @@ global
  local
  do
    call DEFINTERFACE^tds.inserer(ident^txt, c);
-   DEFINTERFACE^gadr := DEFINTERFACE^ghadr + CORPS^adr;
-   DEFINTERFACE^code := DEFINTERFACE^machine.genComment("decl d'interface " + ident^txt) + CORPS^code;
+   DEFINTERFACE^code := DEFINTERFACE^machine.genComment("decl d'interface " + ident^txt);
  end
 }
 
@@ -419,7 +401,7 @@ DEF -> void ident paro #tds PARFS parf #transret #inf MCORPS #gen;
 }
 #gen {
  do
-   DEF^code := DEF^machine.genDeclMet(ident^txt,m) + MCORPS^code;
+   DEF^code := DEF^machine.genDeclMet(ident^txt,m) + MCORPS^code + DEF^machine.genReturn("", PARFS^ltype, new DTYPE("void", 0));
  end
 }
 -------------------------------------------------------
@@ -449,7 +431,7 @@ MCORPS -> #check BLOC #gen;
     if ~MCORPS^class.isAClass() then
       error(B_18);
     end
-    BLOC^hadr := 0;
+    BLOC^hadr := 3;
   end
 }
 
@@ -478,7 +460,7 @@ DEF -> ident paro #tds PARFS parf #transtds BLOC #inf ;
   local
   do
     BLOC^rltype := PARFS^ltype;
-    BLOC^hadr := 0;
+    BLOC^hadr := 3;
     BLOC^returntype := new DTYPE("void", 0);
   end
 }
@@ -494,7 +476,7 @@ DEF -> ident paro #tds PARFS parf #transtds BLOC #inf ;
      m := new METHODE(t, PARFS^ltype);
      call DEF^tds.inserer(ident^txt,m);
      DEF^adr := DEF^hadr;
-     DEF^code := DEF^machine.genDeclCons(ident^txt, m) + BLOC^code;
+     DEF^code := DEF^machine.genDeclCons(ident^txt, m) + BLOC^code + DEF^machine.genReturn("", PARFS^ltype, new DTYPE("void", 0));
    else
      error(B_26, ident^txt, DEF^class.isAClass());
    end
@@ -507,7 +489,7 @@ DEF -> ident paro #tds PARFS parf #transtds BLOC #inf ;
 TYPE -> int #type;
 #type {
  do
-   TYPE^type := new DTYPE("entier", 4);
+   TYPE^type := new DTYPE("entier", 1);
  end
 }
 
@@ -876,7 +858,7 @@ OPREL -> inf #gen;
  do
    OPREL^code := OPREL^machine.genOpLss();
    a := new ACCEPTEDTYPES();
-   call a.add(new DTYPE("entier",4));
+   call a.add(new DTYPE("entier",1));
    OPREL^acctypes := a;
  end
 }
@@ -888,7 +870,7 @@ OPREL -> infeg #gen;
  do
    OPREL^code := OPREL^machine.genOpLeq();
    a := new ACCEPTEDTYPES();
-   call a.add(new DTYPE("entier",4));
+   call a.add(new DTYPE("entier",1));
    OPREL^acctypes := a;
  end
 }
@@ -901,7 +883,7 @@ OPREL -> sup #gen;
 
  OPREL^code := OPREL^machine.genOpGtr();
    a := new ACCEPTEDTYPES();
-   call a.add(new DTYPE("entier",4));
+   call a.add(new DTYPE("entier",1));
    OPREL^acctypes := a;
  end
 }
@@ -913,7 +895,7 @@ OPREL -> supeg #gen;
  do
    OPREL^code := OPREL^machine.genOpGeq();
    a := new ACCEPTEDTYPES();
-   call a.add(new DTYPE("entier",4));
+   call a.add(new DTYPE("entier",1));
    OPREL^acctypes := a;
  end
 }
@@ -925,7 +907,7 @@ OPREL -> eg #gen;
  do
    OPREL^code := OPREL^machine.genOpEq();
    a := new ACCEPTEDTYPES();
-   call a.add(new DTYPE("entier",4));
+   call a.add(new DTYPE("entier",1));
    call a.add(new DTYPE("booleen",1));
    call a.add(new DTYPE("pointeur",1));
    OPREL^acctypes := a;
@@ -939,7 +921,7 @@ OPREL -> neg #gen;
  do
    OPREL^code := OPREL^machine.genOpNeq();
    a := new ACCEPTEDTYPES();
-   call a.add(new DTYPE("entier",4));
+   call a.add(new DTYPE("entier",1));
    call a.add(new DTYPE("booleen",1));
    call a.add(new DTYPE("pointeur",1));
    OPREL^acctypes := a;
@@ -984,7 +966,7 @@ OPADD -> plus #gen;
  do
    OPADD^code := OPADD^machine.genOpAdd();
    a := new ACCEPTEDTYPES();
-   call a.add(new DTYPE("entier",4));
+   call a.add(new DTYPE("entier",1));
    OPADD^acctypes := a;
  end
 }
@@ -996,7 +978,7 @@ OPADD -> moins #gen;
  do
    OPADD^code := OPADD^machine.genOpSub();
    a := new ACCEPTEDTYPES();
-   call a.add(new DTYPE("entier",4));
+   call a.add(new DTYPE("entier",1));
    OPADD^acctypes := a;
  end
 }
@@ -1008,7 +990,7 @@ OPADD -> ou #gen;
  do
    OPADD^code := OPADD^machine.genOpOr();
    a := new ACCEPTEDTYPES();
-   call a.add(new DTYPE("entier",4));
+   call a.add(new DTYPE("entier",1));
    OPADD^acctypes := a;
  end
 }
@@ -1072,7 +1054,7 @@ OPMUL -> mult #gen;
    a : ACCEPTEDTYPES;
  do
    a := new ACCEPTEDTYPES();
-   call a.add(new DTYPE("entier",4));
+   call a.add(new DTYPE("entier",1));
    OPMUL^acctypes := a;
    OPMUL^code := OPMUL^machine.genOpMul();
  end
@@ -1084,7 +1066,7 @@ OPMUL -> div #gen;
    a : ACCEPTEDTYPES;
  do
    a := new ACCEPTEDTYPES();
-   call a.add(new DTYPE("entier",4));
+   call a.add(new DTYPE("entier",1));
    OPMUL^acctypes := a;
    OPMUL^code := OPMUL^machine.genOpDiv();
  end
@@ -1096,7 +1078,7 @@ OPMUL -> mod #gen;
    a : ACCEPTEDTYPES;
  do
    a := new ACCEPTEDTYPES();
-   call a.add(new DTYPE("entier",4));
+   call a.add(new DTYPE("entier",1));
    OPMUL^acctypes := a;
    OPMUL^code := OPMUL^machine.genOpMod();
  end
@@ -1108,7 +1090,7 @@ OPMUL -> et #gen;
    a : ACCEPTEDTYPES;
  do
    a := new ACCEPTEDTYPES();
-   call a.add(new DTYPE("entier",4));
+   call a.add(new DTYPE("entier",1));
    OPMUL^acctypes := a;
    OPMUL^code := OPMUL^machine.genOpAnd();
  end
@@ -1121,7 +1103,7 @@ F -> entier #gen;
 #gen {
  do
    F^est_affectable := false;
-   F^type := new DTYPE("entier", 4);
+   F^type := new DTYPE("entier", 1);
    F^code := F^machine.genCst(entier^txt);
  end
 }
@@ -1171,7 +1153,7 @@ OPUN -> plus #gen;
  do
    a := new ACCEPTEDTYPES();
    OPUN^acctypes := a;
-   call a.add(new DTYPE("entier",4));
+   call a.add(new DTYPE("entier",1));
    OPUN^code := OPUN^machine.genOpAdd();
  end
 }
@@ -1183,7 +1165,7 @@ OPUN -> moins #gen;
  do
    a := new ACCEPTEDTYPES();
    OPUN^acctypes := a;
-   call a.add(new DTYPE("entier",4));
+   call a.add(new DTYPE("entier",1));
    OPUN^code := OPUN^machine.genOpSub();
  end
 }
@@ -1195,7 +1177,7 @@ OPUN -> non #gen;
  do
    a := new ACCEPTEDTYPES();
    OPUN^acctypes := a;
-   call a.add(new DTYPE("entier",4));
+   call a.add(new DTYPE("entier",1));
    OPUN^code := OPUN^machine.genOpNeg();
  end
 }
@@ -1247,16 +1229,17 @@ F -> nouveau #init TYPE paro ARGS parf #gen;
        met := ctds.chercherGlobalementMethod(cname,ARGS^ltype);
        if met /= nil then
           F^type := TYPE^type;
+          F^code :=F^machine.genMalloc(c.getTaille()) + F^machine.genCall("constructeur", met);
        else
           error(B_28,cname,ARGS^ltype);
+          F^code :="";
        end
        
      else
        error(B_19);
    end
     
-   F^est_affectable := false;
-   F^code := "";    
+   F^est_affectable := false;  
  end
 }
 
@@ -1293,7 +1276,7 @@ Q -> #gen;
        Q^est_affectable := true;
        Q^code := Q^machine.genAdr(Q^qident, v.getDep(), v.getReg());
      else
-       error(B_24);
+       error(B_21);
      end
    else
      Q^type := Q^qtype;

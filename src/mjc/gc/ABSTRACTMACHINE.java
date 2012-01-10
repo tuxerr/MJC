@@ -10,7 +10,7 @@ public abstract class ABSTRACTMACHINE {
 
     public void writeCode(String fname, String code) throws MJCException {
         try {
-            String asmName = fname + ".mjava";
+            String asmName = fname + ".tam";
             System.err.println("Ecriture du code dans " + asmName);
             PrintWriter pw = new PrintWriter(new FileOutputStream(asmName));
             pw.print(code);
@@ -45,10 +45,11 @@ public abstract class ABSTRACTMACHINE {
     
     // programme
     abstract public String genFin();
+    abstract public String genDeb();
     abstract public String genComment(String c);
     
     // classe
-    abstract public String genClasse(String nom, int adr);
+    abstract public String genClasse(String nom);
    
     // methodes
     abstract public String genDeclCons(String n, METHODE i);

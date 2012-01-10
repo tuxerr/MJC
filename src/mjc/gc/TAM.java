@@ -58,8 +58,7 @@ public class TAM extends ABSTRACTMACHINE {
   public String genDeclAtt(String n, VAR i) {
     int taille = i.getType().getTaille();
     return "   ; decl d'att " + n + " en " + i.getDep() + "/" + i.getReg() + " taille = "
-        + taille + "\n"
-        + "\tPUSH " + taille + "\n";
+        + taille + "\n";
   }
 
   // generation call variable value
@@ -72,7 +71,7 @@ public class TAM extends ABSTRACTMACHINE {
   // genere le code pour une declaration de constructeur
   public String genDeclCons(String n, METHODE i) {
     int taille = i.getReturnType().getTaille();
-    i.setLabel("X" + (cpt+1));
+    i.setLabel("X" + cpt);
     return genEtiq() + " ; decl de cons " + n +" taille " + taille + "\n"; 
   }
 
@@ -80,14 +79,18 @@ public class TAM extends ABSTRACTMACHINE {
   // genere le code pour une declaration de methode
   public String genDeclMet(String n, METHODE i) {
     int taille = i.getReturnType().getTaille();
-    i.setLabel("X" + (cpt+1));
-    return genEtiq() + " ; decl de met " + n +" taille " + taille + "\n"; 
+    i.setLabel("X" + cpt);
+    if (n.equals("main")) {
+      return "main ; decl de met main taille " + taille + "\n";
+    } else {
+      return genEtiq() + " ; decl de met " + n +" taille " + taille + "\n";
+    }
   }
 
-   // generation Call
+   // generation Call de methode
   public  String genCall(String s,METHODE m) {
     return "   ; call de fonction " + s + " de label " + m.getLabel() + "\n"
-	+ "\tJUMP "+ m.getLabel() + "\n";	
+	+ "\tCALL " + "(" + "LB" + ") " + m.getLabel() + "\n";	
   }
 
   // RETURN String : nom de fonction,  Liste d'arg, Variable retour
@@ -99,12 +102,12 @@ public class TAM extends ABSTRACTMACHINE {
   //**** CLASSES *****//
 
   // genere le code pour une declaration de classe OK
-  public String genClasse(String nom, int adr) {
-    return " ; decl de classe " + nom + " d'adresse " +adr + "/SB\n";
+  public String genClasse(String nom) {
+    return " ; decl de classe " + nom +"\n";
   }
 
   //**** MEMOIRE *****//  
-  // generation d'adresse 
+  // generation d'adresse OK
   public String genAdr(String nom, int dep, String reg) {
     return "\tLOADA " + dep + "[" + reg + "]"
         +"   ; chargement de l'adresse de " + nom + " de dep " + dep + " et de registre " + reg + "\n";   
@@ -114,11 +117,6 @@ public class TAM extends ABSTRACTMACHINE {
   public String genMalloc(int taille) {
     return "\tLOADL " + taille + "\n" + "\tSUBR Malloc\n";
   }
-
-  public String genAdr(int dep) {
-    return "\tLOADA " + dep + "[SB]\n";
-  }
-
 
   public String genFree(int i) {
     return "     ; liberation des var locales\n"
@@ -143,6 +141,10 @@ public class TAM extends ABSTRACTMACHINE {
   public String genFin() {
     return "   ; fin du programme\n"
         +"\tHALT\n";
+  }
+  
+  public String genDeb() {
+    return "\tCALL (LB) main";
   }
 
   public String genComment(String c){
