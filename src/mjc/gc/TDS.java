@@ -33,6 +33,10 @@ public class TDS {
         return this.hmVar.get(n);
     }
 
+    public int getVariableTaille() {
+        return hmVar.size();
+    }
+
     public VAR chercherGlobalementVar(String n) {
         VAR i = this.chercherLocalementVar(n);
         if (i == null)

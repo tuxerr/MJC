@@ -33,6 +33,11 @@ public class CLASSE extends DTYPE {
         return (t==this);
     }
 
+    public int getTaille() {
+        int taille=tds.getAllAccessibleMethods().size()+tds.getVariableTaille();
+        return taille;
+    }
+
     public boolean isAClass() {
         return isclass;
     }
