@@ -9,6 +9,9 @@ public class VAR {
 
     private DTYPE type;
 
+    private boolean attr;
+    
+
     public int getDep() {
         return dep;
     }
@@ -21,10 +24,15 @@ public class VAR {
         return type;
     }
 
-    public VAR(DTYPE t, int d, String r) {
+    public VAR(DTYPE t, int d, String r,boolean isAttr) {
         type = t;
         dep = d;
         reg = r;
+        attr = isAttr;
+    }
+
+    public boolean isAttr() {
+        return attr;
     }
 
     // affichage
