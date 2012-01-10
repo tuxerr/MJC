@@ -1,0 +1,29 @@
+; traduction de geo.bloc
+;;;;;;;;;;;;;;;;;;;;;;;
+;    
+;    {
+;      int x = 12;
+;      int y = x;
+;      type point = <int, int> ;
+;      point p = < 1, 2>;
+;      point q = < 3, 4>;
+;      x = fst p;
+;      q = p;
+;      }
+;    
+
+       LOADL 12       ; int x = 12;  @x = 0/SB
+       LOAD(1) 0[SB]  ; int y = x;  @y = 1/SB
+;      type point = <int, int> ;
+       LOADL 1        ; point p = < 1, 2>; @p = 2/SB
+       LOADL 2
+       LOADL 3        ; point q = < 3, 4>; @q = 4/SB
+       LOADL 4
+;      x = fst p;
+       LOAD(1) 2[SB]  ; @fst p = @p
+       STORE(1) 0[SB] ; x = fst p;
+;      q = p;
+       LOAD(2) 2[SB]  ; p
+       STORE(2) 4[SB] ; q = p
+       POP(0) 6       ; liberation 
+       HALT

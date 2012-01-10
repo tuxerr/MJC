@@ -1,0 +1,20 @@
+; traduction de mem.bloc
+;;;;;;;;;;;;;;;;;;;;;;;
+;    mem{
+;       * int  p = new int();
+;       p* = 5;
+;       print (*p);
+;       }
+
+;       * int  p = new int();
+        LOADL 1       ; taille 1 arg de Malloc
+        SUBR Malloc   ; p = adresse dans le tas @p = 0/SB
+;       p* = 5;
+        LOADL 5	      ; valeur
+        LOAD(1) 0[SB]
+        STOREI(1)     ; p* = 5
+;       print (*p);
+        LOAD(1) 0[SB]
+        LOADI(1)     ; p*
+        SUBR Iout
+        HALT

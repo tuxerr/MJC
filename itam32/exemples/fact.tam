@@ -1,0 +1,31 @@
+main
+	LOADL       10
+	CALL   (SB) fact
+	LOADL       "\\	fact=\\
+"
+	SUBR    SOut
+	CALL   (LB) println
+	LOADL       3
+	POP   (0) 1
+	HALT   
+println
+	LOAD   (1) -1[LB]
+	SUBR    IOut
+	LOADL       '
+'
+	SUBR    COut
+	RETURN   (0) 1
+fact
+	LOAD   (1) -1[LB]
+	JUMPIF   (0) f1
+	LOAD   (1) -1[LB]
+	LOADL       1
+	SUBR    ISub
+	CALL   (LB) fact
+	LOAD   (1) -1[LB]
+	SUBR    IMul
+	JUMP       f2
+f1
+	LOADL       1
+f2
+	RETURN   (1) 1

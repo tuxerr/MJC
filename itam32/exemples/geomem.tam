@@ -1,0 +1,40 @@
+;; traduction de geomem.bloc
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;    geomem{
+;      type point = struct {int x; int y;} ;
+;      * point  p = new point();
+;      p* = { 100, 200 };
+;      * point q = new point();
+;      q* = { 300, 400 };
+;      q*.x = *p.y;
+;      }
+
+;      type point = struct {int x; int y;} ;
+;      * point  p = new point();
+        LOADL 2  ; taille de point
+        SUBR Malloc ;     * point  p = new point();  @p = 0/SB
+;      p* = { 100, 200 };
+        LOADL 100
+        LOADL 200     ; {100, 200}
+        LOAD(1) 0[SB] ; adresse contenue dans p
+        STOREI(2)     ; p* = ...
+;      * point q = new point();
+        LOADL 2  ; taille de point
+        SUBR Malloc ;     * point  q = new point();  @q = 1/SB
+;      q* = { 300, 400 };
+        LOADL 300
+        LOADL 400     ; {300, 400}
+        LOAD(1) 1[SB] ; adresse contenue dans q
+        STOREI(2)     ; q* = ...
+;      q*.x = *p.y;
+; calcul de l'adresse de *p.y
+        LOAD(1) 0[SB]  ; adresse contenue dans p
+        LOADL 1        ; decalage y
+        SUBR Iadd      ; @*p.y = @*p + 1
+        LOADI(1)       ; chargement valeur *p.y 
+; calcul de l'adresse de q*.x
+        LOAD(1) 1[SB]  ; adresse contenue dans q
+        ;   LOADL 0        ; decalage x
+        ;   SUBR Iadd      ; @q*.x = @ q*
+        STOREI(1)       ; ecriture valeur dans *q.x 
+        HALT

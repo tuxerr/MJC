@@ -1,0 +1,48 @@
+; traduction essai.bloc
+;;;;;;;;;;;;;;;;;;;;;;;
+;    essai {
+;      int a = 99;
+;      bool b = true;
+;      if (b) {
+;        int c = 5;
+;        print (a);
+;        print (c);
+;        }
+;      else {
+;        int d = 6;
+;        int e = 7;
+;        }
+;      <int, int> f = < 100, 101> ;
+;      int g = snd f;
+;      print (g);
+;    }
+
+
+        LOADL 99         ; int a = a  @a = 0/SB
+        ;;; on aurait pu ecrire 
+        ;;; PUSH 1 
+        ;;; LOADL 99
+        ;;; STORE(1) 0[SB]
+        LOADL 1          ;bool b = true @b = 1/SB
+; if ...
+        LOAD(1) 1[SB]    ; b
+        JUMPIF(0) sinon  ; b = false ?
+        LOADL 5          ; int c = 5  @c = 2/SB
+        LOAD(1) 0[SB]    ; a
+        SUBR Iout        ; print
+        LOAD(1) 2[SB]    ; c
+        SUBR Iout        ; print
+        POP(0) 1         ; liberation pile -- optionnel
+        JUMP fin         ; fin du if
+sinon            ; bloc sinon
+        LOADL 6          ; int d = 6 ; @d = @c = 2
+        LOADL 7          ; int e = 7 ; @e = 3
+        POP(0) 2         ; liberation pile -- optionnel
+fin
+        LOADL 100        ; <int, int> f = <100, 101> @f= @c = 2
+        LOADL 101
+        LOAD(1) 3[SB]    ; @snd f = @f + 1 = 3 
+        LOAD(1) 4[SB]    ; int g = ...  @g = 4
+        SUBR Iout        ; print
+        POP(0) 5         ; liberation pile --optionnel
+        HALT
