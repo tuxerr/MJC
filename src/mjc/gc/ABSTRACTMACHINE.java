@@ -56,12 +56,11 @@ public abstract class ABSTRACTMACHINE {
     abstract public String genDeclMet(String n, METHODE i);
     abstract public String genCall(int MetNum, String metname);  
   
-    // memoire
-    abstract public String genAdr(String nom, int dep, String reg);// a quoi ca sert ?
-
+    abstract public String genCurrentClassPointer();
     abstract public String genVar(int dep, int taille,String reg);
-    abstract public String genReadMem(int taille);
-    abstract public String genWriteMem(int taille);
+    abstract public String genWriteMemRAM(int taille);
+
+    abstract public String genWriteMemStack(VAR i);
 
     abstract public String genFree(int taille);
     abstract public String genMalloc(int taille);

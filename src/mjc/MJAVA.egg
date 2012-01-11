@@ -15,6 +15,7 @@ inh returntype : DTYPE for MCORPS, INST, INSTS, BLOC, SIX;
 inh machine : ABSTRACTMACHINE for ENTITES, DEFCLASSE, DEFINTERFACE, MCORPS, CORPS, DEFS, DEF, BLOC, INSTS, INST, SIX, E, ER, ERX, ES, ESX, T, TX, F, OPADD, OPMUL, OPUN, OPREL, Q, AFFX, ARGS, ARGSX;
 syn code : STRING for ENTITES, DEFCLASSE, DEFINTERFACE, CORPS, MCORPS, DEFS, DEF, BLOC, INSTS, INST, SIX, AFFX, E, ER, ERX, ES, ESX, T, TX, F, OPADD, OPMUL, OPUN, OPREL, Q, ARGS, ARGSX;
 inh tds : TDS for ENTITES, DEFCLASSE, DEFINTERFACE, CORPS, DEF, DEFS, MCORPS, BLOC, TYPE, PARF, PARFSX, PARFS, INSTS, INST, SIX, F, T, TX, E, ER, ERX, ES, ESX, AFFX, ARGS, ARGSX, Q;
+inh varisright : BOOLEAN for AFFX, ER, ES, T, F, ERX, ESX, TX, Q;
 inh tdsinit : TDS for Q;
 inh qident : STRING for Q;
 inh qtype : DTYPE for Q;
@@ -645,6 +646,7 @@ INST-> TYPE ident #affxtype AFFX pv #gen;
     else
       AFFX^pointedclass := nil;
     end
+    AFFX^varisright := true;
   end          
 }
 
@@ -745,6 +747,8 @@ E -> #ertype ER #affxtype AFFX #gen;
 #ertype {
   do
     ER^pointedclass := nil;
+    ER^varisright := false;
+    AFFX^varisright := true;
   end
 }
 
@@ -766,14 +770,14 @@ E -> #ertype ER #affxtype AFFX #gen;
      if AFFX^type.equals(new DTYPE("void", 0)) then
        E^est_affectable := true;
        E^type := ER^type;
-       E^code := ER^code + E^machine.genReadMem(ER^type.getTaille());
+       E^code := ER^code;
      else
        if ~ER^type.canAccept(AFFX^type) then
          error(B_00, ER^type, AFFX^type);
        else
          E^est_affectable := false;
          E^type := new DTYPE("void", 0);
-         E^code := AFFX^code + ER^code + E^machine.genWriteMem(ER^type.getTaille());
+         E^code := AFFX^code + ER^code;
        end
      end
    else
@@ -797,7 +801,7 @@ AFFX -> affect ER #gen;
  do
    AFFX^type := ER^type;
    if ER^est_affectable then
-     AFFX^code := ER^code + AFFX^machine.genReadMem(ER^type.getTaille());
+     AFFX^code := ER^code;
    else
      AFFX^code := ER^code;
    end
@@ -824,11 +828,7 @@ ER -> ES ERX #gen;
      --ERX contient une OPREL
      ER^est_affectable := false;
      ER^type := new DTYPE("booleen",1);
-     if ES^est_affectable then
-       ER^code := ES^code+ ER^machine.genReadMem(ES^type.getTaille()) + ERX^code;
-     else
-       ER^code := ES^code + ERX^code;
-     end
+     ER^code := ES^code + ERX^code;
    else
      --ERX est vide
      ER^est_affectable := ES^est_affectable;
@@ -845,11 +845,7 @@ ES -> T ESX #gen;
      error(B_00, ESX^type, T^type);
    elseif ~ESX^est_affectable then
      ES^est_affectable := false;
-     if T^est_affectable then
-       ES^code := T^code+ ES^machine.genReadMem(T^type.getTaille()) + ESX^code;
-     else
-       ES^code := T^code + ESX^code;
-     end
+     ES^code := T^code + ESX^code;
    else
      ES^est_affectable := T^est_affectable;
      ES^code := T^code + ESX^code;
@@ -866,11 +862,7 @@ ERX -> OPREL ES #gen;
    end
    ERX^est_affectable := false;
    ERX^type := ES^type;
-   if ES^est_affectable then
-     ERX^code := ES^code + ERX^machine.genReadMem(ES^type.getTaille()) + OPREL^code;
-   else
-     ERX^code := ES^code + OPREL^code;
-   end
+   ERX^code := ES^code + OPREL^code;
  end
 }
 
@@ -973,11 +965,7 @@ ESX -> OPADD T ESX #gen;
    else
      ESX^est_affectable := false;
      ESX^type := T^type;
-     if T^est_affectable then
-       ESX^code := T^code + ESX^machine.genReadMem(T^type.getTaille()) + ESX1^code + OPADD^code;
-     else
-       ESX^code := T^code + ESX1^code + OPADD^code;
-     end
+     ESX^code := T^code + ESX1^code + OPADD^code;
    end
  end
 }
@@ -1035,11 +1023,7 @@ T -> F TX #gen;
    else
      if ~TX^est_affectable then
        T^est_affectable := false;
-       if F^est_affectable then
-         T^code := F^code + T^machine.genReadMem(F^type.getTaille()) + TX^code;
-       else
-         T^code := F^code + TX^code;
-       end
+       T^code := F^code + TX^code;
      else
        T^est_affectable := F^est_affectable;
        T^code := F^code + TX^code;
@@ -1062,11 +1046,7 @@ TX -> OPMUL F TX #gen;
    else
      TX^est_affectable := false;
      TX^type := F^type;
-     if F^est_affectable then
-       TX^code := F^code + TX^machine.genReadMem(F^type.getTaille()) + TX1^code + OPMUL^code;
-     else
-       TX^code := F^code + TX1^code + OPMUL^code;
-     end
+     TX^code := F^code + TX1^code + OPMUL^code;
    end
  end
 }
@@ -1169,11 +1149,7 @@ F -> OPUN F #gen;
    else
      F^est_affectable := false;
      F^type := F1^type;
-     if F1^est_affectable then
-       F^code := F1^code + F^machine.genReadMem(F1^type.getTaille()) + OPUN^code;
-     else
-       F^code := F1^code + OPUN^code;
-     end
+     F^code := F1^code + OPUN^code;
    end
  end
 }
@@ -1319,13 +1295,18 @@ Q -> #gen;
          name := Q^qclasse.getNom();
          if name.equals("") then
            depvt := Q^tds.getTailleAccMeth();
-           Q^code := Q^machine.genAtt(Q^qident, v, depvt);
+           Q^code := Q^machine.genCurrentClassPointer() + Q^machine.genAtt(Q^qident, v, depvt);
          else
            depvt := Q^qclasse.getTailleMeth();
            Q^code := Q^machine.genAtt(Q^qident, v, depvt);
          end
        else
-         Q^code := Q^machine.genAdr(Q^qident, v.getDep(), v.getReg());
+         if Q^varisright then
+           Q^code := Q^machine.genVar(v.getDep(), v.getTaille(), v.getReg());
+         else
+           Q^code := Q^machine.genWriteMemStack(v);
+         end
+         
        end
      else
        error(B_21);

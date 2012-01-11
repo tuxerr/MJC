@@ -31,11 +31,15 @@ nom = fname;
     public String genCst(String v) {
         return "\tLOADL " + v + "\n";
     }
+    
+    public String genCurrentClassPointer() {
+        return "\tLOADL (1) -1[LB]\n";
+    }
 
     //genere le code pour un attribut lol
     public String genAtt(String s, VAR i, int depvt) {
-        return "; appel variable "+s+"\n"
-            +"\tLOADL " + i.getDep() + depvt +"\n"
+        return "; appel attribut (adresse deja empilee) "+s+"\n"
+            +"\tLOADL " + (i.getDep() + depvt) +"\n"
             +"\tSUBR IAdd\n";
     }
 
@@ -91,10 +95,11 @@ nom = fname;
 	return  "   ; call de fonction " + metname + "\n"
                 +"\tLOADL " + MetNum + "\n"                                      //deplacement de la méthode voulue
                 +"\tSUBR IAdd\n"                                                 //adresse finale de la methode voulue
+                +"\tLOAD (1) -1[ST]\n"
                 +"\tLOADI (1)\n"                                                 //chargement de l'etiquette de la methode en sommet de pile
 		+"\tLOADL 0\n"
 		+"\tLOAD (1) -2[ST]\n"
-		+"\tPOP (2) 3\n"
+		+"\tPOP (2) 1\n"
                 +"\tCALLI\n";                                                    //appel à la methode	
     }
 
@@ -110,14 +115,6 @@ nom = fname;
     public String genClasse(String nom) {
         return " ; decl de classe " + nom +"\n";
     }
-
-    //**** MEMOIRE *****//  
-    // generation d'adresse OK
-    public String genAdr(String nom, int dep, String reg) {
-        return "\tLOADA " + dep + "[" + reg + "]"
-            +"   ; chargement de l'adresse de " + nom + " de dep " + dep + " et de registre " + reg + "\n";   
-    }
-
 
     public String genMalloc(int taille) {
         return "\tLOADL " + taille + "\n" + "\tSUBR Malloc\n";
@@ -145,16 +142,14 @@ nom = fname;
             +"\tPOP(0)" + i + "\n";
     }
 
-    public String genReadMem(int taille) {
-        return "\tLOADI(" + taille + ")" + "      ; lecture de l'adresse\n";
-    }
-
-    public String genWriteMem(int taille) {
+    public String genWriteMemRAM(int taille) {
         return "\tSTOREI(" + taille + ")" + "     ; ecriture a l'adresse\n";
     }
 
+    public String genWriteMemStack(VAR i) {
+        return "\tSTORE(" + i.getTaille() + ")" + i.getDep()+"["+i.getReg()+"]     ; ecriture a l'adresse\n";
+    }
 
- 
     // STUFFS OK
     public String genFin() {
         return "\tHALT\n";
