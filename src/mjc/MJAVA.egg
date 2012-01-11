@@ -1261,9 +1261,9 @@ F -> nouveau #init TYPE paro ARGS parf #gen;
        if met /= nil then
           F^type := TYPE^type;
           if F^pointedclass /= nil then
-            F^code :=F^machine.genMalloc(c.getTaille()) + F^machine.genVTables(F^pointedclass,c) + F^machine.genCall("constructeur", met);
+            F^code :=F^machine.genMalloc(c.getTaille()) + F^machine.genVTables(F^pointedclass,c) + ARGS^code + F^machine.genCall("constructeur", met);
           else
-            F^code :=F^machine.genMalloc(c.getTaille()) + F^machine.genVTables(c,c) + F^machine.genCall("constructeur", met);
+            F^code :=F^machine.genMalloc(c.getTaille()) + F^machine.genVTables(c,c) + ARGS^code + F^machine.genCall("constructeur", met);
           end
        else
           error(B_28,cname,ARGS^ltype);

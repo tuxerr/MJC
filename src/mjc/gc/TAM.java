@@ -18,7 +18,6 @@ nom = fname;
    
     // compteur pour le generateur d'etiquettes OK
     private static int cpt = 0;
-
    
     public TAM() {
 
@@ -41,14 +40,6 @@ nom = fname;
             +"; appel variable "+s+"\n";
     }
 
-    // genere le code pour une affectation
-    public String genAffect(String n, VAR i, String t) {
-        int taille = i.getType().getTaille();
-        return "   ; decl de var " + n + " en " + i.getDep() + "/" + i.getReg() + " taille = "
-            + taille + "\n"
-            + t + "\n"
-            + "\tSTORE " + "(" + taille + ") " + i.getDep()+"["+i.getReg()+"]"+"\n";
-    }
     // genere le code pour les decl de var locales OK
     public String genVarLoc(String n, VAR i, String affx) {
         int taille = i.getType().getTaille();
@@ -68,11 +59,6 @@ nom = fname;
         int taille = i.getType().getTaille();
         return "   ; decl d'att " + n + " en " + i.getDep() + "/" + i.getReg() + " taille = "
             + taille + "\n";
-    }
-
-    // generation call variable value
-    public String genCallVar(String s, VAR i){
-        return "\tLOAD " + "("+i.getType().getTaille()+") "+i.getDep()+"["+i.getReg()+"]   ; appel variable "+s+"\n"; 
     }
 
     //**** METHODES *****//
@@ -97,9 +83,16 @@ nom = fname;
     }
 
     // generation Call de methode
-    public  String genCall(String s,METHODE m) {
-        return "   ; call de fonction " + s + " de label " + m.getLabel() + "\n"
-            + "\tCALL " + "(" + "LB" + ") " + m.getLabel() + "\n";	
+    public  String genCall(POINTEUR var, String metname, ARGLIST args) {
+	CLASSE c = var.getPointedType();
+	int m = c.getMethodNumber(metname,args);
+	if(m==null) {
+	    return "";
+	} else {
+	    return "   ; call de fonction " + s + " de label " + m.getLabel() + "\n"
+            + "\tCALL " + "(" + "LB" + ") " + m.getLabel() + "\n";
+	}
+        	
     }
 
     // RETURN String : nom de fonction,  Liste d'arg, Variable retour
@@ -140,7 +133,8 @@ nom = fname;
             buf.append("\tSTOREI (1)\n");
             incr++;
         }
-        return buf.toString();
+        return "      ; creation de Vtable\n"
+	    + buf.toString();
     }
 
     public String genFree(int i) {

@@ -22,8 +22,6 @@ public abstract class ABSTRACTMACHINE {
     // variable
     abstract public String genCst(String v);
     abstract public String genDeclAtt(String ident, VAR iv);
-    abstract public String genAffect(String ident, VAR info, String code);
-    abstract public String genCallVar(String s, VAR i);
     abstract public String genVarLoc(String n, VAR i, String affx);
     abstract public String genAtt(String n, VAR i);
 
