@@ -133,7 +133,7 @@ nom = fname;
         ArrayList<String> vtable = pointedclass.createVtable(realclass);
         int incr=0;
         for(String met : vtable) {
-            buf.append("\tLOADL "+met+"\n");
+            buf.append("\tLOADL \""+met+"\"\n");
             buf.append("\tLOAD (1) -2[ST]\n");
             buf.append("\tLOADL "+incr+"\n");
             buf.append("\tSUBR IAdd\n");
