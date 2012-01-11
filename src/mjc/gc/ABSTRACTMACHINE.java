@@ -54,7 +54,7 @@ public abstract class ABSTRACTMACHINE {
     abstract public String genDeclCons(String n, METHODE i);
     abstract public String genReturn(String code, ARGLIST ltype, DTYPE ret);
     abstract public String genDeclMet(String n, METHODE i);
-    abstract public String genCall(String s, METHODE m);  
+    abstract public String genCall(int MetNum, String metname);  
   
     // memoire
     abstract public String genAdr(String nom, int dep, String reg);// a quoi ca sert ?

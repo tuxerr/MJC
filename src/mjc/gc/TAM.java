@@ -83,16 +83,12 @@ nom = fname;
     }
 
     // generation Call de methode
-    public  String genCall(POINTEUR var, String metname, ARGLIST args) {
-	CLASSE c = var.getPointedType();
-	int m = c.getMethodNumber(metname,args);
-	if(m==null) {
-	    return "";
-	} else {
-	    return "   ; call de fonction " + s + " de label " + m.getLabel() + "\n"
-            + "\tCALL " + "(" + "LB" + ") " + m.getLabel() + "\n";
-	}
-        	
+    public  String genCall(int MetNum, String metname) {
+	return  "   ; call de fonction " + metname + "\n"
+                +"\tLOADL " + MetNum + "\n"                                      //deplacement de la méthode voulue
+                +"\tSUBR IAdd\n"                                                 //adresse finale de la methode voulue
+                +"\tLOADI (1)\n"                                                 //chargement de l'etiquette de la methode en sommet de pile
+                +"\tCALLI\n";                                                    //appel à la methode	
     }
 
     // RETURN String : nom de fonction,  Liste d'arg, Variable retour

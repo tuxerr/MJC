@@ -19,6 +19,7 @@ inh tdsinit : TDS for Q;
 inh qident : STRING for Q;
 inh qtype : DTYPE for Q;
 inh qisvar : BOOLEAN for Q;
+inh qclasse : CLASSE for Q;
 syn est_affectable : BOOLEAN for E, ER, ERX, ES, ESX, T, TX, F, Q;
 syn adr : INTEGER for CORPS, DEF, DEFS, INST, INSTS;
 inh hadr : INTEGER for DEFCLASSE, DEFINTERFACE, DEF, DEFS, INST, INSTS, BLOC, SIX;
@@ -1251,19 +1252,21 @@ F -> nouveau #init TYPE paro ARGS parf #gen;
    cname : STRING;
    met : METHODE;
    ctds : TDS;
+   mn : INTEGER;
  do
-   match TYPE^type 
+   match TYPE^type
      with POINTEUR then
        c := TYPE^type.getPointedType();
        cname := c.getNom();
        ctds := c.getTDS();
        met := ctds.chercherGlobalementMethod(cname,ARGS^ltype);
        if met /= nil then
+          mn := c.getMethodNumber(cname, ARGS^ltype);
           F^type := TYPE^type;
           if F^pointedclass /= nil then
-            F^code :=F^machine.genMalloc(c.getTaille()) + F^machine.genVTables(F^pointedclass,c) + ARGS^code + F^machine.genCall("constructeur", met);
+            F^code := ARGS^code + F^machine.genMalloc(c.getTaille()) + F^machine.genVTables(F^pointedclass,c) + F^machine.genCall(mn, "constructeur");
           else
-            F^code :=F^machine.genMalloc(c.getTaille()) + F^machine.genVTables(c,c) + ARGS^code + F^machine.genCall("constructeur", met);
+            F^code := ARGS^code + F^machine.genMalloc(c.getTaille()) + F^machine.genVTables(c,c) + F^machine.genCall(mn, "constructeur");
           end
        else
           error(B_28,cname,ARGS^ltype);
@@ -1286,6 +1289,7 @@ F -> ident #tra Q #gen;
    Q^qisvar := true;
    Q^qtype := nil;
    Q^tdsinit := F^tds;
+   Q^qclasse := new CLASSE(false, new TDS(), "");
  end
 }
 #gen {
@@ -1346,6 +1350,7 @@ Q -> pt ident #tra Q #gen;
          Q1^tds := c.getTDS();
          Q1^qident := ident^txt;
          Q1^qisvar := true;
+         Q1^qclasse := c;
        else  
          error(B_21);
        end
@@ -1359,6 +1364,7 @@ Q -> pt ident #tra Q #gen;
        Q1^tds := c.getTDS();
        Q1^qident := ident^txt;
        Q1^qisvar := true;
+       Q1^qclasse := c;
      else
        error(B_29);
      end
@@ -1401,10 +1407,13 @@ global
  end
 }
 #gen {
+ local
+   mn : INTEGER;
  do
+   mn := Q^qclasse.getMethodNumber(Q^qident, ARGS^ltype);
    Q^est_affectable := Q1^est_affectable;
    Q^type := Q1^type;
-   Q^code := ARGS^code + Q^machine.genCall(Q^qident,m) + Q1^code;
+   Q^code := ARGS^code + Q^machine.genCall(mn, Q^qident) + Q1^code;
  end
 }
 
