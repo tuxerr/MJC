@@ -23,7 +23,7 @@ public abstract class ABSTRACTMACHINE {
     abstract public String genCst(String v);
     abstract public String genDeclAtt(String ident, VAR iv);
     abstract public String genVarLoc(String n, VAR i, String affx);
-    abstract public String genAtt(String n, VAR i);
+    abstract public String genAtt(String n, VAR i, int depvt);
 
     //Operateurs
     abstract public String genOpAdd();

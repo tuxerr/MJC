@@ -67,6 +67,10 @@ public class TDS {
         return retHM;
     }
 
+    public int getTailleAccMeth() {
+	return this.getAllAccessibleMethods().size();
+    }
+
     public METHODE chercherLocalementMethod(String n,ARGLIST arg) {
         LMETHODE lm = this.hmMethode.get(n);
         if(lm==null) {

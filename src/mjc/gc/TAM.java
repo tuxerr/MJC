@@ -33,11 +33,10 @@ nom = fname;
     }
 
     //genere le code pour un attribut lol
-    public String genAtt(String s, VAR i) {
-        return "\tLOADL " + i.getDep() +"\n"
-            +"\tLOAD (1) -1[LB]\n"
-            +"\tSUBR IAdd\n"
-            +"; appel variable "+s+"\n";
+    public String genAtt(String s, VAR i, int depvt) {
+        return "; appel variable "+s+"\n"
+            +"\tLOADL " + i.getDep() + depvt +"\n"
+            +"\tSUBR IAdd\n";
     }
 
     // genere le code pour les decl de var locales OK

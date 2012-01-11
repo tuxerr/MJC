@@ -1307,6 +1307,8 @@ Q -> #gen;
 #gen {
  local 
    v : VAR;
+   depvt : INTEGER;
+   name : STRING;
  do 
    if Q^qisvar then
      v := Q^tds.chercherGlobalementVar(Q^qident);
@@ -1314,7 +1316,14 @@ Q -> #gen;
        Q^type := v.getType();
        Q^est_affectable := true;
        if v.isAttr() then
-         Q^code := Q^machine.genAtt(Q^qident, v);
+         name := Q^qclasse.getNom();
+         if name.equals("") then
+           depvt := Q^tds.getTailleAccMeth();
+           Q^code := Q^machine.genAtt(Q^qident, v, depvt);
+         else
+           depvt := Q^qclasse.getTailleMeth();
+           Q^code := Q^machine.genAtt(Q^qident, v, depvt);
+         end
        else
          Q^code := Q^machine.genAdr(Q^qident, v.getDep(), v.getReg());
        end

@@ -38,6 +38,10 @@ public class CLASSE extends DTYPE {
         return taille;
     }
 
+    public int getTailleMeth() {
+	return tds.getAllAccessibleMethods().size();
+    }
+
     public boolean isAClass() {
         return isclass;
     }
