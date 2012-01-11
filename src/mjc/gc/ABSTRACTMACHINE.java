@@ -67,6 +67,7 @@ public abstract class ABSTRACTMACHINE {
 
     abstract public String genFree(int taille);
     abstract public String genMalloc(int taille);
+    abstract public String genVTables(CLASSE pointedclass, CLASSE realclass);
 
   }
 
