@@ -549,7 +549,7 @@ PARFS -> #ltypes PARF #tds PARFSX ;
    dm : INTEGER;
  do
    d := PARF^type.getTaille();
-   dm := 0-d;
+   dm := 0-d-1;
    i := new VAR(PARF^type, dm, "LB", false);
    call PARFS^tds.inserer(PARF^name, i);
    PARFSX^dep := d;
@@ -1342,9 +1342,11 @@ Q -> #gen;
 -- acces attribut ou méthode
 -------------------------------------------------------
 Q -> pt ident #tra Q #gen;
+global
+   v : VAR;
+
 #tra {
  local
-   v : VAR;
    vt : DTYPE;
    c : CLASSE;
    
@@ -1360,6 +1362,7 @@ Q -> pt ident #tra Q #gen;
          Q1^qident := ident^txt;
          Q1^qisvar := true;
          Q1^qclasse := c;
+
        else  
          error(B_21);
        end
@@ -1385,7 +1388,11 @@ Q -> pt ident #tra Q #gen;
  do
    Q^est_affectable := Q1^est_affectable;
    Q^type := Q1^type;
-   Q^code := Q1^code;
+   if Q^qisvar then
+      Q^code := Q^machine.genVar(v.getDep(),v.getTaille(),v.getReg()) + Q1^code;
+   else
+      Q^code := Q1^code;
+   end
  end
 }
 

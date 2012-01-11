@@ -24,6 +24,10 @@ public class VAR {
         return type;
     }
 
+    public int getTaille() {
+        return type.getTaille();
+    }
+
     public VAR(DTYPE t, int d, String r,boolean isAttr) {
         type = t;
         dep = d;

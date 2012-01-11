@@ -39,6 +39,10 @@ nom = fname;
             +"\tSUBR IAdd\n";
     }
 
+    public String genVar(int dep, int taille,String reg) {
+        return "\tLOAD(" + taille + ") " + dep + "[" + reg + "]\n";
+    }
+
     // genere le code pour les decl de var locales OK
     public String genVarLoc(String n, VAR i, String affx) {
         int taille = i.getType().getTaille();
@@ -135,10 +139,6 @@ nom = fname;
     public String genFree(int i) {
         return "     ; liberation des var locales\n"
             +"\tPOP(0)" + i + "\n";
-    }
-
-    public String genMem(int dep, int taille) {
-        return "\tLOAD(" + taille + ") " + dep + "[SB]\n";
     }
 
     public String genReadMem(int taille) {

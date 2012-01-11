@@ -59,7 +59,7 @@ public abstract class ABSTRACTMACHINE {
     // memoire
     abstract public String genAdr(String nom, int dep, String reg);// a quoi ca sert ?
 
-    abstract public String genMem(int i, int taille);
+    abstract public String genVar(int dep, int taille,String reg);
     abstract public String genReadMem(int taille);
     abstract public String genWriteMem(int taille);
 
