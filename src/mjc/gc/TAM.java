@@ -40,7 +40,8 @@ nom = fname;
     }
 
     public String genVar(int dep, int taille,String reg) {
-        return "\tLOAD(" + taille + ") " + dep + "[" + reg + "]\n";
+        return "     ; empilation de pointeur\n"
+            +"\tLOAD(" + taille + ") " + dep + "[" + reg + "]\n";
     }
 
     // genere le code pour les decl de var locales OK
@@ -91,6 +92,9 @@ nom = fname;
                 +"\tLOADL " + MetNum + "\n"                                      //deplacement de la méthode voulue
                 +"\tSUBR IAdd\n"                                                 //adresse finale de la methode voulue
                 +"\tLOADI (1)\n"                                                 //chargement de l'etiquette de la methode en sommet de pile
+		+"\tLOADL 0\n"
+		+"\tLOAD (1) -2[ST]\n"
+		+"\tPOP (2) 3\n"
                 +"\tCALLI\n";                                                    //appel à la methode	
     }
 

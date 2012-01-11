@@ -1,0 +1,18 @@
+class Youp {
+  int a;
+  Youp(int na) {
+    a = na;
+  }
+  int getA() {
+    return a;
+  }
+}
+    
+
+class Trolol {
+  void main () {
+    int b;
+    Youp ret = new Youp(5);
+    b = ret.getA();
+  }
+}
