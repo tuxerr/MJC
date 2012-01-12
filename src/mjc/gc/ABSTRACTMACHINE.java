@@ -23,7 +23,7 @@ public abstract class ABSTRACTMACHINE {
     abstract public String genCst(String v);
     abstract public String genDeclAtt(String ident, VAR iv);
     abstract public String genVarLoc(String n, VAR i, String affx);
-    abstract public String genAtt(String n, VAR i, int depvt);
+    abstract public String genAtt(String n, VAR i);
 
     //Operateurs
     abstract public String genOpAdd();
@@ -58,6 +58,7 @@ public abstract class ABSTRACTMACHINE {
   
     abstract public String genCurrentClassPointer();
     abstract public String genVar(int dep, int taille,String reg);
+    abstract public String genReadMemRAM(int taille);
     abstract public String genWriteMemRAM(int taille);
 
     abstract public String genWriteMemStack(VAR i);

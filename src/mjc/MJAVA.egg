@@ -1283,7 +1283,6 @@ Q -> #gen;
 #gen {
  local 
    v : VAR;
-   depvt : INTEGER;
    name : STRING;
  do 
    if Q^qisvar then
@@ -1294,11 +1293,17 @@ Q -> #gen;
        if v.isAttr() then
          name := Q^qclasse.getNom();
          if name.equals("") then
-           depvt := Q^tds.getTailleAccMeth();
-           Q^code := Q^machine.genCurrentClassPointer() + Q^machine.genAtt(Q^qident, v, depvt);
+           if Q^varisright then
+             Q^code := Q^machine.genCurrentClassPointer() + Q^machine.genAtt(Q^qident, v) + Q^machine.genReadMemRAM(v.getTaille());
+           else
+             Q^code := Q^machine.genCurrentClassPointer() + Q^machine.genAtt(Q^qident, v) + Q^machine.genWriteMemRAM(v.getTaille());
+           end
          else
-           depvt := Q^qclasse.getTailleMeth();
-           Q^code := Q^machine.genAtt(Q^qident, v, depvt);
+           if Q^varisright then
+             Q^code := Q^machine.genAtt(Q^qident, v);
+           else
+             Q^code := Q^machine.genAtt(Q^qident, v);
+           end
          end
        else
          if Q^varisright then

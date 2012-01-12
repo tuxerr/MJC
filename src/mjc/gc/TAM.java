@@ -33,13 +33,13 @@ nom = fname;
     }
     
     public String genCurrentClassPointer() {
-        return "\tLOADL (1) -1[LB]\n";
+        return "\tLOAD (1) -1[LB]\n";
     }
 
     //genere le code pour un attribut lol
-    public String genAtt(String s, VAR i, int depvt) {
+    public String genAtt(String s, VAR i) {
         return "; appel attribut (adresse deja empilee) "+s+"\n"
-            +"\tLOADL " + (i.getDep() + depvt) +"\n"
+            +"\tLOADL " + i.getDep() +"\n"
             +"\tSUBR IAdd\n";
     }
 
@@ -92,15 +92,16 @@ nom = fname;
 
     // generation Call de methode
     public  String genCall(int MetNum, String metname) {
+        // actuellement en haut de la stack: l'adresse de l'instance (milieu entre vtable/attributs)
 	return  "   ; call de fonction " + metname + "\n"
-                +"\tLOADL " + MetNum + "\n"                                      //deplacement de la méthode voulue
-                +"\tSUBR IAdd\n"                                                 //adresse finale de la methode voulue
-                +"\tLOAD (1) -1[ST]\n"
-                +"\tLOADI (1)\n"                                                 //chargement de l'etiquette de la methode en sommet de pile
-		+"\tLOADL 0\n"
-		+"\tLOAD (1) -2[ST]\n"
-		+"\tPOP (2) 1\n"
-                +"\tCALLI\n";                                                    //appel à la methode	
+            +"\tLOAD (1) -1[ST]"
+            +"\tLOADL " + (MetNum+1) + "\n"                                  //deplacement de la méthode voulue
+            +"\tSUBR ISub\n"                                                 //adresse finale de la methode voulue
+            +"\tLOADI (1)\n"                                                 //chargement de l'etiquette de la methode en sommet de pile
+            +"\tLOADL 0\n"
+            +"\tLOAD (1) -2[ST]\n"
+            +"\tPOP (2) 1\n"
+            +"\tCALLI\n";                                                    //appel à la methode	
     }
 
     // RETURN String : nom de fonction,  Liste d'arg, Variable retour
@@ -124,22 +125,29 @@ nom = fname;
         // cette fonction s'appelle après le genMalloc, donc l'adresse est à -1[ST]
         StringBuffer buf = new StringBuffer();
         ArrayList<String> vtable = pointedclass.createVtable(realclass);
-        int incr=0;
-        for(String met : vtable) {
+        int i=0;
+        for(i=0;i<vtable.size();i++) {
+            String met = vtable.get(vtable.size()-(i+1));
             buf.append("\tLOADL \""+met+"\"\n");
             buf.append("\tLOAD (1) -2[ST]\n");
-            buf.append("\tLOADL "+incr+"\n");
+            buf.append("\tLOADL "+i+"\n");
             buf.append("\tSUBR IAdd\n");
             buf.append("\tSTOREI (1)\n");
-            incr++;
         }
-        return "      ; creation de Vtable\n"
-	    + buf.toString();
+        
+        // ajout du nombre de méthodes pour placer le pointeur entre la vtable et les attrs
+        buf.append("\tLOADL " + i + "\n");
+        buf.append("\tSUBR IAdd\n");
+        return "      ; creation de Vtable\n" + buf.toString();
     }
 
     public String genFree(int i) {
         return "     ; liberation des var locales\n"
             +"\tPOP(0)" + i + "\n";
+    }
+
+    public String genReadMemRAM(int taille) {
+        return "\tLOADI(" + taille + ")" + "     ; lecture a l'adresse\n";
     }
 
     public String genWriteMemRAM(int taille) {
