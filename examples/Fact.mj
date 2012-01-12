@@ -10,13 +10,10 @@ class Fact {
       return n * fact(n-1);
       }
     }
-
-
-}
-
-class Test {
+  
   void main() {
-    Fact f = new Fact();
-    int x = f.fact(6);
-  }      
+    int x = fact(6);
+  }
+
 }
+

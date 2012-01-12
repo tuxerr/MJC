@@ -31,6 +31,7 @@ inh dep : INTEGER for ARGS, ARGSX, PARFSX;
 syn name : STRING for PARF;
 inh class : CLASSE for CORPS, DEFS, DEF, MCORPS, BLOC, TYPE, PARF, PARFSX, PARFS, INSTS, INST, SIX, F, T, TX, E, ER, ERX, ES, ESX, AFFX, ARGS, ARGSX, Q;
 inh classname : STRING for CORPS, DEFS, DEF;
+syn mainclass : CLASSE for ENTITES, DEFCLASSE, DEF, DEFS, CORPS;
 
 -- les terminaux 
 space separateur is  "[\r\n\t ]+";     
@@ -91,7 +92,17 @@ global
 
 #gen {
  do
-   call machine.writeCode(PROGRAMME^source.getFileName(),machine.genDeb() + machine.genFin() + ENTITES^code);
+   if ENTITES^mainclass = nil then
+     error(B_32);
+   else
+     call machine.writeCode(PROGRAMME^source.getFileName(), 
+        machine.genMalloc(ENTITES^mainclass.getTaille()) + 
+        machine.genVTables(ENTITES^mainclass,ENTITES^mainclass) + 
+        machine.genDeb() + 
+        machine.genFin() + 
+        ENTITES^code);     
+   end
+
  end
 }
 
@@ -99,6 +110,7 @@ ENTITES -> #gen;
 #gen {
  do
    ENTITES^code := "";
+   ENTITES^mainclass := nil;
  end
 }
 
@@ -111,6 +123,15 @@ ENTITES -> #init DEFCLASSE ENTITES #gen;
 #gen {
  do
    ENTITES^code := DEFCLASSE^code + ENTITES1^code;
+   if ENTITES1^mainclass /= nil then
+     if DEFCLASSE^mainclass /= nil then
+       error(B_31);
+     else 
+       ENTITES^mainclass:=ENTITES1^mainclass;
+     end
+   else
+     ENTITES^mainclass := DEFCLASSE^mainclass;
+   end
  end
 }
 
@@ -123,6 +144,7 @@ ENTITES -> #init DEFINTERFACE ENTITES #gen;
 #gen {
  do
    ENTITES^code := DEFINTERFACE^code + ENTITES1^code;
+   ENTITES^mainclass := ENTITES1^mainclass;
  end
 }
 -------------------------------------------------------
@@ -192,6 +214,7 @@ global
   end
 
   DEFCLASSE^code := DEFCLASSE^machine.genClasse(ident^txt) + CORPS^code;
+  DEFCLASSE^mainclass := CORPS^mainclass;
  end
 }
 
@@ -274,6 +297,7 @@ CORPS -> aco #init DEFS acf #gen;
  do
    CORPS^adr := DEFS^adr;
    CORPS^code := DEFS^code;
+   CORPS^mainclass := DEFS^mainclass;
  end
 }
 
@@ -285,6 +309,7 @@ DEFS -> #gen;
  do
    DEFS^adr := DEFS^hadr;
    DEFS^code := "";
+   DEFS^mainclass := nil;
  end
 }
 
@@ -297,6 +322,15 @@ DEFS -> DEF #adr DEFS #gen;
 
 #gen {
  do
+   if DEFS1^mainclass /= nil then
+     if DEF^mainclass /= nil then
+       error(B_30);
+     else 
+       DEFS^mainclass:=DEFS1^mainclass;
+     end
+   else
+     DEFS^mainclass := DEF^mainclass;
+   end
    DEFS^adr := DEFS1^adr;
    DEFS^code := DEF^code + DEFS1^code;
  end
@@ -321,6 +355,7 @@ DEF -> TYPE ident pv  #inf;
       call DEF^tds.inserer(ident^txt, in);
       DEF^adr := DEF^hadr + TYPE^type.getTaille();
       DEF^code := DEF^machine.genDeclAtt(ident^txt, in);
+      DEF^mainclass := nil;
     end
  end
 }
@@ -358,10 +393,16 @@ DEF -> TYPE ident paro #tds PARFS parf #transret #inf MCORPS #gen;
       call DEF^tds.inserer(ident^txt, m);
       DEF^adr := DEF^hadr;
     end
+
  end
 }
 #gen {
  do
+   if ident^txt.equals("main") then
+     DEF^mainclass := DEF^class;
+   else
+     DEF^mainclass := nil;
+   end
    DEF^code := DEF^machine.genDeclMet(ident^txt,m) + MCORPS^code;
  end
 }
@@ -405,6 +446,11 @@ DEF -> void ident paro #tds PARFS parf #transret #inf MCORPS #gen;
 }
 #gen {
  do
+   if ident^txt.equals("main") then
+     DEF^mainclass := DEF^class;
+   else
+     DEF^mainclass := nil;
+   end
    DEF^code := DEF^machine.genDeclMet(ident^txt,m) + MCORPS^code + DEF^machine.genReturn("", PARFS^ltype, new DTYPE("void", 0));
  end
 }
@@ -481,6 +527,7 @@ DEF -> ident paro #tds PARFS parf #transtds BLOC #inf ;
      call DEF^tds.inserer(ident^txt,m);
      DEF^adr := DEF^hadr;
      DEF^code := DEF^machine.genDeclCons(ident^txt, m) + BLOC^code + DEF^machine.genReturn("", PARFS^ltype, new DTYPE("void", 0));
+     DEF^mainclass := nil;
    else
      error(B_26, ident^txt, DEF^class.isAClass());
    end
