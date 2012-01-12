@@ -17,11 +17,11 @@ syn code : STRING for ENTITES, DEFCLASSE, DEFINTERFACE, CORPS, MCORPS, DEFS, DEF
 inh tds : TDS for ENTITES, DEFCLASSE, DEFINTERFACE, CORPS, DEF, DEFS, MCORPS, BLOC, TYPE, PARF, PARFSX, PARFS, INSTS, INST, SIX, F, T, TX, E, ER, ERX, ES, ESX, AFFX, ARGS, ARGSX, Q;
 inh varisright : BOOLEAN for AFFX, ER, ES, T, F, ERX, ESX, TX, Q;
 inh tdsinit : TDS for Q;
+inh eiser : BOOLEAN for AFFX, ER, ES, T, F, ERX, ESX, TX, Q, E;
 inh qident : STRING for Q;
 inh qtype : DTYPE for Q;
 inh qisvar : BOOLEAN for Q;
 inh qclasse : CLASSE for Q;
-inh qpointer : VAR for Q;
 syn est_affectable : BOOLEAN for E, ER, ERX, ES, ESX, T, TX, F, Q;
 syn adr : INTEGER for CORPS, DEF, DEFS, INST, INSTS;
 inh hadr : INTEGER for DEFCLASSE, DEFINTERFACE, DEF, DEFS, INST, INSTS, BLOC, SIX;
@@ -29,7 +29,7 @@ syn ext : STRING for ETEND, SUPER;
 syn imp : STRING for IMPL, SUPER;
 inh dep : INTEGER for ARGS, ARGSX, PARFSX;
 syn name : STRING for PARF;
-inh class : CLASSE for CORPS, DEFS, DEF, MCORPS;
+inh class : CLASSE for CORPS, DEFS, DEF, MCORPS, BLOC, TYPE, PARF, PARFSX, PARFS, INSTS, INST, SIX, F, T, TX, E, ER, ERX, ES, ESX, AFFX, ARGS, ARGSX, Q;
 inh classname : STRING for CORPS, DEFS, DEF;
 
 -- les terminaux 
@@ -648,6 +648,7 @@ INST-> TYPE ident #affxtype AFFX pv #gen;
       AFFX^pointedclass := nil;
     end
     AFFX^varisright := true;
+    AFFX^eiser := true;
   end          
 }
 
@@ -673,7 +674,13 @@ INST-> TYPE ident #affxtype AFFX pv #gen;
 -------------------------------------------------------
 -- instruction expression
 -------------------------------------------------------
-INST -> E pv #gen;
+INST -> #eiser E pv #gen;
+#eiser {
+ do
+   E^eiser := false;
+ end
+}
+
 #gen {
  do
    INST^adr := INST^hadr;
@@ -696,7 +703,13 @@ INST -> BLOC #gen;
 -- conditionnelle
 -------------------------------------------------------
 -- possibilite de declarations : modifier adr, hadr
-INST -> si paro E #type parf BLOC SIX #gen;
+INST -> si paro #eiser E #type parf BLOC SIX #gen;
+#eiser {
+ do
+   E^eiser := true;
+ end
+}
+
 #type {
 do
  if ~E^type.equals(new DTYPE("booleen", 1)) then
@@ -730,7 +743,13 @@ SIX -> #gen;
 -- return
 -------------------------------------------------------
 --AFAIRE
-INST -> retour E pv #gen;
+INST -> retour #ergen E pv #gen;
+#ergen {
+ do
+   E^eiser := true;
+ end
+}
+
 #gen {
  do
    if ~E^type.equals(INST^returntype) then
@@ -747,9 +766,14 @@ INST -> retour E pv #gen;
 E -> #ertype ER #affxtype AFFX #gen;
 #ertype {
   do
+    if E^eiser then
+      ER^varisright := true;
+    else
+      ER^varisright := false;
+    end
     ER^pointedclass := nil;
-    ER^varisright := false;
     AFFX^varisright := true;
+    AFFX^eiser := false;
   end
 }
 
@@ -1204,7 +1228,13 @@ F -> null #gen;
  end
 }
 
-F -> paro E parf #gen;
+F -> paro #eiser E parf #gen;
+#eiser {
+ do
+   E^eiser := F^eiser;
+ end
+}
+
 #gen {
  do
    F^est_affectable := E^est_affectable;
@@ -1241,9 +1271,9 @@ F -> nouveau #init TYPE paro ARGS parf #gen;
           mn := c.getMethodNumber(cname, ARGS^ltype);
           F^type := TYPE^type;
           if F^pointedclass /= nil then
-            F^code := ARGS^code + F^machine.genMalloc(c.getTaille()) + F^machine.genVTables(F^pointedclass,c) + F^machine.genCall(mn, "constructeur");
+            F^code := F^machine.genMalloc(c.getTaille()) + F^machine.genVTables(F^pointedclass,c) + ARGS^code + F^machine.genGetMallocPointer(ARGS^ltype.getTaille()) + F^machine.genCall(mn, "constructeur");
           else
-            F^code := ARGS^code + F^machine.genMalloc(c.getTaille()) + F^machine.genVTables(c,c) + F^machine.genCall(mn, "constructeur");
+            F^code := F^machine.genMalloc(c.getTaille()) + F^machine.genVTables(c,c) + ARGS^code + F^machine.genGetMallocPointer(ARGS^ltype.getTaille()) + F^machine.genCall(mn, "constructeur");
           end
        else
           error(B_28,cname,ARGS^ltype);
@@ -1267,7 +1297,6 @@ F -> ident #tra Q #gen;
    Q^qtype := nil;
    Q^tdsinit := F^tds;
    Q^qclasse := new CLASSE(false, new TDS(), "");
-   Q^qpointer := F^tds.chercherGlobalementVar(ident^txt);
  end
 }
 #gen {
@@ -1407,7 +1436,6 @@ global
      t := m.getReturnType();
      Q1^qtype:=t;
      Q1^qisvar:=false;
-     Q1^qpointer := nil;
    else 
      error(B_28,Q^qident,ARGS^ltype);
    end
@@ -1416,19 +1444,29 @@ global
 #gen {
  local
    mn : INTEGER;
+   name : STRING;
  do
-   mn := Q^qclasse.getMethodNumber(Q^qident, ARGS^ltype);
-   Q^est_affectable := Q1^est_affectable;
-   Q^type := Q1^type;
-   if Q^qpointer /= nil then
-     Q^code := ARGS^code + Q^machine.genVar(Q^qpointer.getDep(),Q^qpointer.getTaille(),Q^qpointer.getReg()) + Q^machine.genCall(mn, Q^qident) + Q1^code;
+   name := Q^qclasse.getNom();
+   if name.equals("") then
+     mn := Q^class.getMethodNumber(Q^qident, ARGS^ltype);
+     Q^est_affectable := Q1^est_affectable;
+     Q^type := Q1^type;
+     Q^code := ARGS^code + Q^machine.genCurrentClassPointer() + Q^machine.genCall(mn, Q^qident) + Q1^code;
    else
-     Q^code := ARGS^code + Q^machine.genCall(mn, Q^qident) + Q1^code;
+     mn := Q^qclasse.getMethodNumber(Q^qident, ARGS^ltype);
+     Q^est_affectable := Q1^est_affectable;
+     Q^type := Q1^type;
+     Q^code := ARGS^code + Q^machine.genPopArgs(ARGS^ltype.getTaille()) + Q^machine.genCall(mn, Q^qident) + Q1^code;
    end
  end
 }
 
-ARGS -> E #ltypes ARGSX #gen;
+ARGS -> #eiser E #ltypes ARGSX #gen;
+#eiser {
+ do
+  E^eiser := true;
+ end
+}
 #ltypes {
   local
     a : ARGLIST;
@@ -1459,7 +1497,12 @@ ARGS -> #ltypes #gen;
  end
 }
 
-ARGSX -> virg E #ltypes ARGSX #gen;
+ARGSX -> virg #eiser E #ltypes ARGSX #gen;
+#eiser {
+ do
+  E^eiser := true;
+ end
+}
 #ltypes {
  do
    call ARGSX^iltype.add(E^type);

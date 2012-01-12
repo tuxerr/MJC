@@ -36,11 +36,30 @@ nom = fname;
         return "\tLOAD (1) -1[LB]\n";
     }
 
+//    ret.m;
+//    m;
+//    ret.m().p;
+
+//    ret.m();
+//    m();
+//    ret.m().p(); 
+
     //genere le code pour un attribut lol
     public String genAtt(String s, VAR i) {
         return "; appel attribut (adresse deja empilee) "+s+"\n"
             +"\tLOADL " + i.getDep() +"\n"
             +"\tSUBR IAdd\n";
+    }
+
+    public String genPopArgs(int argsize) {
+        return "; pop des arguments avant le genCall\n"
+            +"\tLOAD (1) -" + (argsize+1) + "[ST]\n"
+            +"\tPOP ("+ (argsize+1)+") 1";
+    }
+
+    public String genGetMallocPointer(int argsize) {
+        return "; get du malloc pointer au dessus des arguments avant le genCall\n"
+            +"\tLOAD (1) -" + (argsize+1) + "[ST]\n";
     }
 
     public String genVar(int dep, int taille,String reg) {
@@ -93,6 +112,7 @@ nom = fname;
     // generation Call de methode
     public  String genCall(int MetNum, String metname) {
         // actuellement en haut de la stack: l'adresse de l'instance (milieu entre vtable/attributs)
+        // genCall gère automatiquement l'appel de l'adresse du haut de la stack en tant que premier paramètre.
 	return  "   ; call de fonction " + metname + "\n"
             +"\tLOAD (1) -1[ST]"
             +"\tLOADL " + (MetNum+1) + "\n"                                  //deplacement de la méthode voulue
@@ -107,7 +127,7 @@ nom = fname;
     // RETURN String : nom de fonction,  Liste d'arg, Variable retour
     public String genReturn(String code, ARGLIST ltype, DTYPE ret) {
         return "     ; return de fonction \n"
-            + code +"\tRETURN " + "(" + ret.getTaille() + ") " + ltype.getTaille() +"\n";
+            + code +"\tRETURN " + "(" + ret.getTaille() + ") " + (ltype.getTaille()+1) +"\n";
     }
   
     //**** CLASSES *****//

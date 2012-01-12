@@ -23,6 +23,8 @@ public abstract class ABSTRACTMACHINE {
     abstract public String genCst(String v);
     abstract public String genDeclAtt(String ident, VAR iv);
     abstract public String genVarLoc(String n, VAR i, String affx);
+    abstract public String genGetMallocPointer(int argsize);
+    abstract public String genPopArgs(int argsize);
     abstract public String genAtt(String n, VAR i);
 
     //Operateurs
