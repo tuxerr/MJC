@@ -21,6 +21,7 @@ inh qident : STRING for Q;
 inh qtype : DTYPE for Q;
 inh qisvar : BOOLEAN for Q;
 inh qclasse : CLASSE for Q;
+inh qpointer : VAR for Q;
 syn est_affectable : BOOLEAN for E, ER, ERX, ES, ESX, T, TX, F, Q;
 syn adr : INTEGER for CORPS, DEF, DEFS, INST, INSTS;
 inh hadr : INTEGER for DEFCLASSE, DEFINTERFACE, DEF, DEFS, INST, INSTS, BLOC, SIX;
@@ -1266,6 +1267,7 @@ F -> ident #tra Q #gen;
    Q^qtype := nil;
    Q^tdsinit := F^tds;
    Q^qclasse := new CLASSE(false, new TDS(), "");
+   Q^qpointer := F^tds.chercherGlobalementVar(ident^txt);
  end
 }
 #gen {
@@ -1293,16 +1295,18 @@ Q -> #gen;
        if v.isAttr() then
          name := Q^qclasse.getNom();
          if name.equals("") then
+           --si l'attribut est un attribut de la classe actuelle
            if Q^varisright then
              Q^code := Q^machine.genCurrentClassPointer() + Q^machine.genAtt(Q^qident, v) + Q^machine.genReadMemRAM(v.getTaille());
            else
              Q^code := Q^machine.genCurrentClassPointer() + Q^machine.genAtt(Q^qident, v) + Q^machine.genWriteMemRAM(v.getTaille());
            end
          else
+           -- attribut d'une autre classe (p.m)
            if Q^varisright then
-             Q^code := Q^machine.genAtt(Q^qident, v);
+             Q^code := Q^machine.genAtt(Q^qident, v) + Q^machine.genReadMemRAM(v.getTaille());
            else
-             Q^code := Q^machine.genAtt(Q^qident, v);
+             Q^code := Q^machine.genAtt(Q^qident, v) + Q^machine.genWriteMemRAM(v.getTaille());
            end
          end
        else
@@ -1403,6 +1407,7 @@ global
      t := m.getReturnType();
      Q1^qtype:=t;
      Q1^qisvar:=false;
+     Q1^qpointer := nil;
    else 
      error(B_28,Q^qident,ARGS^ltype);
    end
@@ -1415,7 +1420,11 @@ global
    mn := Q^qclasse.getMethodNumber(Q^qident, ARGS^ltype);
    Q^est_affectable := Q1^est_affectable;
    Q^type := Q1^type;
-   Q^code := ARGS^code + Q^machine.genCall(mn, Q^qident) + Q1^code;
+   if Q^qpointer /= nil then
+     Q^code := ARGS^code + Q^machine.genVar(Q^qpointer.getDep(),Q^qpointer.getTaille(),Q^qpointer.getReg()) + Q^machine.genCall(mn, Q^qident) + Q1^code;
+   else
+     Q^code := ARGS^code + Q^machine.genCall(mn, Q^qident) + Q1^code;
+   end
  end
 }
 
