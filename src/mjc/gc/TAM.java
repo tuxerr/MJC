@@ -27,6 +27,10 @@ nom = fname;
         return "X" + cpt++;
     }
 
+    public String genEtiqIf() {
+        return "I" + cpt++;
+    }
+
     //**** LES VARIABLES ******//
     public String genCst(String v) {
         return "\tLOADL " + v + "\n";
@@ -63,7 +67,7 @@ nom = fname;
     }
 
     public String genVar(int dep, int taille,String reg) {
-        return "     ; empilation de pointeur\n"
+        return "; empilation de pointeur\n"
             +"\tLOAD(" + taille + ") " + dep + "[" + reg + "]\n";
     }
 
@@ -71,11 +75,11 @@ nom = fname;
     public String genVarLoc(String n, VAR i, String affx) {
         int taille = i.getType().getTaille();
         if (affx.equals("")) {
-            return "     ; decl de var loc sans init " + n + " en " + i.getDep() + "/" + i.getReg() + " taille = "
+            return "; decl de var loc sans init " + n + " en " + i.getDep() + "/" + i.getReg() + " taille = "
                 + taille + "\n"
                 + "\tPUSH " + taille + "\n";
         } else {
-            return "     ;   decl de var loc avec init " + n + " en " + i.getDep() + "/" + i.getReg() + " taille = "
+            return ";   decl de var loc avec init " + n + " en " + i.getDep() + "/" + i.getReg() + " taille = "
                 + taille + "\n"
                 + affx;
         }
@@ -84,7 +88,7 @@ nom = fname;
     // genere le code pour une declaration d'attributs OK
     public String genDeclAtt(String n, VAR i) {
         int taille = i.getType().getTaille();
-        return "   ; decl d'att " + n + " en " + i.getDep() + "/" + i.getReg() + " taille = "
+        return "; decl d'att " + n + " en " + i.getDep() + "/" + i.getReg() + " taille = "
             + taille + "\n";
     }
 
@@ -94,27 +98,28 @@ nom = fname;
     public String genDeclCons(String n, METHODE i) {
         int taille = i.getReturnType().getTaille();
         i.setLabel("X" + cpt);
-        return genEtiq() + " ; decl de cons " + n +" taille " + taille + "\n"; 
+        return genEtiq() + "; decl de cons " + n +" taille " + taille + "\n"; 
     }
 
 
     // genere le code pour une declaration de methode
     public String genDeclMet(String n, METHODE i) {
         int taille = i.getReturnType().getTaille();
-        i.setLabel("X" + cpt);
         if (n.equals("main")) {
-            return "main ; decl de met main taille " + taille + "\n";
+            i.setLabel("0");
+            return "main ; decl de met " + n +" taille " + taille + "\n";
         } else {
+            i.setLabel("X" + cpt);
             return genEtiq() + " ; decl de met " + n +" taille " + taille + "\n";
-        }
+        }       
     }
 
     // generation Call de methode
     public  String genCall(int MetNum, String metname) {
         // actuellement en haut de la stack: l'adresse de l'instance (milieu entre vtable/attributs)
         // genCall gère automatiquement l'appel de l'adresse du haut de la stack en tant que premier paramètre.
-	return  "   ; call de fonction " + metname + "\n"
-            +"\tLOAD (1) -1[ST]"
+	return  "; call de fonction " + metname + "\n"
+            +"\tLOAD (1) -1[ST]\n"
             +"\tLOADL " + (MetNum+1) + "\n"                                  //deplacement de la méthode voulue
             +"\tSUBR ISub\n"                                                 //adresse finale de la methode voulue
             +"\tLOADI (1)\n"                                                 //chargement de l'etiquette de la methode en sommet de pile
@@ -126,7 +131,7 @@ nom = fname;
 
     // RETURN String : nom de fonction,  Liste d'arg, Variable retour
     public String genReturn(String code, ARGLIST ltype, DTYPE ret) {
-        return "     ; return de fonction \n"
+        return "; return de fonction \n"
             + code +"\tRETURN " + "(" + ret.getTaille() + ") " + (ltype.getTaille()+1) +"\n";
     }
   
@@ -134,7 +139,7 @@ nom = fname;
 
     // genere le code pour une declaration de classe OK
     public String genClasse(String nom) {
-        return " ; decl de classe " + nom +"\n";
+        return "; decl de classe " + nom +"\n";
     }
 
     public String genMalloc(int taille) {
@@ -158,11 +163,11 @@ nom = fname;
         // ajout du nombre de méthodes pour placer le pointeur entre la vtable et les attrs
         buf.append("\tLOADL " + i + "\n");
         buf.append("\tSUBR IAdd\n");
-        return "      ; creation de Vtable\n" + buf.toString();
+        return "; creation de Vtable\n" + buf.toString();
     }
 
     public String genFree(int i) {
-        return "     ; liberation des var locales\n"
+        return "; liberation des var locales\n"
             +"\tPOP(0)" + i + "\n";
     }
 
@@ -183,6 +188,7 @@ nom = fname;
         return "\tHALT\n";
     }
   
+    //geter l'etiquette de main
     public String genDeb() {
         return "\tCALL (LB) main\n";
     }
@@ -194,11 +200,11 @@ nom = fname;
 
     // OPERATEURS OK
     public String genIf(String code, String code2, String code3) {
-        String sinon = genEtiq();
-        String fin = genEtiq();
-        return "\t; if\n" + code + "\n" + "\tJUMPIF(0) " + sinon + "\n" + code2
+        String sinon = genEtiqIf();
+        String fin = genEtiqIf();
+        return "; if\n" + code + "\n" + "\tJUMPIF(0) " + sinon + "\n" + code2
             + "\n" + "\tJUMP " + fin + "\n" + sinon + "\n" + code3 + "\n"
-            + fin + "\n" + "\t; fin if\n";
+            + fin + "\n" + "; fin if\n";
     }
 
 
