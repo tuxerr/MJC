@@ -1,4 +1,5 @@
 class Fact {
+  int y;
   Fact() {
   }
 
@@ -13,6 +14,7 @@ class Fact {
   
   void main() {
     int x = fact(6);
+    y=x;
   }
 
 }

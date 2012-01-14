@@ -40,14 +40,6 @@ nom = fname;
         return "\tLOAD (1) -1[LB]\n";
     }
 
-//    ret.m;
-//    m;
-//    ret.m().p;
-
-//    ret.m();
-//    m();
-//    ret.m().p(); 
-
     //genere le code pour un attribut lol
     public String genAtt(String s, VAR i) {
         return "; appel attribut (adresse deja empilee) "+s+"\n"
@@ -106,7 +98,7 @@ nom = fname;
     public String genDeclMet(String n, METHODE i) {
         int taille = i.getReturnType().getTaille();
         if (n.equals("main")) {
-            i.setLabel("0");
+            i.setLabel("main");
             return "main ; decl de met " + n +" taille " + taille + "\n";
         } else {
             i.setLabel("X" + cpt);
@@ -153,7 +145,7 @@ nom = fname;
         int i=0;
         for(i=0;i<vtable.size();i++) {
             String met = vtable.get(vtable.size()-(i+1));
-            buf.append("\tLOADL \""+met+"\"\n");
+            buf.append("\tLOADA "+met+"\n");
             buf.append("\tLOAD (1) -2[ST]\n");
             buf.append("\tLOADL "+i+"\n");
             buf.append("\tSUBR IAdd\n");
