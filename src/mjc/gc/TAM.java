@@ -89,21 +89,14 @@ nom = fname;
     // genere le code pour une declaration de constructeur
     public String genDeclCons(String n, METHODE i) {
         int taille = i.getReturnType().getTaille();
-        i.setLabel("X" + cpt);
-        return genEtiq() + "; decl de cons " + n +" taille " + taille + "\n"; 
+        return i.getLabel() + "; decl de cons " + n +" taille " + taille + "\n"; 
     }
 
 
     // genere le code pour une declaration de methode
     public String genDeclMet(String n, METHODE i) {
         int taille = i.getReturnType().getTaille();
-        if (n.equals("main")) {
-            i.setLabel("main");
-            return "main ; decl de met " + n +" taille " + taille + "\n";
-        } else {
-            i.setLabel("X" + cpt);
-            return genEtiq() + " ; decl de met " + n +" taille " + taille + "\n";
-        }       
+        return i.getLabel() + "; decl de met " + n +" taille " + taille + "\n";
     }
 
     // generation Call de methode

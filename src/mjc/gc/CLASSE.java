@@ -29,6 +29,12 @@ public class CLASSE extends DTYPE {
 	acceptedSuperClasses=new ArrayList<CLASSE>();
     }
 
+    public void inherits(CLASSE cl) {
+        classeMere=cl;
+        isclass=true;
+        tds.setParente(cl.getTDS());
+    }
+
     public boolean equals(DTYPE t) {
         return (t==this);
     }
@@ -120,11 +126,10 @@ public class CLASSE extends DTYPE {
 
     public ArrayList<String> createVtable(CLASSE realclass) {
         ArrayList<String> retList = new ArrayList<String>();
-        HashMap<String,METHODE> hmMet = tds.getAllAccessibleMethods();
+        ArrayList<VTABLEENTRY> metList = tds.getAllAccessibleMethods();
 
-        Set<Map.Entry<String,METHODE>> esi = hmMet.entrySet();
-        for(Map.Entry<String,METHODE> e : esi) {
-            METHODE realMet = realclass.getTDS().chercherGlobalementMethod(e.getKey(),e.getValue().getArgs());
+        for(VTABLEENTRY entry : metList) {
+            METHODE realMet = realclass.getTDS().chercherGlobalementMethod(entry.getName(),entry.getMethod().getArgs());
             retList.add(realMet.getLabel());
         }
 
@@ -133,11 +138,10 @@ public class CLASSE extends DTYPE {
 
     public int getMethodNumber(String name, ARGLIST args) {
         int number=0;
-        HashMap<String,METHODE> hmMet = tds.getAllAccessibleMethods();
+        ArrayList<VTABLEENTRY> metList = tds.getAllAccessibleMethods();
 
-        Set<Map.Entry<String,METHODE>> esi = hmMet.entrySet();
-        for(Map.Entry<String,METHODE> e : esi) {
-            if(name.equals(e.getKey()) && args.equals(e.getValue().getArgs())) {
+        for(VTABLEENTRY e : metList) {
+            if(name.equals(e.getName()) && args.equals(e.getMethod().getArgs())) {
                 return number;
             } else {
                 number++;
@@ -153,6 +157,10 @@ public class CLASSE extends DTYPE {
 
     public TDS getTDS() {
         return tds;
+    }
+
+    public void setTDS(TDS tds) {
+        this.tds = tds;
     }
 
 }

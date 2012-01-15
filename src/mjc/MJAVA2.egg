@@ -1,0 +1,559 @@
+-- PROJET3 STL 11-12 - micro java : grammaire 
+option auto= true;
+option version = 0.0.0 ;
+option k=3;
+
+-- les attributs semantiques
+inh machine : ABSTRACTMACHINE for ENTITES, DEFCLASSE, DEFINTERFACE, CORPS, DEFS, DEF;
+inh source : MJAVASourceFile for PROGRAMME;
+syn type : DTYPE for TYPE, PARF;
+syn ltype : ARGLIST for PARFS;
+inh iltype : ARGLIST for PARF, PARFSX;
+inh tds : TDS for ENTITES, DEFCLASSE, DEFINTERFACE, CORPS, DEF, DEFS, MCORPS, BLOC, TYPE, PARF, PARFSX, PARFS, INSTS, INST, SIX, F, T, TX, E, ER, ERX, ES, ESX, AFFX, ARGS, ARGSX, Q;
+syn adr : INTEGER for CORPS, DEF, DEFS;
+inh dep : INTEGER for PARFSX;
+syn name : STRING for PARF;
+inh hadr : INTEGER for DEFCLASSE, DEFINTERFACE, DEF, DEFS, BLOC;
+syn ext : STRING for ETEND, SUPER;
+syn imp : STRING for IMPL, SUPER;
+inh classname : STRING for CORPS, DEFS, DEF;
+inh class : CLASSE for CORPS, DEFS, DEF;
+
+-- les terminaux 
+space separateur is  "[\r\n\t ]+";     
+space comm is  "\/\/[^\n]*\n";
+sugar paro is  "\(";
+sugar parf is  "\)";
+sugar aco is  "\{";     
+sugar acf is  "\}"; 
+sugar cro is  "\["; 
+sugar crf is  "\]";
+sugar virg is  ",";
+sugar pv is  "\;";
+sugar pt is  "\.";
+sugar affect is  "=";
+sugar si is  "if";
+sugar sinon is  "else";
+sugar void is  "void";
+sugar int is  "int";
+sugar bool is  "boolean";
+sugar classe is  "class";
+sugar interface is  "interface";
+sugar etend is  "extends";
+sugar implemente is  "implements";
+sugar retour is  "return";
+sugar nouveau is  "new";
+sugar null is  "null";
+sugar inf is  "\<";
+sugar infeg is  "\<=";
+sugar sup is  "\>";
+sugar supeg is  "\>=";
+sugar eg is  "==";
+sugar neg is  "\!=";
+sugar plus is  "\+";
+sugar moins is  "\-";
+sugar ou is  "\|\|";
+sugar mult is  "\*";
+sugar div is  "\/";
+sugar mod is  "\%" ; 
+sugar et is  "\&\&";
+sugar non is  "\!";
+sugar vrai is  "true";
+sugar faux is  "false";
+term entier is  "[0-9]+";
+term ident is  "[_A-Za-z][_0-9A-Za-z]*";
+
+---------- REGLES DE PRODUCTION ----------------------------------------
+PROGRAMME -> #init ENTITES;
+#init {
+ do
+   ENTITES^tds := PROGRAMME^source.getTDS();
+   ENTITES^machine := PROGRAMME^source.getMachine();
+ end
+}
+
+ENTITES -> ;
+
+ENTITES -> #init DEFCLASSE ENTITES;
+#init {
+ do
+   DEFCLASSE^hadr := 0;
+ end
+}
+
+ENTITES -> #init DEFINTERFACE ENTITES;
+#init {
+ do
+   DEFINTERFACE^hadr := 0;
+ end
+}
+
+-------------------------------------------------------
+-- definition d'une classe
+-------------------------------------------------------
+DEFCLASSE -> classe ident SUPER #gen CORPS;
+global
+  c : CLASSE;
+
+#gen {
+ local
+   r : CLASSE;
+ do
+   c := DEFCLASSE^tds.chercherLocalementClasse(ident^txt);
+   -- c existe forcément, il a été créé dans la passe 1.
+   --le check de doublons de classes a déjà été fait dans la première passe
+   if(SUPER^ext.equals("")) then
+     --pas d'héritage
+   else
+     -- héritage
+     r := DEFCLASSE^tds.chercherLocalementClasse(SUPER^ext);
+     if r /= nil then
+         --l'identifiant est trouvé dans la TDS
+         if r.isAClass() then
+           --si l'identifiant représente bien une classe
+           call c.inherits(r);
+         else
+           error(B_13,SUPER^ext); 
+         end
+     else
+       error(B_13,SUPER^ext); 
+     end
+   end
+   CORPS^tds := c.getTDS();
+   CORPS^class := c;
+   CORPS^classname := ident^txt;
+ end
+}
+
+DEFINTERFACE -> interface ident SUPER #gen CORPS;
+global
+  c : CLASSE;
+
+#gen {
+ local
+   i : CLASSE;
+
+ do
+   c := DEFINTERFACE^tds.chercherLocalementClasse(ident^txt);
+   CORPS^tds := c.getTDS();
+   CORPS^class := c;
+   CORPS^classname := ident^txt;
+ end
+}
+
+-------------------------------------------------------
+-- 1 extends maximum suivi d'un implements maximum
+-------------------------------------------------------
+SUPER -> ETEND IMPL #gen;
+#gen {
+ do
+   SUPER^ext := ETEND^ext;
+   SUPER^imp := IMPL^imp;
+ end
+}
+
+ETEND -> #gen;
+#gen {
+ do
+   ETEND^ext := "";
+ end
+}
+
+ETEND -> etend ident #gen;
+#gen {
+ do
+   ETEND^ext := ident^txt;
+ end
+}
+
+IMPL -> #gen;
+#gen {
+ do
+   IMPL^imp := "";
+ end
+}
+
+IMPL -> implemente ident #gen;
+#gen {
+ do
+   IMPL^imp := ident^txt;
+ end
+}
+
+CORPS -> aco #init DEFS acf #gen;
+#init {
+ do
+   DEFS^hadr := 0;
+ end
+}
+#gen {
+ do
+   CORPS^adr := DEFS^adr;
+ end
+}
+
+-------------------------------------------------------
+-- les attributs
+-------------------------------------------------------
+DEFS -> #gen;
+#gen {
+ do
+   DEFS^adr := DEFS^hadr;
+ end
+}
+
+DEFS -> DEF #adr DEFS #gen;
+#adr {
+ do
+   DEFS1^hadr := DEF^adr;
+ end
+}
+
+#gen {
+ do
+   DEFS^adr := DEFS1^adr;
+ end
+}
+
+-------------------------------------------------------
+-- attribut
+-------------------------------------------------------
+DEF -> TYPE ident pv  #inf;
+#inf {
+ local
+   i : VAR;
+   t : POINTEUR;
+   in : VAR;
+ do
+    i := DEF^tds.chercherGlobalementVar(ident^txt);
+    if i /= nil then
+       error(B_02, ident^txt);
+    else
+      -- ajouter l'ident dans la TDS;
+      in := new VAR(TYPE^type, DEF^hadr, "LB", true);
+      call DEF^tds.inserer(ident^txt, in);
+      DEF^adr := DEF^hadr + TYPE^type.getTaille();
+    end
+ end
+}
+
+-------------------------------------------------------
+-- methode (fonction) 
+-------------------------------------------------------
+DEF -> TYPE ident paro #tds PARFS parf #inf MCORPS;
+ global
+   m : METHODE;
+#tds {
+ local
+  t : TDS;
+ do
+   t := new TDS(DEF^tds);
+   PARFS^tds := t;
+ end
+}
+#inf {
+ local
+   il : METHODE;
+ do
+    il := DEF^tds.chercherLocalementMethod(ident^txt,PARFS^ltype);
+    if il /= nil then
+      error(B_27, ident^txt);
+    else
+      m := new METHODE(TYPE^type, PARFS^ltype);
+      call DEF^tds.inserer(ident^txt, m);      
+      if ident^txt.equals("main") then
+        call m.setLabel("main");
+      else 
+        call m.setLabel(DEF^machine.genEtiq());
+      end
+      DEF^adr := DEF^hadr;
+    end
+
+ end
+}
+
+-------------------------------------------------------
+-- methode (procedure)
+-------------------------------------------------------
+DEF -> void ident paro #tds PARFS parf #inf MCORPS;
+ global
+   m : METHODE;
+
+#tds {
+ local
+   t : TDS;
+ do
+   t := new TDS(DEF^tds);
+   PARFS^tds := t;
+ end
+}
+#inf {
+ local
+   i : METHODE;
+   t : DTYPE;
+ do
+    i := DEF^tds.chercherLocalementMethod(ident^txt,PARFS^ltype);
+    if i /= nil then
+       error(B_27, ident^txt);
+    else
+      -- ajouter l'ident dans la TDS;
+      t := new DTYPE("void",0);
+      m := new METHODE(t, PARFS^ltype);
+      if ident^txt.equals("main") then
+        call m.setLabel("main");
+      else 
+        call m.setLabel(DEF^machine.genEtiq());
+      end
+      call DEF^tds.inserer(ident^txt, m);
+      DEF^adr := DEF^hadr;
+    end
+ end
+}
+
+-------------------------------------------------------
+-- dans classe ou dans interface
+-------------------------------------------------------
+MCORPS -> pv;
+
+MCORPS -> #init BLOC;
+#init {
+  local
+  do
+     BLOC^hadr := 3;
+  end
+}
+
+-------------------------------------------------------
+-- constructeur
+-------------------------------------------------------
+DEF -> ident paro #tds PARFS parf BLOC #inf ; 
+#tds {
+ local
+   t : TDS;
+ do
+   t := new TDS(DEF^tds);
+   PARFS^tds := t;
+ end
+}
+
+#inf {
+ local
+   m : METHODE;
+   t : DTYPE;
+ do
+   if ident^txt.equals(DEF^classname) & DEF^class.isAClass()  then
+     -- ajouter l'ident dans la TDS;
+     t := new DTYPE("constructeur",0);
+     m := new METHODE(t, PARFS^ltype);
+     if ident^txt.equals("main") then
+        call m.setLabel("main");
+     else 
+        call m.setLabel(DEF^machine.genEtiq());
+     end
+     call DEF^tds.inserer(ident^txt,m);
+     DEF^adr := DEF^hadr;
+   else
+     error(B_26, ident^txt, DEF^class);
+   end
+ end
+}
+
+-------------------------------------------------------
+-- les types
+-------------------------------------------------------
+TYPE -> int #type;
+#type {
+ do
+   TYPE^type := new DTYPE("entier", 1);
+ end
+}
+
+TYPE -> bool #type;
+#type {
+ do
+   TYPE^type := new DTYPE("booleen", 1);
+ end
+}
+
+TYPE -> ident #type;
+#type {
+ local
+   i : CLASSE ;
+   p : POINTEUR;
+ do
+   -- rechercher l'ident   
+   i := TYPE^tds.chercherGlobalementClasse(ident^txt);
+   if i = nil then
+     error(B_03, ident^txt);
+   else
+     p := new POINTEUR(i);
+     TYPE^type := p;
+   end
+ end
+}
+
+-------------------------------------------------------
+-- parametres de methodes
+-------------------------------------------------------
+-- ne rien faire !
+PARFS -> #ltypes;
+#ltypes {
+  do
+    PARFS^ltype := new ARGLIST();
+  end
+}
+
+PARFS -> #ltypes PARF #tds PARFSX ;
+#ltypes {
+  local
+    a : ARGLIST;
+  do
+    a := new ARGLIST();
+    PARFS^ltype := a;
+    PARF^iltype := a;
+    PARFSX^iltype := a;
+  end
+}
+
+#tds {
+ local
+   i : VAR;
+   d : INTEGER;
+   dm : INTEGER;
+ do
+   d := PARF^type.getTaille();
+   dm := 0-d-1;
+   i := new VAR(PARF^type, dm, "LB", false);
+   call PARFS^tds.inserer(PARF^name, i);
+   PARFSX^dep := d;
+ end
+}
+
+--ne rien faire !
+PARFSX -> ;
+
+
+PARFSX -> virg  PARF #tds PARFSX ;
+#tds {
+ local
+   i : VAR;
+   d : INTEGER;
+   dm : INTEGER;
+ do
+   d := PARF^type.getTaille() + PARFSX^dep;
+   dm := 0-d;
+   i := new VAR(PARF^type, dm, "LB", false);
+   call PARFSX^tds.inserer(PARF^name, i);
+   PARFSX1^dep := PARFSX^dep + d;
+ end
+}
+
+
+PARF -> TYPE ident #tds #ltypes;
+#tds {
+ do
+   PARF^type := TYPE^type;
+   PARF^name := ident^txt;
+ end
+}
+
+#ltypes {
+do
+   call PARF^iltype.add(TYPE^type);
+end
+}
+
+-------------------------------------------------------
+-- corps de methode et bloc d'instructions
+-------------------------------------------------------
+BLOC ->  aco INSTS acf  ;
+-- instructions
+INSTS ->   ;
+INSTS ->  INST INSTS  ;
+-- declaration de variable locale avec ou sans init
+INST->  TYPE ident AFFX pv ;
+-- instruction expression
+INST ->  E pv ;
+-- bloc d'instructions
+INST ->  #init BLOC  ;
+#init {
+  do 
+    BLOC^hadr := 0;
+  end
+}
+
+-- conditionnelle
+INST ->  #init si paro E parf BLOC SIX ;
+#init {
+  do 
+    BLOC^hadr := 0;
+  end
+}
+
+SIX ->  #init sinon BLOC ;
+#init {
+  do 
+    BLOC^hadr := 0;
+  end
+}
+SIX ->;
+-- return
+INST ->  retour E pv ;
+-- les expressions
+E ->  ER AFFX ;
+-- affectation
+AFFX ->  affect ER  ;
+AFFX -> ;
+-- relation
+ER ->   ES ERX ;
+ES ->  T ESX ;
+ERX ->  OPREL ES ;
+ERX -> ;
+OPREL -> inf ;
+OPREL -> infeg ;
+OPREL -> sup ;
+OPREL -> supeg ;
+OPREL -> eg ;
+OPREL -> neg ;
+-- addition, ...
+ESX ->   OPADD T ESX ;
+ESX ->;
+OPADD -> plus ;
+OPADD -> moins ;
+OPADD -> ou ;
+T ->  F TX ;
+-- multiplication, ...
+TX ->   OPMUL F TX ;
+TX -> ;
+OPMUL -> mult ;
+OPMUL -> div ;
+OPMUL -> mod ;
+OPMUL -> et ;
+-- expressions de base
+F -> entier  ;
+F -> vrai  ;
+F -> faux  ;
+-- unaire
+F ->  OPUN F ;
+OPUN -> plus;
+OPUN -> moins;
+OPUN -> non;
+-- null
+F -> null  ;
+F ->  paro E parf ;
+-- new
+F -> nouveau  TYPE paro ARGS parf  ;
+F ->  ident Q ;
+-- Q = qualificateur de variable
+Q ->  ;
+-- acces attribut
+Q ->  pt ident  Q ;
+-- arguments d'appel de methode
+Q ->  paro ARGS parf Q ;
+ARGS ->  E ARGSX  ;
+ARGS -> ;
+ARGSX ->   virg E ARGSX  ;
+ARGSX -> ;
+
+end
+

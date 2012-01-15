@@ -3,6 +3,7 @@ package mjc.gc;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.ArrayList;
 
 public class TDS {
     public HashMap<String, LMETHODE> hmMethode;
@@ -23,6 +24,10 @@ public class TDS {
         this.hmVar=new HashMap<String,VAR>();
         this.hmClasse=new HashMap<String,CLASSE>();
         this.parente = p;
+    }
+
+    public void setParente(TDS p) {
+        parente=p;
     }
 
     public HashMap<String,LMETHODE> getMethodHM() {
@@ -49,22 +54,22 @@ public class TDS {
         this.hmVar.put(n, i);
     }
 
-    public HashMap<String,METHODE> getAllAccessibleMethods() {
+    public ArrayList<VTABLEENTRY> getAllAccessibleMethods() {
         // utilisé pour la génération des vtables
-        HashMap<String,METHODE> retHM;
+        ArrayList<VTABLEENTRY> retList;
         if(parente==null) {
-            retHM = new HashMap<String,METHODE>();
+            retList = new ArrayList<VTABLEENTRY>();
         } else {
-            retHM = parente.getAllAccessibleMethods();
+            retList = parente.getAllAccessibleMethods();
         }
 
         Set<Map.Entry<String,LMETHODE>> esi = hmMethode.entrySet();
         for (Map.Entry<String,LMETHODE> e : esi) {
             for(METHODE met : e.getValue()) {
-                retHM.put(e.getKey(),met);
+                retList.add(new VTABLEENTRY(e.getKey(),met));
             }
         }
-        return retHM;
+        return retList;
     }
 
     public int getTailleAccMeth() {

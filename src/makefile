@@ -1,6 +1,8 @@
 #--------------------------------------------------------
 # la grammaire (voir src)
 XLANG=MJAVA
+XLANG2=MJAVA2
+XLANG3=MJAVA3
 #--------------------------------------------------------
 # repertoires contenant egg
 EDIR= .
@@ -14,6 +16,8 @@ all : src att class
 
 src :
 	(cd mjc ; $(JDIR)java -cp ../$(GJAR) mg.egg.eggc.internal.compiler.builder.EGGC $(XLANG).egg)
+	(cd mjc ; $(JDIR)java -cp ../$(GJAR) mg.egg.eggc.internal.compiler.builder.EGGC $(XLANG2).egg)
+	(cd mjc ; $(JDIR)java -cp ../$(GJAR) mg.egg.eggc.internal.compiler.builder.EGGC $(XLANG3).egg)
 
 att :
 	$(JDIR)javac -classpath $(GJAR) mjc/gc/*.java

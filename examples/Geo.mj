@@ -13,43 +13,47 @@ class Point {
     x = a;
     y = b;
     origine = null;
-    }
+  }
 
   int getx() {
     return x;
-    }
+  }
     
   int gety() {
     return y;
-    }
+  }
     
   void setx(int l) {
     x = l;
-    }
+  }
     
   void sety(int l) {
     y = l;
-    }
+  }
   
   void init (int xi,int yi) {
     x = xi;
     y = yi;
-    }
+  }
  
   void xtrans(int d){
     x = x + d;
-    }
+  }
 
   void ytrans(int d){
     y = y + d;
-    }
+  }
     
   Point milieu (Point p) {
     Point m = new Point();
     m.init((x + p.x)/2, (y + p.y)/2);
     return m;
-    }
   }
+
+  int type() {
+    return 1;
+  }
+}
 
 
 class PointCol extends Point {

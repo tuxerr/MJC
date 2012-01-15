@@ -3,14 +3,17 @@ package mjc.compiler;
 import mg.egg.eggc.compiler.libjava.SourceUnit;
 import mjc.gc.ABSTRACTMACHINE;
 import mjc.gc.TAM;
+import mjc.gc.TDS;
 
 public class MJAVASourceFile extends SourceUnit {
 	private ABSTRACTMACHINE machine;
 	private boolean verbose;
 	private String fileName;
+        private TDS globalTDS;
 
 	public MJAVASourceFile(String arg0) {
 		super(arg0);
+                globalTDS=new TDS();
 	}
 
 	private void usage(String a) throws MJCException {
@@ -36,7 +39,7 @@ public class MJAVASourceFile extends SourceUnit {
 			usage("");
 		setFile(args[0]);
 		setMachine("tam");
-		for (int i = 1; i < argc; i++) {
+                for (int i = 1; i < argc; i++) {
 			String a = args[i];
 			// System.err.println("Args[" + i + "] = " + a);
 			if ("-m".equals(a)) { //$NON-NLS-1$
@@ -79,6 +82,14 @@ public class MJAVASourceFile extends SourceUnit {
 
 	public ABSTRACTMACHINE getMachine() {
 		return machine;
+	}
+
+	public TDS getTDS() {
+                return globalTDS;
+	}
+
+	public void setTDS(TDS tds) {
+                globalTDS=tds;
 	}
 
 	public boolean isVerbose() {
