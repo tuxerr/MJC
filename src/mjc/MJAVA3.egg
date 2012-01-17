@@ -23,8 +23,8 @@ inh qtype : DTYPE for Q;
 inh qisvar : BOOLEAN for Q;
 inh qclasse : CLASSE for Q;
 syn est_affectable : BOOLEAN for E, ER, ERX, ES, ESX, T, TX, F, Q;
-syn adr : INTEGER for CORPS, DEF, DEFS, INST, INSTS;
-inh hadr : INTEGER for DEFCLASSE, DEFINTERFACE, DEF, DEFS, INST, INSTS, BLOC, SIX;
+syn adr : INTEGER for INST, INSTS;
+inh hadr : INTEGER for INST, INSTS, BLOC, SIX;
 syn ext : STRING for ETEND, SUPER;
 syn imp : STRING for IMPL, SUPER;
 inh dep : INTEGER for ARGS, ARGSX, PARFSX;
@@ -114,12 +114,7 @@ ENTITES -> #gen;
  end
 }
 
-ENTITES -> #init DEFCLASSE ENTITES #gen;
-#init {
- do
-   DEFCLASSE^hadr := 0;
- end
-}
+ENTITES -> DEFCLASSE ENTITES #gen;
 #gen {
  do
    ENTITES^code := DEFCLASSE^code + ENTITES1^code;
@@ -135,12 +130,7 @@ ENTITES -> #init DEFCLASSE ENTITES #gen;
  end
 }
 
-ENTITES -> #init DEFINTERFACE ENTITES #gen;
-#init {
- do
-   DEFINTERFACE^hadr := 0;
- end
-}
+ENTITES -> DEFINTERFACE ENTITES #gen;
 #gen {
  do
    ENTITES^code := DEFINTERFACE^code + ENTITES1^code;
@@ -255,15 +245,9 @@ IMPL -> implemente ident #gen;
  end
 }
 
-CORPS -> aco #init DEFS acf #gen;
-#init {
- do
-   DEFS^hadr := 0;
- end
-}
+CORPS -> aco DEFS acf #gen;
 #gen {
  do
-   CORPS^adr := DEFS^adr;
    CORPS^code := DEFS^code;
    CORPS^mainclass := DEFS^mainclass;
  end
@@ -275,19 +259,12 @@ CORPS -> aco #init DEFS acf #gen;
 DEFS -> #gen;
 #gen {
  do
-   DEFS^adr := DEFS^hadr;
    DEFS^code := "";
    DEFS^mainclass := nil;
  end
 }
 
-DEFS -> DEF #adr DEFS #gen;
-#adr {
- do
-   DEFS1^hadr := DEF^adr;
- end
-}
-
+DEFS -> DEF DEFS #gen;
 #gen {
  do
    if DEFS1^mainclass /= nil then
@@ -299,7 +276,6 @@ DEFS -> DEF #adr DEFS #gen;
    else
      DEFS^mainclass := DEF^mainclass;
    end
-   DEFS^adr := DEFS1^adr;
    DEFS^code := DEF^code + DEFS1^code;
  end
 }
@@ -313,7 +289,6 @@ DEF -> TYPE ident pv  #inf;
    i : VAR;
  do
     i := DEF^tds.chercherLocalementVar(ident^txt);
-    DEF^adr := DEF^hadr + TYPE^type.getTaille();
     DEF^code := DEF^machine.genDeclAtt(ident^txt, i);
     DEF^mainclass := nil;
  end
@@ -345,7 +320,6 @@ DEF -> TYPE ident paro #tds PARFS parf #transret #inf MCORPS #gen;
 #inf {
  do
     m := DEF^tds.chercherLocalementMethod(ident^txt,PARFS^ltype);
-    DEF^adr := DEF^hadr;
  end
 }
 #gen {
@@ -383,7 +357,6 @@ DEF -> void ident paro #tds PARFS parf #transret #inf MCORPS #gen;
  local
  do
    m := DEF^tds.chercherLocalementMethod(ident^txt,PARFS^ltype);
-   DEF^adr := DEF^hadr;
  end
 }
 #gen {
@@ -463,7 +436,6 @@ DEF -> ident paro #tds PARFS parf #transtds BLOC #inf ;
    t : DTYPE;
  do
    m := DEF^tds.chercherLocalementMethod(ident^txt,PARFS^ltype);
-   DEF^adr := DEF^hadr;
    DEF^code := DEF^machine.genDeclCons(ident^txt, m) + BLOC^code + DEF^machine.genReturn("", PARFS^ltype, new DTYPE("void", 0));
    DEF^mainclass := nil;
  end

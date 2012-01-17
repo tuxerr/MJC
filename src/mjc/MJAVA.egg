@@ -108,6 +108,10 @@ global
  end
 }
 
+-------------------------------------------------------
+-- Non traitées dans la première passe
+-------------------------------------------------------
+
 SUPER -> ETEND IMPL ;
 ETEND -> ;
 ETEND -> etend ident ;

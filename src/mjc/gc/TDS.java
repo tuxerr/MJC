@@ -66,7 +66,17 @@ public class TDS {
         Set<Map.Entry<String,LMETHODE>> esi = hmMethode.entrySet();
         for (Map.Entry<String,LMETHODE> e : esi) {
             for(METHODE met : e.getValue()) {
-                retList.add(new VTABLEENTRY(e.getKey(),met));
+		// couple e.getKey(), met
+		boolean toadd=true;
+		for(VTABLEENTRY ventry : retList) {
+		    if(ventry.getName().equals(e.getKey()) && ventry.getMethod().getArgs().equals(met.getArgs())) {
+			toadd=false;
+			break;
+		    }
+		}
+		if(toadd) {
+		    retList.add(new VTABLEENTRY(e.getKey(),met));
+		}
             }
         }
         return retList;
