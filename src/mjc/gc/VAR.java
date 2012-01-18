@@ -10,10 +10,15 @@ public class VAR {
     private DTYPE type;
 
     private boolean attr;
-    
+
+    private CLASSE varclass;
 
     public int getDep() {
-        return dep;
+        if(varclass==null) {
+            return dep;
+        } else {
+            return dep+varclass.getParentVarTaille();
+        }
     }
 
     public String getReg() {
@@ -28,11 +33,16 @@ public class VAR {
         return type.getTaille();
     }
 
+    public void setClass(CLASSE c) {
+        varclass=c;
+    }
+
     public VAR(DTYPE t, int d, String r,boolean isAttr) {
         type = t;
         dep = d;
         reg = r;
         attr = isAttr;
+        varclass = null;
     }
 
     public boolean isAttr() {

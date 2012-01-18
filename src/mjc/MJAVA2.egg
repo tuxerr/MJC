@@ -216,6 +216,7 @@ DEF -> TYPE ident pv  #inf;
     else
       -- ajouter l'ident dans la TDS;
       in := new VAR(TYPE^type, DEF^hadr, "", true);
+      call in.setClass(DEF^class);
       call DEF^tds.inserer(ident^txt, in);
       DEF^adr := DEF^hadr + TYPE^type.getTaille();
     end

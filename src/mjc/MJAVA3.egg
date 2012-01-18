@@ -504,8 +504,8 @@ PARFS -> #ltypes PARF #tds PARFSX ;
    d : INTEGER;
    dm : INTEGER;
  do
-   d := PARF^type.getTaille();
-   dm := 0-d-1;
+   d := PARF^type.getTaille() + 1;
+   dm := 0-d;
    i := new VAR(PARF^type, dm, "LB", false);
    call PARFS^tds.inserer(PARF^name, i);
    PARFSX^dep := d;
@@ -527,7 +527,7 @@ PARFSX -> virg  PARF #tds PARFSX ;
    dm := 0-d;
    i := new VAR(PARF^type, dm, "LB", false);
    call PARFSX^tds.inserer(PARF^name, i);
-   PARFSX1^dep := PARFSX^dep + d;
+   PARFSX1^dep := d;
  end
 }
 

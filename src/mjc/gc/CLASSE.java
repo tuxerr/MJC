@@ -39,8 +39,32 @@ public class CLASSE extends DTYPE {
         return (t==this);
     }
 
+    public int getParentSize() {
+        if(classeMere==null) {
+            return 0;
+        } else {
+            return classeMere.getVarTaille();
+        }
+    }
+
+    public int getVarTaille() {
+        if(classeMere!=null) {
+            return classeMere.getVarTaille()+tds.getVariableTaille();
+        } else {
+            return tds.getVariableTaille();
+        }
+    }
+
+    public int getParentVarTaille() {
+        if(classeMere!=null) {
+            return classeMere.getTDS().getVariableTaille()+classeMere.getParentVarTaille();
+        } else {
+            return 0;
+        }
+    }
+
     public int getTaille() {
-        int taille=tds.getAllAccessibleMethods().size()+tds.getVariableTaille();
+        int taille=tds.getAllAccessibleMethods().size()+getVarTaille();
         return taille;
     }
 
@@ -141,7 +165,7 @@ public class CLASSE extends DTYPE {
         ArrayList<VTABLEENTRY> metList = tds.getAllAccessibleMethods();
 
         for(VTABLEENTRY e : metList) {
-            if(name.equals(e.getName()) && args.equals(e.getMethod().getArgs())) {
+            if(name.equals(e.getName()) && e.getMethod().getArgs().equals(args)) {
                 return number;
             } else {
                 number++;
