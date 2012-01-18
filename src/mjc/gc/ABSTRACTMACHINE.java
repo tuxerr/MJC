@@ -58,6 +58,7 @@ public abstract class ABSTRACTMACHINE {
     abstract public String genReturn(String code, ARGLIST ltype, DTYPE ret);
     abstract public String genDeclMet(String n, METHODE i);
     abstract public String genCall(int MetNum, String metname);  
+    abstract public String genCallI(int MetNum, String metname);
   
     abstract public String genCurrentClassPointer();
     abstract public String genVar(int dep, int taille,String reg);
@@ -69,6 +70,8 @@ public abstract class ABSTRACTMACHINE {
     abstract public String genFree(int taille);
     abstract public String genMalloc(int taille);
     abstract public String genVTables(CLASSE pointedclass, CLASSE realclass);
+    abstract public String genSwapVTables();
+    abstract public String genIVTables(CLASSE pointedinter, CLASSE realclass);
 
   }
 

@@ -55,7 +55,7 @@ nom = fname;
 
     public String genGetMallocPointer(int argsize) {
         return "; get du malloc pointer au dessus des arguments avant le genCall\n"
-            +"\tLOAD (1) -" + (argsize+1) + "[ST]\n";
+            +"\tLOAD (2) -" + (argsize+1) + "[ST]\n";
     }
 
     public String genVar(int dep, int taille,String reg) {
@@ -104,6 +104,7 @@ nom = fname;
         // actuellement en haut de la stack: l'adresse de l'instance (milieu entre vtable/attributs)
         // genCall gère automatiquement l'appel de l'adresse du haut de la stack en tant que premier paramètre.
 	return  "; call de fonction " + metname + "\n"
+            +"\tPOP (1) 1\n"
             +"\tLOAD (1) -1[ST]\n"
             +"\tLOADL " + (MetNum+1) + "\n"                                  //deplacement de la méthode voulue
             +"\tSUBR ISub\n"                                                 //adresse finale de la methode voulue
@@ -112,6 +113,26 @@ nom = fname;
             +"\tLOAD (1) -2[ST]\n"
             +"\tPOP (2) 1\n"
             +"\tCALLI\n";                                                    //appel à la methode	
+    }
+
+    // generation Call de methode
+    public  String genCallI(int MetNum, String metname) {
+        // actuellement en haut de la stack: l'adresse de l'instance (milieu entre vtable/attributs)
+        // genCall gère automatiquement l'appel de l'adresse du haut de la stack en tant que premier paramètre.
+	return  "; call de fonction d'interface " + metname + "\n"
+            +"\tLOAD (1) -2[ST]\n"
+            +"\tPOP (2) 1\n"
+            +"\tLOADL " + MetNum + "\n"                                  //deplacement de la méthode voulue
+            +"\tSUBR IAdd\n"                                                 //adresse finale de la methode voulue
+            +"\tLOADI (1)\n"                                                 //chargement de l'etiquette de la methode en sommet de pile
+            +"\tLOADL 1\n"
+            +"\tSUBR IAdd\n"
+            +"\tSUBR ISub\n"                                                 //adresse finale de la methode voulue
+            +"\tLOADI (1)\n"                                                 //chargement de l'etiquette de la methode en sommet de pile
+            +"\tLOADL 0\n"
+            +"\tLOAD (1) -2[ST]\n"
+            +"\tPOP (2) 1\n"
+            +"\tCALLI\n";  
     }
 
     // RETURN String : nom de fonction,  Liste d'arg, Variable retour
@@ -149,6 +170,27 @@ nom = fname;
         buf.append("\tLOADL " + i + "\n");
         buf.append("\tSUBR IAdd\n");
         return "; creation de Vtable\n" + buf.toString();
+    }
+
+    public String genIVTables(CLASSE pointedinter, CLASSE realclass) {
+        // cette fonction s'appelle après le genMalloc, donc l'adresse est à -1[ST]
+        StringBuffer buf = new StringBuffer();
+        ArrayList<Integer> vtable = pointedinter.createIVtable(realclass);
+        int i=0;
+        for(i=0;i<vtable.size();i++) {
+            Integer met = vtable.get(i);
+            buf.append("\tLOADL "+met+"\n");
+            buf.append("\tLOAD (1) -2[ST]\n");
+            buf.append("\tLOADL "+i+"\n");
+            buf.append("\tSUBR IAdd\n");
+            buf.append("\tSTOREI (1)\n");
+        }
+        
+        return "; creation de Vtable\n" + buf.toString();
+    }
+
+    public String genSwapVTables() {
+        return "\tSTORE (1) -2[ST]\n";
     }
 
     public String genFree(int i) {

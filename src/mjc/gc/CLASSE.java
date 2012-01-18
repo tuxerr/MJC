@@ -160,6 +160,18 @@ public class CLASSE extends DTYPE {
         return retList;
     }
 
+    public ArrayList<Integer> createIVtable(CLASSE realclass) {
+        ArrayList<Integer> retList = new ArrayList<Integer>();
+        ArrayList<VTABLEENTRY> metList = tds.getAllAccessibleMethods();
+
+        for(VTABLEENTRY entry : metList) {
+            Integer realMetNumber = realclass.getMethodNumber(entry.getName(),entry.getMethod().getArgs());
+            retList.add(realMetNumber);
+        }
+
+        return retList;
+    }
+
     public int getMethodNumber(String name, ARGLIST args) {
         int number=0;
         ArrayList<VTABLEENTRY> metList = tds.getAllAccessibleMethods();

@@ -4,7 +4,7 @@ public class POINTEUR extends DTYPE {
     private CLASSE type;
 
     public POINTEUR(CLASSE t) {
-        super("pointeur", 1);
+        super("pointeur", 2);
         type = t;
     }
 

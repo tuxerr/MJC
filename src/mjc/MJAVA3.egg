@@ -610,7 +610,13 @@ INST-> TYPE ident #affxtype AFFX pv #gen;
  local
    v : VAR;
    vn : VAR;
+   c : CLASSE;
+   vtigen : BOOLEAN; -- reregen de la VTI
+   t : DTYPE;
+   pc : CLASSE;
  do
+   vtigen := false;
+   c := nil;
    v := INST^tds.chercherGlobalementVar(ident^txt);
    if v /= nil then
      error(B_02, ident^txt);
@@ -620,7 +626,26 @@ INST-> TYPE ident #affxtype AFFX pv #gen;
      vn := new VAR(TYPE^type, INST^hadr, "LB", false);
      call INST^tds.inserer(ident^txt, vn);
      INST^adr := INST^hadr + TYPE^type.getTaille();
-     INST^code := INST^machine.genVarLoc(ident^txt, vn, AFFX^code);
+     INST^code := INST^machine.genVarLoc(ident^txt, vn, AFFX^code);  
+     match TYPE^type
+     with POINTEUR then
+       c := TYPE^type.getPointedType();
+       if ~c.isAClass() then --si interface, regen de la VTI
+         t := new DTYPE("void",0);
+         if ~AFFX^type.equals(t) then --regen de la VTI si à droite non nul
+           vtigen := true;
+         end
+       end
+     end
+     if vtigen then
+       match AFFX^type 
+       with POINTEUR then
+        pc := AFFX^type.getPointedType();
+        INST^code := INST^machine.genVarLoc(ident^txt, vn, AFFX^code) + INST^machine.genMalloc(c.getTaille()) + INST^machine.genIVTables(c,pc) + INST^machine.genSwapVTables();
+       end
+     else
+       INST^code := INST^machine.genVarLoc(ident^txt, vn, AFFX^code);  
+     end
    end
  end
 }
@@ -744,7 +769,14 @@ E -> #ertype ER #affxtype AFFX #gen;
 }
 
 #gen {
+ local
+  vtigen : BOOLEAN;
+  c : CLASSE;
+  t : DTYPE;
+  pc : CLASSE;
  do
+   vtigen := false;
+   c := nil;
    if ER^est_affectable then
      if AFFX^type.equals(new DTYPE("void", 0)) then
        E^est_affectable := true;
@@ -754,9 +786,27 @@ E -> #ertype ER #affxtype AFFX #gen;
        if ~ER^type.canAccept(AFFX^type) then
          error(B_00, ER^type, AFFX^type);
        else
+         match ER^type
+         with POINTEUR then
+           c := ER^type.getPointedType();
+           if ~c.isAClass() then --si interface, regen de la VTI
+             t := new DTYPE("void",0);
+             if ~AFFX^type.equals(t) then --regen de la VTI si à droite non nul
+               vtigen := true;
+             end
+           end
+         end
          E^est_affectable := false;
          E^type := new DTYPE("void", 0);
-         E^code := AFFX^code + ER^code;
+         if vtigen then
+           match AFFX^type 
+           with POINTEUR then
+            pc := AFFX^type.getPointedType();
+            E^code := AFFX^code + E^machine.genMalloc(c.getTaille()) + E^machine.genIVTables(c,pc) + E^machine.genSwapVTables();
+           end
+         else
+           E^code := AFFX^code + ER^code;
+         end
        end
      end
    else
@@ -1225,9 +1275,9 @@ F -> nouveau #init TYPE paro ARGS parf #gen;
           mn := c.getMethodNumber(cname, ARGS^ltype);
           F^type := TYPE^type;
           if F^pointedclass /= nil then
-            F^code := F^machine.genMalloc(c.getTaille()) + F^machine.genVTables(F^pointedclass,c) + ARGS^code + F^machine.genGetMallocPointer(ARGS^ltype.getTaille()) + F^machine.genCall(mn, "constructeur");
+            F^code := F^machine.genCst("0") + F^machine.genMalloc(c.getTaille()) + F^machine.genVTables(F^pointedclass,c) + ARGS^code + F^machine.genGetMallocPointer(ARGS^ltype.getTaille()) + F^machine.genCall(mn, "constructeur");
           else
-            F^code := F^machine.genMalloc(c.getTaille()) + F^machine.genVTables(c,c) + ARGS^code + F^machine.genGetMallocPointer(ARGS^ltype.getTaille()) + F^machine.genCall(mn, "constructeur");
+            F^code := F^machine.genCst("0") + F^machine.genMalloc(c.getTaille()) + F^machine.genVTables(c,c) + ARGS^code + F^machine.genGetMallocPointer(ARGS^ltype.getTaille()) + F^machine.genCall(mn, "constructeur");
           end
        else
           error(B_28,cname,ARGS^ltype);
@@ -1410,7 +1460,11 @@ global
      mn := Q^qclasse.getMethodNumber(Q^qident, ARGS^ltype);
      Q^est_affectable := Q1^est_affectable;
      Q^type := Q1^type;
-     Q^code := ARGS^code + Q^machine.genPopArgs(ARGS^ltype.getTaille()) + Q^machine.genCall(mn, Q^qident) + Q1^code;
+     if Q^qclasse.isAClass() then
+       Q^code := ARGS^code + Q^machine.genPopArgs(ARGS^ltype.getTaille()) + Q^machine.genCall(mn, Q^qident) + Q1^code;
+     else
+       Q^code := ARGS^code + Q^machine.genPopArgs(ARGS^ltype.getTaille()) + Q^machine.genCallI(mn, Q^qident) + Q1^code;
+     end
    end
  end
 }
