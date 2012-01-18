@@ -1301,7 +1301,7 @@ Q -> #gen;
          
        end
      else
-       error(B_21);
+       error(B_33, Q^qident);
      end
    else
      Q^type := Q^qtype;
@@ -1337,7 +1337,7 @@ global
          Q1^qclasse := c;
 
        else  
-         error(B_21);
+         error(B_21, Q^qident);
        end
      else
        error(B_07,ident^txt);    
