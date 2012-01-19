@@ -632,6 +632,7 @@ INST-> TYPE ident #affxtype AFFX pv #gen;
        c := TYPE^type.getPointedType();
        if ~c.isAClass() then --si interface, regen de la VTI
          t := new DTYPE("void",0);
+       
          if ~AFFX^type.equals(t) then --regen de la VTI si à droite non nul
            vtigen := true;
          end
@@ -641,7 +642,11 @@ INST-> TYPE ident #affxtype AFFX pv #gen;
        match AFFX^type 
        with POINTEUR then
         pc := AFFX^type.getPointedType();
-        INST^code := INST^machine.genVarLoc(ident^txt, vn, AFFX^code) + INST^machine.genMalloc(c.getTaille()) + INST^machine.genIVTables(c,pc) + INST^machine.genSwapVTables();
+        if pc.isAClass() then
+          INST^code := INST^machine.genVarLoc(ident^txt, vn, AFFX^code) + INST^machine.genMalloc(c.getTaille()) + INST^machine.genIVTables(c,pc) + INST^machine.genSwapVTables();
+        else
+          INST^code := INST^machine.genVarLoc(ident^txt, vn, AFFX^code);  
+        end
        end
      else
        INST^code := INST^machine.genVarLoc(ident^txt, vn, AFFX^code);  
@@ -802,7 +807,11 @@ E -> #ertype ER #affxtype AFFX #gen;
            match AFFX^type 
            with POINTEUR then
             pc := AFFX^type.getPointedType();
-            E^code := AFFX^code + E^machine.genMalloc(c.getTaille()) + E^machine.genIVTables(c,pc) + E^machine.genSwapVTables();
+            if pc.isAClass() then
+              E^code := AFFX^code + E^machine.genMalloc(c.getTaille()) + E^machine.genIVTables(c,pc) + E^machine.genSwapVTables(); 
+            else
+              E^code := AFFX^code + ER^code;
+            end
            end
          else
            E^code := AFFX^code + ER^code;

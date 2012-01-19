@@ -31,7 +31,6 @@ public class CLASSE extends DTYPE {
 
     public void inherits(CLASSE cl) {
         classeMere=cl;
-        isclass=true;
         tds.setParente(cl.getTDS());
     }
 
@@ -112,35 +111,30 @@ public class CLASSE extends DTYPE {
         
         boolean implementCorrect=true;
         TDS intertds = inter.getTDS();
-        Set<Map.Entry<String,LMETHODE>> esi = intertds.getMethodHM().entrySet();
+        ArrayList<VTABLEENTRY> interfun = intertds.getAllAccessibleMethods();
 
-        for (Map.Entry<String,LMETHODE> e : esi) {
-
+        for (VTABLEENTRY e : interfun) {
             // si l'entrée courante dans la TDS interface est bien une méthode
-            for(METHODE met : e.getValue()) {
+            ARGLIST eargs = e.getMethod().getArgs();
+            DTYPE etype = e.getMethod().getReturnType();
 
-                ARGLIST eargs = met.getArgs();
-                DTYPE etype = met.getReturnType();
-
-                METHODE ret = this.tds.chercherLocalementMethod(e.getKey(),eargs);
+            METHODE ret = this.tds.chercherGlobalementMethod(e.getName(),eargs);
                 
-                // si, dans la classe, une entrée à le même nom et est une méthode aussi
-                if(ret != null) {
+            // si, dans la classe, une entrée à le même nom et est une méthode aussi
+            if(ret != null) {
           
-                    // et si cette méthode à les mêmes arguments et le même type de retour
-                    if(ret.getReturnType().equals(etype))  {
-                        // la méthode de l'interface est implémentée dans la classe
-
-                    } else {
-                        buf.append("La méthode " + e.getKey() + " n'est pas implémentée dans la classe");
-                        implementCorrect=false;
-                    }
+                // et si cette méthode à les mêmes arguments et le même type de retour
+                if(ret.getReturnType().equals(etype))  {
+                    // la méthode de l'interface est implémentée dans la classe
 
                 } else {
-                    buf.append("La méthode " + e.getKey() + " n'est pas implémentée dans la classe");
+                    buf.append("La méthode " + e.getName() + " n'est pas implémentée dans la classe");
                     implementCorrect=false;
                 }
 
+            } else {
+                buf.append("La méthode " + e.getName() + " n'est pas implémentée dans la classe");
+                implementCorrect=false;
             }
                 
         }

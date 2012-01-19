@@ -203,11 +203,14 @@ nom = fname;
     }
 
     public String genReadMemRAM(int taille) {
-        return "\tLOADI(" + taille + ")" + "     ; lecture a l'adresse\n";
+        return "\tLOADI(" + taille + ")" + "     ; lecture a l'adresse\n"
+               + "\tSTORE (1) -2[ST]\n";
     }
 
     public String genWriteMemRAM(int taille) {
-        return "\tSTOREI(" + taille + ")" + "     ; ecriture a l'adresse\n";
+        return "\tSTORE (1) -2[ST]\n"
+             + "\tSTOREI(" + taille + ")"
+             + "     ; ecriture a l'adresse\n";
     }
 
     public String genWriteMemStack(VAR i) {

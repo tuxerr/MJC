@@ -102,8 +102,8 @@ global
          if r.isAClass() then
            --si l'identifiant représente bien une classe
            call c.inherits(r);
-         else
-           error(B_13,SUPER^ext); 
+         else 
+           error(B_28,ident^txt,SUPER^ext); 
          end
      else
        error(B_13,SUPER^ext); 
@@ -118,6 +118,7 @@ global
 DEFINTERFACE -> interface ident SUPER #gen CORPS;
 global
   c : CLASSE;
+  r : CLASSE;
 
 #gen {
  local
@@ -125,6 +126,23 @@ global
 
  do
    c := DEFINTERFACE^tds.chercherLocalementClasse(ident^txt);
+   if(SUPER^ext.equals("")) then
+     --pas d'héritage
+   else
+     -- héritage
+     r := DEFINTERFACE^tds.chercherLocalementClasse(SUPER^ext);
+     if r /= nil then
+         --l'identifiant est trouvé dans la TDS
+         if r.isAClass() then
+           --si l'identifiant représente bien une classe
+           error(B_28,ident^txt,SUPER^ext);       
+         else 
+           call c.inherits(r);      
+         end
+     else
+       error(B_13,SUPER^ext); 
+     end
+   end
    CORPS^tds := c.getTDS();
    CORPS^class := c;
    CORPS^classname := ident^txt;
