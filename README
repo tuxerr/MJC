@@ -1,8 +1,1 @@
-Nagul's update :
-
-- INFOVAR updaté pour gérer les appels aux fonctions (rajout d'un champs "registre")
-- correction dans DEF-> TYPE ident paro PARFS parf MCORPS : pas besoin de créer une tds pour MCORPS, on la crée après.
-- corrections (syntaxe) dans DEFLASSE-> et DEFINTERFACE-> : pas besoin de faire des cast explicite.
-- ajout d'une classe LTYPES(liste de DTYPE), ça me simplifie la vie (copier coller du TP10 donc éventuelement need retouches).
-- j'suis en train de bosser sur le F-> nouveau ... et les 5 dernières règles.
-- y'a un soucis au niveau des DEFCLASSE-> et DEFINTERFACE-> : faut filer la tds AVANT corps, y'a surement moyen de fusionner #gen et #checkandinsert partielement.
+720, oui oui oui pour 720, non non non pour 720, hip hip hip hourraaaaaaaaa
