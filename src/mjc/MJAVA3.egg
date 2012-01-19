@@ -15,6 +15,7 @@ inh returntype : DTYPE for MCORPS, INST, INSTS, BLOC, SIX;
 inh machine : ABSTRACTMACHINE for ENTITES, DEFCLASSE, DEFINTERFACE, MCORPS, CORPS, DEFS, DEF, BLOC, INSTS, INST, SIX, E, ER, ERX, ES, ESX, T, TX, F, OPADD, OPMUL, OPUN, OPREL, Q, AFFX, ARGS, ARGSX;
 syn code : STRING for ENTITES, DEFCLASSE, DEFINTERFACE, CORPS, MCORPS, DEFS, DEF, BLOC, INSTS, INST, SIX, AFFX, E, ER, ERX, ES, ESX, T, TX, F, OPADD, OPMUL, OPUN, OPREL, Q, ARGS, ARGSX;
 inh tds : TDS for ENTITES, DEFCLASSE, DEFINTERFACE, CORPS, DEF, DEFS, MCORPS, BLOC, TYPE, PARF, PARFSX, PARFS, INSTS, INST, SIX, F, T, TX, E, ER, ERX, ES, ESX, AFFX, ARGS, ARGSX, Q;
+syn hasreturn : BOOLEAN for MCORPS, INST, INSTS, SIX, BLOC;
 inh varisright : BOOLEAN for AFFX, ER, ES, T, F, ERX, ESX, TX, Q;
 inh tdsinit : TDS for Q;
 inh eiser : BOOLEAN for AFFX, ER, ES, T, F, ERX, ESX, TX, Q, E;
@@ -330,6 +331,9 @@ DEF -> TYPE ident paro #tds PARFS parf #transret #inf MCORPS #gen;
      DEF^mainclass := nil;
    end
    DEF^code := DEF^machine.genDeclMet(ident^txt,m) + MCORPS^code;
+   if ~MCORPS^hasreturn then
+     error(B_36,ident^txt,TYPE^type);
+   end
  end
 }
 -------------------------------------------------------
@@ -367,6 +371,9 @@ DEF -> void ident paro #tds PARFS parf #transret #inf MCORPS #gen;
      DEF^mainclass := nil;
    end
    DEF^code := DEF^machine.genDeclMet(ident^txt,m) + MCORPS^code + DEF^machine.genReturn("", PARFS^ltype, new DTYPE("void", 0));
+   if MCORPS^hasreturn then
+     error(B_37,ident^txt);
+   end
  end
 }
 -------------------------------------------------------
@@ -386,6 +393,7 @@ MCORPS -> #check pv #gen;
   local
   do
     MCORPS^code := "";
+    MCORPS^hasreturn := false;
   end
 }
 
@@ -404,6 +412,7 @@ MCORPS -> #check BLOC #gen;
   local
   do
     MCORPS^code := BLOC^code;
+    MCORPS^hasreturn := false;
   end
 }
 
@@ -561,6 +570,7 @@ BLOC -> aco #tds INSTS acf #gen;
  do
    --libérer les variables locales
    BLOC^code := INSTS^code + BLOC^machine.genFree(INSTS^adr - BLOC^hadr);
+   BLOC^hasreturn := INSTS^hasreturn;
  end
 }
 
@@ -572,6 +582,7 @@ INSTS -> #gen;
  do
    INSTS^adr := INSTS^hadr;
    INSTS^code := "";
+   INSTS^hasreturn := false;
  end
 }
 
@@ -585,6 +596,13 @@ INSTS ->INST #adr INSTS #gen;
  do
    INSTS^adr := INSTS1^adr;
    INSTS^code := INST^code + INSTS1^code;
+   if (INST^hasreturn & INSTS1^hasreturn) then
+     error(B_35);
+   elseif (INST^hasreturn=false & INSTS1^hasreturn=false) then
+     INSTS^hasreturn:=false;
+   else
+     INSTS^hasreturn:=true;
+   end
  end
 }
 
@@ -603,6 +621,7 @@ INST-> TYPE ident #affxtype AFFX pv #gen;
     end
     AFFX^varisright := true;
     AFFX^eiser := true;
+    INST^hasreturn := false;
   end          
 }
 
@@ -669,6 +688,7 @@ INST -> #eiser E pv #gen;
  do
    INST^adr := INST^hadr;
    INST^code := E^code;
+   INST^hasreturn := false;
  end
 }
 
@@ -680,6 +700,7 @@ INST -> BLOC #gen;
  do
    INST^adr := INST^hadr;
    INST^code := BLOC^code;
+   INST^hasreturn := BLOC^hasreturn;
  end
 }
 
@@ -706,6 +727,11 @@ end
  do
    INST^adr := INST^hadr;
    INST^code := INST^machine.genIf(E^code, BLOC^code, SIX^code);
+   if (BLOC^hasreturn & SIX^hasreturn) then
+     INST^hasreturn := true;
+   else
+     INST^hasreturn := false;
+   end
  end
 }
 
@@ -713,6 +739,7 @@ SIX -> sinon BLOC #gen;
 #gen {
  do
    SIX^code := BLOC^code;
+   SIX^hasreturn := BLOC^hasreturn;
  end
 }
 
@@ -720,6 +747,7 @@ SIX -> #gen;
 #gen {
  do
    SIX^code := "";
+   SIX^hasreturn := false;
  end
 }
 
@@ -731,6 +759,7 @@ INST -> retour #ergen E pv #gen;
 #ergen {
  do
    E^eiser := true;
+   INST^hasreturn := true;
  end
 }
 
