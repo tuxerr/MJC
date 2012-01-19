@@ -39,7 +39,12 @@ public class TDS {
     }
 
     public int getVariableTaille() {
-        return hmVar.size();
+        Set<Map.Entry<String,VAR>> esi = hmVar.entrySet();
+	int finaltaille=0;
+        for (Map.Entry<String,VAR> e : esi) {
+	    finaltaille=finaltaille+e.getValue().getTaille();
+	}   
+	return finaltaille;
     }
 
     public VAR chercherGlobalementVar(String n) {

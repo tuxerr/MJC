@@ -170,7 +170,7 @@ global
 
          --l'identifiant est trouvé dans la TDS
            if ~c.implementsCorrectly(r) then
-             error(B_11,ident^txt,SUPER^imp,c.implementGetError());
+             error(B_34,ident^txt,SUPER^imp,c.implementGetError());
            else 
              call c.addSuperClass(r);
            end
@@ -1228,7 +1228,7 @@ F -> null #gen;
  do
    F^est_affectable := false;
    F^type := new POINTEUR(nil);
-   F^code := F^machine.genCst("0");
+   F^code := F^machine.genCst("0") + F^machine.genCst("0");
  end
 }
 

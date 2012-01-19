@@ -37,8 +37,11 @@ nom = fname;
     }
     
     public String genCurrentClassPointer() {
-        return "\tLOAD (1) -1[LB]\n";
+        return "\tLOADL 0\n"
+               + "\tLOAD (1) -1[LB]\n";
     }
+
+
 
     //genere le code pour un attribut lol
     public String genAtt(String s, VAR i) {
@@ -49,8 +52,8 @@ nom = fname;
 
     public String genPopArgs(int argsize) {
         return "; pop des arguments avant le genCall\n"
-            +"\tLOAD (1) -" + (argsize+1) + "[ST]\n"
-            +"\tPOP ("+ (argsize+1)+") 1";
+            +"\tLOAD (2) -" + (argsize+2) + "[ST]\n"
+            +"\tPOP ("+ (argsize+2)+") 2";
     }
 
     public String genGetMallocPointer(int argsize) {
@@ -120,8 +123,9 @@ nom = fname;
         // actuellement en haut de la stack: l'adresse de l'instance (milieu entre vtable/attributs)
         // genCall gère automatiquement l'appel de l'adresse du haut de la stack en tant que premier paramètre.
 	return  "; call de fonction d'interface " + metname + "\n"
-            +"\tLOAD (1) -2[ST]\n"
-            +"\tPOP (2) 1\n"
+            +"\tLOAD (1) -1[ST]\n"
+            +"\tLOAD (1) -3[ST]\n"
+            +"\tPOP (3) 1\n"
             +"\tLOADL " + MetNum + "\n"                                  //deplacement de la méthode voulue
             +"\tSUBR IAdd\n"                                                 //adresse finale de la methode voulue
             +"\tLOADI (1)\n"                                                 //chargement de l'etiquette de la methode en sommet de pile
