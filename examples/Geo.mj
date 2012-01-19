@@ -20,6 +20,10 @@ class Point {
         x = xi;
         y = yi;
     }
+
+    int getx() {
+        return x;
+    }
  
     Point milieu (Point p) {
         Point m = new Point();
@@ -61,5 +65,6 @@ class Geo {
         m = p.milieu(p);
         Point m1 = null ;
         m1 = p.milieu(pc);
+        int m1x = m1.getx();
     }
 }

@@ -412,7 +412,7 @@ MCORPS -> #check BLOC #gen;
   local
   do
     MCORPS^code := BLOC^code;
-    MCORPS^hasreturn := false;
+    MCORPS^hasreturn := BLOC^hasreturn;
   end
 }
 
