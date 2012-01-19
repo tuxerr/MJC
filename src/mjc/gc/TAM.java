@@ -55,7 +55,7 @@ nom = fname;
 
     public String genGetMallocPointer(int argsize) {
         return "; get du malloc pointer au dessus des arguments avant le genCall\n"
-            +"\tLOAD (2) -" + (argsize+1) + "[ST]\n";
+            +"\tLOAD (2) -" + (argsize+2) + "[ST]\n";
     }
 
     public String genVar(int dep, int taille,String reg) {
@@ -190,7 +190,7 @@ nom = fname;
     }
 
     public String genSwapVTables() {
-        return "\tSTORE (1) -2[ST]\n";
+        return "\tSTORE (1) -3[ST]\n";
     }
 
     public String genFree(int i) {
