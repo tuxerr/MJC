@@ -159,17 +159,17 @@ nom = fname;
     public String genVTables(CLASSE pointedclass, CLASSE realclass) {
         // cette fonction s'appelle après le genMalloc, donc l'adresse est à -1[ST]
         StringBuffer buf = new StringBuffer();
-        ArrayList<String> vtable = pointedclass.createVtable(realclass);
+        ArrayList<String> vtable = pointedclass.createVtable(realclass);  
         int i=0;
-        for(i=0;i<vtable.size();i++) {
+        while(i<vtable.size()) {
             String met = vtable.get(vtable.size()-(i+1));
             buf.append("\tLOADA "+met+"\n");
-            buf.append("\tLOAD (1) -2[ST]\n");
-            buf.append("\tLOADL "+i+"\n");
-            buf.append("\tSUBR IAdd\n");
-            buf.append("\tSTOREI (1)\n");
+            i++;
         }
-        
+        buf.append("\tLOAD (1) -" + (i+1) +"[ST]\n");
+        buf.append("\tSTOREI (" + i + ")\n");
+
+
         // ajout du nombre de méthodes pour placer le pointeur entre la vtable et les attrs
         buf.append("\tLOADL " + i + "\n");
         buf.append("\tSUBR IAdd\n");
@@ -181,14 +181,13 @@ nom = fname;
         StringBuffer buf = new StringBuffer();
         ArrayList<Integer> vtable = pointedinter.createIVtable(realclass);
         int i=0;
-        for(i=0;i<vtable.size();i++) {
+        while(i<vtable.size()) {
             Integer met = vtable.get(i);
             buf.append("\tLOADL "+met+"\n");
-            buf.append("\tLOAD (1) -2[ST]\n");
-            buf.append("\tLOADL "+i+"\n");
-            buf.append("\tSUBR IAdd\n");
-            buf.append("\tSTOREI (1)\n");
+            i++;
         }
+        buf.append("\tLOAD (1) -" + (i+1) +"[ST]\n");
+        buf.append("\tSTOREI (" + i + ")\n");
         
         return "; creation de Vtable\n" + buf.toString();
     }
