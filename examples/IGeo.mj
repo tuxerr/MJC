@@ -55,8 +55,7 @@ class Main {
     Point p1 = new Point(70,2);
     Point m ;
     m = p.milieu(p1);
-    IPoint m1 = null ;
-    m1 = p.milieu(p1);
+    IPoint m1 = p.milieu(p1);
     int mx = m.getx();
     int my = m.gety();
     int m1x = m1.getx();

@@ -331,7 +331,7 @@ DEF -> TYPE ident paro #tds PARFS parf #transret #inf MCORPS #gen;
      DEF^mainclass := nil;
    end
    DEF^code := DEF^machine.genDeclMet(ident^txt,m) + MCORPS^code;
-   if ~MCORPS^hasreturn then
+   if ~MCORPS^hasreturn & DEF^class.isAClass() then
      error(B_36,ident^txt,TYPE^type);
    end
  end
@@ -661,8 +661,12 @@ INST-> TYPE ident #affxtype AFFX pv #gen;
        match AFFX^type 
        with POINTEUR then
         pc := AFFX^type.getPointedType();
-        if pc.isAClass() then
-          INST^code := INST^machine.genVarLoc(ident^txt, vn, AFFX^code) + INST^machine.genMalloc(c.getTaille()) + INST^machine.genIVTables(c,pc) + INST^machine.genSwapVTables();
+        if pc /= nil then
+          if pc.isAClass() then
+            INST^code := INST^machine.genVarLoc(ident^txt, vn, AFFX^code) + INST^machine.genMalloc(c.getTaille()) + INST^machine.genIVTables(c,pc) + INST^machine.genSwapVTables();
+          else
+            INST^code := INST^machine.genVarLoc(ident^txt, vn, AFFX^code);  
+          end
         else
           INST^code := INST^machine.genVarLoc(ident^txt, vn, AFFX^code);  
         end
@@ -837,7 +841,7 @@ E -> #ertype ER #affxtype AFFX #gen;
            with POINTEUR then
             pc := AFFX^type.getPointedType();
             if pc.isAClass() then
-              E^code := AFFX^code + E^machine.genMalloc(c.getTaille()) + E^machine.genIVTables(c,pc) + E^machine.genSwapVTables(); 
+              E^code := AFFX^code + ER^code + E^machine.genMalloc(c.getTaille()) + E^machine.genIVTables(c,pc) + E^machine.genSwapVTables(); 
             else
               E^code := AFFX^code + ER^code;
             end
