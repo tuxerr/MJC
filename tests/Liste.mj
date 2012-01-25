@@ -44,8 +44,8 @@ class Liste implements Container {
       val=newval;
       ptr=newptr;
     } else {
-      val=6969;
-      print "olol_ptr_null";
+      int a=-1;
+      print a;
     }
   }
 }
