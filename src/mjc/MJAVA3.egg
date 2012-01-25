@@ -1499,14 +1499,10 @@ global
  do
    Q^est_affectable := Q1^est_affectable;
    Q^type := Q1^type;
-   if Q^qisvar then
-     if v.isAttr() then
-       Q^code := Q^machine.genCurrentClassPointer() + Q^machine.genAtt(Q^qident, v) + Q^machine.genReadMemRAM(v.getTaille()) + Q1^code;
-     else
-       Q^code := Q^machine.genVar(v.getDep(),v.getTaille(),v.getReg()) + Q1^code;
-     end
+   if v.isAttr() then
+     Q^code := Q^machine.genCurrentClassPointer() + Q^machine.genAtt(Q^qident, v) + Q^machine.genReadMemRAM(v.getTaille()) + Q1^code;
    else
-     Q^code := Q1^code;
+     Q^code := Q^machine.genVar(v.getDep(),v.getTaille(),v.getReg()) + Q1^code;
    end
  end
 }
