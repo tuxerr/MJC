@@ -1260,7 +1260,7 @@ OPUN -> plus #gen;
    a := new ACCEPTEDTYPES();
    OPUN^acctypes := a;
    call a.add(new DTYPE("entier",1));
-   OPUN^code := OPUN^machine.genOpAdd();
+   OPUN^code := OPUN^machine.genOpUPlus();
  end
 }
 
@@ -1272,7 +1272,7 @@ OPUN -> moins #gen;
    a := new ACCEPTEDTYPES();
    OPUN^acctypes := a;
    call a.add(new DTYPE("entier",1));
-   OPUN^code := OPUN^machine.genOpENeg();
+   OPUN^code := OPUN^machine.genOpUNeg();
  end
 }
 

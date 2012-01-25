@@ -244,11 +244,15 @@ nom = fname;
             + fin + "\n" + "; fin if\n";
     }
 
-    public String genOpENeg() {
+    public String genOpUNeg() {
         return "\tLOADL 0\n"
                +"\tLOAD (1) -2[ST]\n"
                +"\tPOP (2) 1\n"
                +"\tSUBR INeg\n";
+    }
+
+    public String genOpUPlus() {
+        return "";
     }
 
     public String genOpAdd() {
