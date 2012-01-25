@@ -245,7 +245,10 @@ nom = fname;
     }
 
     public String genOpENeg() {
-        return "\tSUBR BNeg\n";
+        return "\tLOADL 0\n"
+               +"\tLOAD (1) -2[ST]\n"
+               +"\tPOP (2) 1\n"
+               +"\tSUBR INeg\n";
     }
 
     public String genOpAdd() {
