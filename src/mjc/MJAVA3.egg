@@ -971,7 +971,7 @@ ERX -> OPREL ES #gen;
    end
    ERX^est_affectable := false;
    ERX^type := ES^type;
-   if ES^type.equals(new DTYPE("pointeur", 2)) then
+   if ES^type.canAccept(new POINTEUR(nil)) then
      ERX^code := ES^code + ERX^machine.genSnipVTI() + OPREL^code;
    else
      ERX^code := ES^code + OPREL^code;
