@@ -930,7 +930,7 @@ AFFX -> #gen;
 ER -> ES ERX #gen;
 #gen {
  do
-   if ~ERX^type.equals(new DTYPE("void", 0))&~ERX^type.equals(ES^type) then
+   if ~ERX^type.equals(new DTYPE("void", 0))&~ERX^type.canAccept(ES^type) then
      error(B_00, ES^type, ERX^type);
    elseif ~ERX^est_affectable then
      --ERX contient une OPREL
@@ -949,7 +949,7 @@ ER -> ES ERX #gen;
 ES -> T ESX #gen;
 #gen {
  do
-   if ~ESX^type.equals(new DTYPE("void", 0))&~ESX^type.equals(T^type) then
+   if ~ESX^type.equals(new DTYPE("void", 0))&~ESX^type.canAccept(T^type) then
      error(B_00, ESX^type, T^type);
    elseif ~ESX^est_affectable then
      ES^est_affectable := false;
@@ -1041,7 +1041,7 @@ OPREL -> eg #gen;
    a := new ACCEPTEDTYPES();
    call a.add(new DTYPE("entier",1));
    call a.add(new DTYPE("booleen",1));
-   call a.add(new DTYPE("pointeur",1));
+   call a.add(new POINTEUR(nil));
    OPREL^acctypes := a;
  end
 }
@@ -1055,7 +1055,7 @@ OPREL -> neg #gen;
    a := new ACCEPTEDTYPES();
    call a.add(new DTYPE("entier",1));
    call a.add(new DTYPE("booleen",1));
-   call a.add(new DTYPE("pointeur",1));
+   call a.add(new POINTEUR(nil));
    OPREL^acctypes := a;
  end
 }
@@ -1068,7 +1068,7 @@ ESX -> OPADD T ESX #gen;
  do
    if ~OPADD^acctypes.contains(T^type) then
      error(B_00, T^type, OPADD^acctypes);
-   elseif ~ESX1^type.equals(new DTYPE("void", 0))&~T^type.equals(ESX1^type) then
+   elseif ~ESX1^type.equals(new DTYPE("void", 0))&~T^type.canAccept(ESX1^type) then
      error(B_00, T^type, ESX1^type);
    else
      ESX^est_affectable := false;
@@ -1126,7 +1126,7 @@ OPADD -> ou #gen;
 T -> F TX #gen;
 #gen {
  do
-   if ~TX^type.equals(new DTYPE("void", 0))&~F^type.equals(TX^type) then
+   if ~TX^type.equals(new DTYPE("void", 0))&~F^type.canAccept(TX^type) then
      error(B_00, F^type, TX^type);
    else
      if ~TX^est_affectable then
@@ -1149,7 +1149,7 @@ TX -> OPMUL F TX #gen;
  do
    if ~OPMUL^acctypes.contains(F^type) then
      error(B_00, F^type, OPMUL^acctypes);
-   elseif ~TX1^type.equals(new DTYPE("void", 0))&~F^type.equals(TX1^type) then
+   elseif ~TX1^type.equals(new DTYPE("void", 0))&~F^type.canAccept(TX1^type) then
      error(B_00, F^type, TX1^type);
    else
      TX^est_affectable := false;

@@ -13,20 +13,30 @@ public class POINTEUR extends DTYPE {
     }
 
     public boolean equals(DTYPE autre) {
-        if (autre instanceof POINTEUR)
-            return type.equals(((POINTEUR) autre).getPointedType());
-        return false;
+        if (autre instanceof POINTEUR) {
+            if(type==null) {
+                return ((POINTEUR)autre).getPointedType()==null;
+            } else {
+                return type.equals(((POINTEUR) autre).getPointedType());
+            }
+        } else {
+            return false;
+        }
     }
 
     public boolean canAccept(DTYPE autre) {
         if (autre instanceof POINTEUR) {
             CLASSE apt_type = ((POINTEUR)autre).getPointedType();
-            if(apt_type==null) {
-                return true;
-            } else if(type.equals(apt_type)) {
+            if(type==null) {
                 return true;
             } else {
-                return apt_type.isASuperClass(type);
+                if(apt_type==null) {
+                    return true;
+                } else if(type.equals(apt_type)) {
+                    return true;
+                } else {
+                    return apt_type.isASuperClass(type);
+                }
             }
         } else {
             return autre.equals(new DTYPE("void", 0));
