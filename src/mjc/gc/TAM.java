@@ -255,6 +255,11 @@ nom = fname;
             + fin + "\n" + "; fin if\n";
     }
 
+    public String genSnipVTI() {
+        return "\tPOP (1) 1\n"
+               +"\tPOP (2) 1\n";
+    }
+
     public String genOpUNeg() {
         return "\tLOADL 0\n"
                +"\tLOAD (1) -2[ST]\n"
