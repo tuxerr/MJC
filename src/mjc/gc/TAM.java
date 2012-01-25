@@ -42,6 +42,7 @@ nom = fname;
     }
 
 
+
     //genere le code pour un attribut lol
     public String genAtt(String s, VAR i) {
         return "; appel attribut (adresse deja empilee) "+s+"\n"

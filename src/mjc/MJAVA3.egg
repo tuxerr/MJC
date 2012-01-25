@@ -21,6 +21,7 @@ inh tdsinit : TDS for Q;
 inh eiser : BOOLEAN for AFFX, ER, ES, T, F, ERX, ESX, TX, Q, E;
 inh qident : STRING for Q;
 inh qtype : DTYPE for Q;
+inh qisvar : BOOLEAN for Q;
 inh qclasse : CLASSE for Q;
 syn est_affectable : BOOLEAN for E, ER, ERX, ES, ESX, T, TX, F, Q;
 syn adr : INTEGER for INST, INSTS;
@@ -1385,6 +1386,7 @@ F -> ident #tra Q #gen;
  local
  do 
    Q^qident := ident^txt;   
+   Q^qisvar := true;
    Q^qtype := nil;
    Q^tdsinit := F^tds;
    Q^qclasse := new CLASSE(false, new TDS(), "");
@@ -1407,6 +1409,7 @@ Q -> #gen;
    v : VAR;
    name : STRING;
  do 
+   if Q^qisvar then
      v := Q^tds.chercherGlobalementVar(Q^qident);
      if v /= nil then
        Q^type := v.getType();
@@ -1433,11 +1436,17 @@ Q -> #gen;
            Q^code := Q^machine.genVar(v.getDep(), v.getTaille(), v.getReg());
          else
            Q^code := Q^machine.genWriteMemStack(v);
-         end        
+         end
+         
        end
      else
        error(B_33, Q^qident);
      end
+   else
+     Q^type := Q^qtype;
+     Q^est_affectable := false;
+     Q^code := "";
+   end
  end
 }
 
@@ -1452,21 +1461,36 @@ global
  local
    vt : DTYPE;
    c : CLASSE;
+   
  do
-   v := Q^tds.chercherGlobalementVar(Q^qident);
-   if v /= nil then
-     vt := v.getType();
-     match vt
-     with POINTEUR then
-       c := vt.getPointedType();
-       Q1^tds := c.getTDS();
-       Q1^qident := ident^txt;
-       Q1^qclasse := c;
-     else  
-       error(B_21, Q^qident);
+   if Q^qisvar then
+     v := Q^tds.chercherGlobalementVar(Q^qident);
+     if v /= nil then
+       vt := v.getType();
+       match vt
+       with POINTEUR then
+         c := vt.getPointedType();
+         Q1^tds := c.getTDS();
+         Q1^qident := ident^txt;
+         Q1^qisvar := true;
+         Q1^qclasse := c;
+       else  
+         error(B_21, Q^qident);
+       end
+     else
+       error(B_07,ident^txt);    
      end
    else
-     error(B_07,ident^txt);
+     match Q^qtype
+     with POINTEUR then
+       c := Q^qtype.getPointedType();
+       Q1^tds := c.getTDS();
+       Q1^qident := ident^txt;
+       Q1^qisvar := true;
+       Q1^qclasse := c;
+     else
+       error(B_29);
+     end
    end
  end
 }
@@ -1475,10 +1499,14 @@ global
  do
    Q^est_affectable := Q1^est_affectable;
    Q^type := Q1^type;
-   if v.isAttr() then
-     Q^code := Q^machine.genCurrentClassPointer() + Q^machine.genAtt(Q^qident, v) + Q^machine.genReadMemRAM(v.getTaille()) + Q1^code;
+   if Q^qisvar then
+     if v.isAttr() then
+       Q^code := Q^machine.genCurrentClassPointer() + Q^machine.genAtt(Q^qident, v) + Q^machine.genReadMemRAM(v.getTaille()) + Q1^code;
+     else
+       Q^code := Q^machine.genVar(v.getDep(),v.getTaille(),v.getReg()) + Q1^code;
+     end
    else
-     Q^code := Q^machine.genVar(v.getDep(),v.getTaille(),v.getReg()) + Q1^code;
+     Q^code := Q1^code;
    end
  end
 }
@@ -1503,6 +1531,7 @@ global
    if m /= nil then
      t := m.getReturnType();
      Q1^qtype:=t;
+     Q1^qisvar:=false;
    else 
      error(B_28,Q^qident,ARGS^ltype);
    end
