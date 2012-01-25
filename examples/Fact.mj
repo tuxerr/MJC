@@ -15,6 +15,7 @@ class Fact {
   void main() {
     int x = fact(6);
     y=x;
+    print x;
   }
 
 }
