@@ -240,6 +240,9 @@ nom = fname;
             + fin + "\n" + "; fin if\n";
     }
 
+    public String genOpENeg() {
+        return "\tSUBR BNeg\n";
+    }
 
     public String genOpAdd() {
         return "\tSUBR IAdd\n";

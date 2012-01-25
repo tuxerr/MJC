@@ -1245,7 +1245,7 @@ OPUN -> moins #gen;
    a := new ACCEPTEDTYPES();
    OPUN^acctypes := a;
    call a.add(new DTYPE("entier",1));
-   OPUN^code := OPUN^machine.genOpSub();
+   OPUN^code := OPUN^machine.genOpENeg();
  end
 }
 

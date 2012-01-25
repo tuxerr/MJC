@@ -29,6 +29,7 @@ public abstract class ABSTRACTMACHINE {
     abstract public String genAtt(String n, VAR i);
 
     //Operateurs
+    abstract public String genOpENeg();
     abstract public String genOpAdd();
     abstract public String genOpSub();
     abstract public String genOpMul();
