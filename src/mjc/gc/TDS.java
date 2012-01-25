@@ -5,6 +5,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.ArrayList;
 
+/**
+ * @composed 1 - HashMap CLASSE
+ * @composed 1 - HashMap VAR
+ * @composed 1 - HashMap LMETHODE
+ * @composed 1 - 1 TDS
+ */
+
 public class TDS {
     public HashMap<String, LMETHODE> hmMethode;
     public HashMap<String, VAR> hmVar;

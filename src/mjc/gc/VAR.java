@@ -1,5 +1,9 @@
 package mjc.gc;
 
+/**
+ * @composed 1 - type DTYPE
+ */
+
 public class VAR {
     // le deplacement
     private int dep;

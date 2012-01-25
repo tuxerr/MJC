@@ -1,6 +1,9 @@
 package mjc.gc;
 
 import java.util.ArrayList;
+/**
+ * @composed 1 - ArrayList METHODE
+ */
 
 public class LMETHODE extends ArrayList<METHODE> {
 
