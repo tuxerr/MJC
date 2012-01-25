@@ -1474,7 +1474,6 @@ global
          Q1^qident := ident^txt;
          Q1^qisvar := true;
          Q1^qclasse := c;
-
        else  
          error(B_21, Q^qident);
        end
@@ -1501,9 +1500,13 @@ global
    Q^est_affectable := Q1^est_affectable;
    Q^type := Q1^type;
    if Q^qisvar then
-      Q^code := Q^machine.genVar(v.getDep(),v.getTaille(),v.getReg()) + Q1^code;
+     if v.isAttr() then
+       Q^code := Q^machine.genCurrentClassPointer() + Q^machine.genAtt(Q^qident, v) + Q^machine.genReadMemRAM(v.getTaille()) + Q1^code;
+     else
+       Q^code := Q^machine.genVar(v.getDep(),v.getTaille(),v.getReg()) + Q1^code;
+     end
    else
-      Q^code := Q1^code;
+     Q^code := Q1^code;
    end
  end
 }
