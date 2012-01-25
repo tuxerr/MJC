@@ -202,13 +202,18 @@ nom = fname;
     }
 
     public String genPrint() {
-        return "\tSUBR IOut\n";
+        return "\tSUBR IOut\n"
+               +"\tLOADL \"\n\" \n"
+               +"\tSUBR SAlloc\n"
+               +"\tSUBR SOut\n"
+               +"\tPOP (0) 1\n";
     }
 
     public String genPrintString(String i) {
-        return "\tLOADL " + "\"" + i + "\" \n"
+        return "\tLOADL " + "\"" + i + "\n\" \n"
                +"\tSUBR SAlloc\n"
-               +"\tSUBR SOut\n";
+               +"\tSUBR SOut\n"
+               +"\tPOP (0) 1\n";
     }
 
     public String genThis() {
