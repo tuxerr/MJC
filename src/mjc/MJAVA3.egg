@@ -46,6 +46,7 @@ sugar crf is  "\]";
 sugar virg is  ",";
 sugar pv is  "\;";
 sugar pt is  "\.";
+sugar print is "print";
 sugar affect is  "=";
 sugar si is  "if";
 sugar sinon is  "else";
@@ -706,6 +707,32 @@ INST -> BLOC #gen;
    INST^code := BLOC^code;
    INST^hasreturn := BLOC^hasreturn;
  end
+}
+
+INST -> print #ergen E #check pv #gen;
+#check {
+  local
+    t : DTYPE;
+  do
+    t := new DTYPE("entier",1);
+    if ~E^type.equals(t) then
+      error(B_38,E^type);
+    end
+  end
+}
+
+#ergen {
+  do
+    E^eiser := true;
+  end
+}
+
+#gen {
+  do
+    INST^adr := INST^hadr;
+    INST^code := E^code + INST^machine.genPrint();
+    INST^hasreturn := false;
+  end
 }
 
 -------------------------------------------------------

@@ -201,6 +201,10 @@ nom = fname;
             +"\tPOP(0)" + i + "\n";
     }
 
+    public String genPrint() {
+        return "\tSUBR IOut\n";
+    }
+
     public String genReadMemRAM(int taille) {
         return "\tLOADI(" + taille + ")" + "     ; lecture a l'adresse\n"
                + "\tSTORE (1) -2[ST]\n";

@@ -19,6 +19,7 @@ sugar crf is  "\]";
 sugar virg is  ",";
 sugar pv is  "\;";
 sugar pt is  "\.";
+sugar print is "print";
 sugar affect is  "=";
 sugar si is  "if";
 sugar sinon is  "else";
@@ -154,6 +155,7 @@ INST ->  E pv ;
 -- bloc d'instructions
 INST ->  BLOC  ;
 -- conditionnelle
+INST -> print E pv ;
 INST ->  si paro E parf BLOC SIX ;
 SIX ->   sinon BLOC ;
 SIX ->;
