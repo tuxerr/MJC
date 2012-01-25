@@ -1,0 +1,72 @@
+class Liste implements Container {
+  int val;
+  
+  Liste ptr;
+
+  Liste() {
+    val=0;
+    ptr=null;
+  }
+
+  Liste(int initval) {
+    val=initval;
+    ptr=null;
+  }
+
+  void setval(int ival) {
+    val=ival;
+  }
+
+  void setptr(Liste iptr) {
+    ptr=iptr;
+  } 
+
+  Liste getptr() {
+    return ptr;
+  }
+
+  void add(int newval) {
+    Liste newelem = new Liste(val);
+    newelem.setptr(ptr);
+    
+    val=newval;
+    ptr=newelem;
+  }
+
+  int head() {
+    return val;
+  }
+
+  void pop() {
+    if(ptr!=null) {
+      Liste newptr = ptr.getptr();
+      int newval = ptr.head();
+      val=newval;
+      ptr=newptr;
+    } else {
+      val=6969;
+      print "olol_ptr_null";
+    }
+  }
+}
+
+interface Container {
+  void add(int newval);
+  int head();
+  void pop();
+}
+
+class MainClass {
+  void main() {
+    Liste l = new Liste(1337);
+    l.add(42);
+    l.add(69);
+    print l.head();
+    l.pop();
+    print l.head();
+    l.pop();
+    print l.head();
+    l.pop();
+    l.pop();
+  }
+}

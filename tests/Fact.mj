@@ -1,0 +1,22 @@
+class Fact {
+  int y;
+  Fact() {
+  }
+
+  int fact(int n) {
+    if(n < 1) { 
+      return 1; 
+      }
+    else {
+      return n * fact(n-1);
+      }
+    }
+  
+  void main() {
+    int x = fact(6);
+    y=x;
+    print x;
+  }
+
+}
+

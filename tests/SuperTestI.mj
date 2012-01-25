@@ -1,0 +1,39 @@
+class A implements IA {
+  int x;
+  A(int xi) {
+    x=xi;
+  }
+  int getx() {
+    return x;
+  }
+}
+
+interface IA {
+  int getx();
+}
+
+class B extends A implements IB {
+  int y;
+  B(int xi,int yi) {
+    x=xi;
+    y=yi;
+  }
+  int gety() {
+    return y;
+  }
+}
+
+interface IB extends IA{
+  int gety();
+}
+
+class MainClass {
+  void main() {
+    B b = new B(42,69);
+    IB ib = b;
+    IA ia = b;
+    print ib.gety();
+    print ia.getx();
+    print ib.getx();
+  }
+}
