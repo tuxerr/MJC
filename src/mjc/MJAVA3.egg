@@ -47,6 +47,7 @@ sugar virg is  ",";
 sugar pv is  "\;";
 sugar pt is  "\.";
 sugar print is "print";
+sugar guil is "\"";
 sugar affect is  "=";
 sugar si is  "if";
 sugar sinon is  "else";
@@ -709,16 +710,25 @@ INST -> BLOC #gen;
  end
 }
 
+INST -> print guil ident guil pv #gen;
+#gen {
+ do
+   INST^adr := INST^hadr;
+   INST^hasreturn := false;
+   INST^code := INST^machine.genPrintString(ident^txt);
+ end
+}
+
 INST -> print #ergen E #check pv #gen;
 #check {
-  local
-    t : DTYPE;
-  do
-    t := new DTYPE("entier",1);
-    if ~E^type.equals(t) then
-      error(B_38,E^type);
-    end
-  end
+ local
+   t : DTYPE;
+ do
+   t := new DTYPE("entier",1);
+   if ~E^type.equals(t) then
+     error(B_38,E^type);
+   end
+ end
 }
 
 #ergen {
