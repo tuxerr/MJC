@@ -211,6 +211,11 @@ nom = fname;
                +"\tSUBR SOut\n";
     }
 
+    public String genThis() {
+        return "\tLOADL 0\n"
+               +"\tLOAD (1) -1[LB]\n";
+    }
+
     public String genReadMemRAM(int taille) {
         return "\tLOADI(" + taille + ")" + "     ; lecture a l'adresse\n"
                + "\tSTORE (1) -2[ST]\n";

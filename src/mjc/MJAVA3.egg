@@ -48,6 +48,7 @@ sugar pv is  "\;";
 sugar pt is  "\.";
 sugar print is "print";
 sugar guil is "\"";
+sugar this is "this";
 sugar affect is  "=";
 sugar si is  "if";
 sugar sinon is  "else";
@@ -1243,6 +1244,15 @@ F -> faux #gen;
    F^est_affectable := false;
    F^type := new DTYPE("booleen", 1);
    F^code := F^machine.genCst("0");
+ end
+}
+
+F -> this #gen;
+#gen {
+ do
+   F^est_affectable := false;
+   F^type := new POINTEUR(F^class);
+   F^code := F^machine.genThis();
  end
 }
 

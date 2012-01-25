@@ -20,6 +20,7 @@ public abstract class ABSTRACTMACHINE {
         }
     }
     // variable
+    abstract public String genThis();
     abstract public String genCst(String v);
     abstract public String genEtiq();
     abstract public String genPrintString(String i);

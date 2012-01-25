@@ -21,6 +21,7 @@ sugar pv is  "\;";
 sugar pt is  "\.";
 sugar print is "print";
 sugar guil is "\"";
+sugar this is "this";
 sugar affect is  "=";
 sugar si is  "if";
 sugar sinon is  "else";
@@ -197,6 +198,7 @@ OPMUL -> et ;
 F -> entier  ;
 F -> vrai  ;
 F -> faux  ;
+F -> this ;
 -- unaire
 F ->  OPUN F ;
 OPUN -> plus;
