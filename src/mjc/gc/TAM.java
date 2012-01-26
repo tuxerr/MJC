@@ -206,7 +206,7 @@ nom = fname;
                +"\tLOADL \"\n\" \n"
                +"\tSUBR SAlloc\n"
                +"\tSUBR SOut\n"
-               +"\tPOP (0) 1\n";
+               +"\tPOP (0) 2\n";
     }
 
     public String genPrintString(String i) {
