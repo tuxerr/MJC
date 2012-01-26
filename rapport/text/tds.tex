@@ -1,33 +1,59 @@
-//Inclusion du graphe.png qui servira de support aux explications
-La TDS que nous avons choisie est une variation de celle qui nous a été donnée en TP de TDL. En effet, au lieu d'hériter d'une HashMap<String,INFO>, elle 
-contient en tant qu'attributs 3 HashMaps de variables, méthodes et classes respectivement, comme il est visible sur le graphe UML. Le principe même d'une
-HashMap est d'être une bijection entre 
-la clef de type String et la Valeur de type INFO, et sachant que notre projet devait gérer le fait qu'une variable peut avoir le même nom qu'une méthode, 
-ou qu'une classe doit avoir le même nom que son constructeur, une seule HashMap n'était pas possible. Nos fonctions chercherGlobalement sont donc triples, 
-une pour les variables, une pour les classes et une pour les méthodes.
-Sachant que nous gérons aussi la surcharge de méthode, la fonction chercherGlobalementMethod prend aussi en argument les arguments que la fonction doit 
-matcher pour être considérée comme acceptable. La HashMap de méthodes est en effet, pour des soucis d'optimisation, une HashMap de LMETHODES, une classe 
-contenant une liste de méthodes ayant le même nom (ayant donc des arguments différents, sachant qu'on ne peut surcharger le type de retour). La fonction 
-chercherGlobalementMethode(nom,arguments) trouve donc d'abord dans la HashMap de la TDS la liste de méthodes ayant ce nom, puis trouve dans cette liste 
-une méthode matchant les arguments. 
-Ce système nous permet donc d'avoir des constructeurs surchargés du même nom (logiquement) que la classe, et même un attribut de cette classe ayant le même 
-nom que sa classe.
+%%Inclusion du graphe.png qui servira de support aux explications
 
-Nous avons en outre conservé le système de DTYPE, dont notre type POINTEUR est une classe fille (POINTEUR contient aussi le DTYPE pointé).
+La TDS que nous avons choisie est une variation de celle qui nous a été donnée
+en TP de TDL. En effet, au lieu d'hériter d'une HashMap<String,INFO>, elle
+contient en tant qu'attributs 3 HashMaps de variables, méthodes et classes
+respectivement, comme il est visible sur le graphe UML. Le principe même d'une
+HashMap est d'être une bijection entre la clef de type String et la Valeur de
+type INFO. Or,il est possible en MJ de donner le même nom à une variable et une
+méthode, et le même nom à un classe qu'à un constructeur. Par son principe même
+une seule HashMap ne peut pas gérer cela. Ainsi, nos fonctions
+chercherGlobalement existent en trois exemplaires : pour les variables, les
+classes et les méthodes.\\
 
-Un des problèmes que nous avons rencontré est celui du typage de Micro-Java créé par la distinction entre type réel et type apparent. En effet, il est possible
-pour un exemple contenant une classe P ayant comme classe fille PC d'avoir une définition
+Afin d'autoriser la surcharge de méthode, la fonction chercherGlobalementMethod
+prend aussi en argument les arguments auquels la méthode doit corresponde pour être
+considérée comme acceptable. La HashMap de méthodes est en effet, pour des soucis
+d'optimisation, contient des LMETHODES, une classe de liste de méthodes ayant le
+même nom (mais des arguments différents; et il n'y a pas de surcharge du type de
+retour). Ainsi, chercherGlobalementMethode(nom,arguments) trouve donc d'abord
+dans la HashMap de la TDS la liste de méthodes ayant ce nom, puis trouve dans
+cette liste une méthode avec les bons arguments.\
+Ce système nous permet de déclarer des constructeurs qui ont le même nom que
+leur classe associé, ainsi que de déclarer un attribut ayant le même nom que sa
+classe.\\
+
+Nous avons de plus conservé le système de DTYPE; le type POINTEUR étant une
+classe fille qui contient également le DTYPE pointé.\\
+
+Un des problèmes que nous avons rencontré est celui du typage de Micro-Java créé
+par la distinction entre type réel et type apparent. En effet, il est possible
+pour un exemple contenant une classe P ayant comme classe fille PC d'avoir une
+définition :
+
+\begin{verbatim}
  
   P p = new PC();
 
-Or, dans cet exemple, PC à pour type ``Pointeur pointant vers PC'' et P a pour type ``Pointeur pointant vers P'', mais l'affectation est tout a fait valide. Nous avons donc
-développé une fonction canAccept pour les DTYPE permettant de savoir si, même si les types ne sont pas égaux, l'affectation est valide (par exemple, dans le cas du pointeur null
-étant accepté par tous pointeurs). En effet, pour chaque classe, nous avons défini une liste générée lors de la 2ème passe de notre compilateur de classes acceptables
-comme Super-Classes lors d'une affectation. Cette fonction est par exemple utilisée dans ARGLIST (classe gérant les listes d'arguments pour les paramètres de fonctions) pour autoriser
-le passage d'un PC en tant qu'argument dont le type était P.
+\end{verbatim}
 
-Pour la génération des vtables, la classe METHODE contenant les informations des méthodes contient de façon évidente l'étiquette de chacune des méthodes, positionnée au début du code de cette méthode, 
-pour pouvoir générer pour chaque méthode son entrée vtable, ainsi que le numéro de la méthode en question. En effet, chaque méthode de classe est numérotée de 0 à nb\_methode-1, ce qui permet 
-pour l'appel des méthodes de savoir dans quelle position elle est dans la vtable (voir partie liaison tardive et gestion des interfaces).
+Ici, PC à pour type ``Pointeur pointant vers PC'' et P a pour type ``Pointeur
+pointant vers P'', mais l'affectation était alors toujours valide. Nous avons
+donc développé une fonction canAccept pour les DTYPE. Elle permet de déterminer
+si l'affectation est valide bien que les types ne soient pas égaux. C'est le cas
+si le pointur est nul.\
+En effet, pour chaque classe, nous avons défini une liste (générée lors de la
+2ème passe) contenant de classes susceptibles d'être Super-Classes lors d'une
+affectation. Cette fonction est par exemple utilisée dans ARGLIST (les listes
+d'argumentsde fonctions) pour autoriser le passage d'un PC en tant qu'argument
+dont le type était P.\\
+
+La classe METHODE contient les informations des méthodes et permet de générer
+les vtables. Pour chaque méthode Cette classe contient une étiquette,
+positionnée au début du code de cette méthode. On peut ainsi générer son entrée
+vtable ainsi qu'un numéro qui lui est associé. En effet, chaque méthode de
+classe est numérotée de 0 à nb\_methode-1, ce qui permet pour l'appel des
+méthodes de savoir dans quelle position elle est dans la vtable ( plus de détail
+sur la liasion tardive et les interface partie ??).
 
 
