@@ -1,72 +1,90 @@
 class Liste implements Container {
-  int val;
-  
-  Liste ptr;
+    int val;
+    int taille;
+    Liste ptr;
 
-  Liste() {
-    val=0;
-    ptr=null;
-  }
-
-  Liste(int initval) {
-    val=initval;
-    ptr=null;
-  }
-
-  void setval(int ival) {
-    val=ival;
-  }
-
-  void setptr(Liste iptr) {
-    ptr=iptr;
-  } 
-
-  Liste getptr() {
-    return ptr;
-  }
-
-  void add(int newval) {
-    Liste newelem = new Liste(val);
-    newelem.setptr(ptr);
-    
-    val=newval;
-    ptr=newelem;
-  }
-
-  int head() {
-    return val;
-  }
-
-  void pop() {
-    if(ptr!=null) {
-      Liste newptr = ptr.getptr();
-      int newval = ptr.head();
-      val=newval;
-      ptr=newptr;
-    } else {
-      int a=-1;
-      print a;
+    Liste() {
+        val=0;
+        taille=0;
+        ptr=null;
     }
-  }
+
+    Liste(int initval) {
+        val=initval;
+        ptr=null;
+    }
+
+    void setval(int ival) {
+        val=ival;
+    }
+
+    void setptr(Liste iptr) {
+        ptr=iptr;
+    } 
+
+    Liste getptr() {
+        return ptr;
+    }
+
+    void add(int newval) {
+        Liste newelem = new Liste(val);
+        newelem.taille=taille;
+        newelem.setptr(ptr);
+        taille=taille+1;
+
+        val=newval;
+        ptr=newelem;
+    }
+
+    int sum() {
+        if(ptr==null) {
+            return val;
+        } else {
+            return val+ptr.sum();
+        }
+    }
+ 
+    int gettaille() {
+        return taille;
+    }
+
+    int head() {
+        return val;
+    }
+
+    void pop() {
+        if(ptr!=null) {
+            Liste newptr = ptr.getptr();
+            int newval = ptr.head();
+            val=newval;
+            ptr=newptr;
+        } else {
+            print -1;
+        }
+    }
 }
 
 interface Container {
-  void add(int newval);
-  int head();
-  void pop();
+    void add(int newval);
+    int head();
+    void pop();
+    int gettaille();
+    int sum();
 }
 
 class MainClass {
-  void main() {
-    Liste l = new Liste(1337);
-    l.add(42);
-    l.add(69);
-    print l.head();
-    l.pop();
-    print l.head();
-    l.pop();
-    print l.head();
-    l.pop();
-    l.pop();
-  }
+    void main() {
+        Container l = new Liste(1337);
+        l.add(42);
+        l.add(69);
+        print l.sum();
+        print l.head();
+        l.pop();
+        print l.head();
+        print l.gettaille();
+        l.pop();
+        print l.head();
+        l.pop();
+        l.pop();
+    }
 }

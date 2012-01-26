@@ -31,7 +31,7 @@ class MainClass {
   void main() {
     B b = new B(42,69);
     IB ib = b;
-    IA ia = b;
+    IA ia = ib;
     print ib.gety();
     print ia.getx();
     print ib.getx();
