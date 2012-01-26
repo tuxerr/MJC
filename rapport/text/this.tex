@@ -1,0 +1,29 @@
+\begin{verbatim}
+F → this pv
+\end{verbatim}
+
+Cette règle introduit l'identificateur this qui renvoit l'instanciation de la
+classe courante. Cependant, cette règle ne suffit pas à simuler toutes les
+fonctionnalités du this en Java, on ne peut notamment pas faire de
+this.methode() ou this.attribut . Néanmoins cela ne restreint pas les
+possibilités du langage vu qu'il suffit de créer une variable globale contenant
+la valeur du this comme ceci :\\
+
+\begin{verbatim}
+class Exemple {
+  int x ;
+  Exemple () {
+    x = 0
+  }
+  int getX() {
+    Exemple e = this ;
+    return e.x ;
+  }
+}
+\begin{verbatim}
+
+La structure globale du .egg permettrait de gérer les règles this.methode() ou
+this.attribut sans trop de difficultés,  seul le manque de temps nous a empêcher
+de traiter ces cas.\\
+
+

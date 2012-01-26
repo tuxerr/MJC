@@ -1,0 +1,83 @@
+
+3 passes :
+
+Dans la première passe, on introduit dans la TDS toutes les classes présentes dans le programme.
+Dans la deuxième passe, on introduit dans la TDS tous les attributs et les méthodes présents dans le programme, et on gère également les extends et les implements.
+Dans la troisième passe on effectue le reste de l'analyse syntaxique, et on génère enfin le code.
+
+
+
+Amélios :
+Return :
+On vérifie pour chaque méthode non procédurale que celle ci finit bien par
+exécuter une instruction return (et évidement que le type du return correspond
+bien au type de la méthode). La subtilité pour gérer cela est de s'apercevoir
+que dans le cas d'une instruction « if condition {bloc1} else {bloc2} », si
+bloc1 possède un return, bloc2 doit posséder un return également.
+
+
+Problèmes rencontrés
+
+Surcharge :
+
+On peut rencontrer deux types de surcharge.
+
+Surcharge entre les variables, les attributs, les méthodes et les classes :
+l'exemple suivant doit être acceptable :
+
+class x {
+  int x ;
+  x (int xi) {
+    x = xi ;
+  }
+}
+
+Dans l'exemple précédent, on a : la classe x, l'attribut x et le constructeur
+(la méthode x) de cette classe. Il ne peut pas y avoir d’ambiguïté entre ces
+trois objets au niveau sémantique. Afin de simplifier les insertions et les
+recherches dans la TDS, on a décidé de créer 3 HashMaps différentes dans chaque
+TDS, une pour les classes, une pour les méthodes et une pour les variables
+locales et attributs.
+
+Chaque HashMaps d'une TDS fille hérite de la HashMap respective de la TDS mère.
+
+
+Surcharge des méthodes :
+
+La surcharge de méthode est très utilisée en Java. En particulier la surcharge de constructeur :
+
+class test {
+   int x ;
+   int y ;
+   test (int xi) {
+     x = xi ;
+     y = 0 ;
+   }
+   test (int xi, int yi) {
+     x = xi ;
+     y = yi ;
+   }
+}
+
+Dans l'exemple précédent, on doit pouvoir distinguer les deux constructeurs
+indépendamment. Ces deux constructeurs possèdent le même nom, et ont donc la
+même entrée dans la HashMap des méthodes. On a résolu ce problème en donnant
+comme valeur à la clé correspondante à chaque nom de méthode, une liste de
+méthode distinguées par le nombre et le type d'arguments.
+
+
+
+Deux règles nous ont posés problèmes : INST → return E pv et INST → INST -> si
+paro  E  parf BLOC SIX. Ces règles sont problématiques à cause de la gestion de
+la règle E → ER AFFX. On ne doit pas autoriser à priori des instructions telles
+que : « return (a = 2) ; » ou « if (a = 2) {...} ».
+
+On a envisagé deux solutions différentes : la première est de tout simplement
+changer la grammaire, en modifiant ces règles pour donner : INST → return ER pv
+et  INST → INST -> si paro  ER  parf BLOC SIX, ce qui aurait résolu le problème
+en renvoyant une erreur syntaxique.
+
+La deuxième solution, et celle qui a été finalement implémentée, est de renvoyer
+une erreur analytique, calculée lors de l'évaluation de la règle E → ER AFFX.
+
+
