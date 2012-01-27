@@ -11,7 +11,7 @@ multiple). Ce mécanisme est schématisé dans l'image ci-dessus.\\
 Premier pointeur vers l'instance de l'objet:\\
 Le premier pointeur est nécessaire dans tous les cas de pointeurs (contrairement
 au 2ème, uniquement utile dans le cas ou le type apparent est une interface). Il
-contient 2 types d'informations :
+contient 2 types d'informations :\\
 
 \begin{itemize}
 	\item En haut du pointeur (adresses supérieures),les attributs.
@@ -44,7 +44,7 @@ Deuxième pointeur vers la VTI:\\
 Le deuxième pointeur, initialement null (0), pointe vers la VTI de l'interface
 si le type apparent du pointeur est une interface. Sinon, il reste durant toute sa vie à 0.
 Cette VTI est le système choisi pour gérer le pattern java permettant à une classe, via héritage,
-d'implémenter un nombre ``infini'' d'interfaces n'ayant aucune relation d'ordre
+d'implémenter un nombre quelconque d'interfaces n'ayant aucune relation d'ordre
 entre elles. En effet, l'instruction A a = b; de l'explication du premier
 pointeur fonctionne grâce à la relation d'ordre existant entre les méthodes de A
 et de B, sachant que B hérite de A. Cette relation d'ordre n'existe pas entre
@@ -67,7 +67,8 @@ implémentation d'un nombre infini d'interfaces via le motif extends/implements
 java avec gestion de la liaison tardive, comme notre test SuperTestI.mj le
 prouve. Si nous rencontrons un cas de type ib = ic (ic étant un pointeur de type apparent
 d'une autre interface), alors nous savons qu'il existe une relation d'ordre entre ib et ic, 
-car IC extends IB. Alors, comme dans les VTABLEs, on ne doit pas modifier la VTI : elle fonctionnera 
-par défaut dans la classe mère, sachant que les méthodes sont ordonnées dans cet ordre.
+car IC extends IB. Alors, comme dans les VTABLEs, on ne doit pas modifier la VTI
+: elle fonctionnere par défaut dans la classe mère, sachant que les méthodes
+sont ordonnées dans cet ordre.
 
 
