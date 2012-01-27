@@ -1,3 +1,4 @@
+
 class A implements IA {
   int x;
   A(int xi) {
@@ -23,17 +24,36 @@ class B extends A implements IB {
   }
 }
 
-interface IB extends IA{
+interface IB{
   int gety();
+}
+
+class C extends B implements IC {
+  int z;
+  C(int xi,int yi,int zi) {
+    x=xi;
+    y=yi;
+    z=zi;
+  }
+  int getz() {
+    return z;
+  }
+}
+
+interface IC extends IB{
+  int getz();
 }
 
 class MainClass {
   void main() {
-    B b = new B(42,69);
-    IB ib = b;
-    IA ia = ib;
-    print ib.gety();
+    C c = new C(42,69,1337);
+    IC ic = c;
+    IB ib = ic;
+    IA ia = new C(1,2,3);
     print ia.getx();
-    print ib.getx();
+
+    print ic.getz();
+    print ic.gety();
   }
 }
+

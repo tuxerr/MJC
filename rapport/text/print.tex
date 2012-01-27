@@ -1,11 +1,13 @@
+Nous avons ajouté 2 règles de grammaire basées sur le mot-clef print dans MicroJava : 
+
 \begin{verbatim}
 INST → print guil ident guil pv
-INST → print ER pv
+INST → print E pv
 \end{verbatim}
 
 Où guil == " .
-La première règle imprime la String ident sur stdout.\\
-Le second imprime la valeur de ER sur stdout.\\
+La première règle imprime la String ident sur l'afficheur TAM.\\
+Le second imprime la valeur de E sur l'afficheur TAM.\\
 
 \begin{verbatim}
 class Test {
@@ -18,6 +20,7 @@ class Test {
 \end{verbatim}
 
 Ces deux nouvelles règles de grammaire permettent de tester plus aisément les
-programmes.\\
+programmes, sans avoir à regarder le contenu de la pile avec le déplacement des variables
+pour s'assurer de la bonne exécution de nos programmes.\\
 
 

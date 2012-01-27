@@ -1,10 +1,12 @@
-
-3 passes :
-
-Dans la première passe, on introduit dans la TDS toutes les classes présentes dans le programme.
-Dans la deuxième passe, on introduit dans la TDS tous les attributs et les méthodes présents dans le programme, et on gère également les extends et les implements.
-Dans la troisième passe on effectue le reste de l'analyse syntaxique, et on génère enfin le code.
-
+Nous avons choisi dans notre projet d'effectuer 3 passes du code pour résoudre les problèmes de déclaration en avant dans le code, et aussi
+d'appel du constructeur d'une classe pendant la définition de celle ci (par exemple, la classe Point a une méthode milieu qui instancie un Point
+avant la déclaration complète de Point). 
+Les 3 passes ont chacune une utilité différente : 
+\begin{itemize}
+ \item Dans la première passe, on introduit dans la TDS toutes les classes présentes dans le programme.
+ \item Dans la deuxième passe, on introduit dans la TDS tous les attributs et les méthodes présents dans le programme, et on gère également les extends.
+ \item Dans la troisième passe on effectue le reste de l'analyse syntaxique, et on génère enfin le code.
+\end{itemize}
 
 
 Amélios :
@@ -37,9 +39,7 @@ Dans l'exemple précédent, on a : la classe x, l'attribut x et le constructeur
 trois objets au niveau sémantique. Afin de simplifier les insertions et les
 recherches dans la TDS, on a décidé de créer 3 HashMaps différentes dans chaque
 TDS, une pour les classes, une pour les méthodes et une pour les variables
-locales et attributs.
-
-Chaque HashMaps d'une TDS fille hérite de la HashMap respective de la TDS mère.
+locales et attributs, comme on le voit dans la partie TDS.
 
 
 Surcharge des méthodes :

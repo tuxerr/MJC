@@ -1,7 +1,7 @@
 %Fonctionnement de la liaison tardive
 
 Le mécanisme de la liaison tardive que nous avons développé est basé sur l'utilisation
-pointeur de taille 2. Le premier pointe vers l'instance de l'objet (attributs
+d'un pointeur de taille 2. Le premier pointe vers l'instance de l'objet (attributs
 plus VTABLE contenant les méthodes), le second pointe vers ce que nous appelons
 une VTI (vtable d'interface), ce qui nous permet de gérer le pattern java où une
 classe, par héritage, peut implémenter de multiples interfaces n'étant pas
@@ -35,14 +35,15 @@ des classes mères. Par exemple, si une classe A définit une méthode getx, et 
 classe B extends A définit gety, une VTABLE d'un élément de type apparent B
 contiendra, dans cet ordre, [etiquette\_getx etiquette\_gety]. Ce système
 d'ordonnancement permet de gérer automatiquement le problème du B b = new B(); A
-a = b; En effet, même si la vtable de b contiendra des méthodes en trop, cette
-vtable commencera bien par les mêmes méthodes, ordonnancées de la même façon
+a = b; En effet, dans l'opération a=b, même si la VTABLE de b contiendra des 
+méthodes en trop pour un pointeur de type apparent A, cette
+VTABLE commencera bien par les mêmes méthodes, ordonnancées de la même façon
 qu'une vtable de A. On peut donc simplement copier le pointeur sans risque.\\
 
 Deuxième pointeur vers la VTI:\\
 Le deuxième pointeur, initialement null (0), pointe vers la VTI de l'interface
-si le type apparent du pointeur est une interface. Cette VTI est le système
-choisi pour gérer le pattern java permettant à une classe, via héritage,
+si le type apparent du pointeur est une interface. Sinon, il reste durant toute sa vie à 0.
+Cette VTI est le système choisi pour gérer le pattern java permettant à une classe, via héritage,
 d'implémenter un nombre ``infini'' d'interfaces n'ayant aucune relation d'ordre
 entre elles. En effet, l'instruction A a = b; de l'explication du premier
 pointeur fonctionne grâce à la relation d'ordre existant entre les méthodes de A
@@ -64,6 +65,9 @@ que la VTABLE (premier pointeur), mais à l'affectation d'une valeur (de type
 apparent classe) à une interface (ib=a); Ce système nous permet de gérer une
 implémentation d'un nombre infini d'interfaces via le motif extends/implements
 java avec gestion de la liaison tardive, comme notre test SuperTestI.mj le
-prouve. 
+prouve. Si nous rencontrons un cas de type ib = ic (ic étant un pointeur de type apparent
+d'une autre interface), alors nous savons qu'il existe une relation d'ordre entre ib et ic, 
+car IC extends IB. Alors, comme dans les VTABLEs, on ne doit pas modifier la VTI : elle fonctionnera 
+par défaut dans la classe mère, sachant que les méthodes sont ordonnées dans cet ordre.
 
 
