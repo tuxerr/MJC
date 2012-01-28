@@ -1,0 +1,50 @@
+
+On peut rencontrer deux types de surcharge :\\
+\begin{itemize}
+	\item Surcharge entre variables attributs, méthodes et classe.
+	\item Surcharge des méthodes.
+\end{itemize}
+
+Concernant la première surcharge l'exemple suivant doit être acceptable :\\
+
+\begin{verbatim}
+class x {
+  int x ;
+  x (int xi) {
+    x = xi ;
+  }
+}
+\end{verbatim}
+
+Dans l'exemple précédent, on a : la classe x, l'attribut x et le constructeur
+(la méthode x) de cette classe. Il ne peut pas y avoir d’ambiguïté entre ces
+trois objets au niveau sémantique. Afin de simplifier les insertions et les
+recherches dans la TDS, on a décidé de créer 3 HashMaps différentes dans chaque
+TDS, une pour les classes, une pour les méthodes et une pour les variables
+locales et attributs, comme on le voit dans la partie TDS.\\
+
+La surcharge de méthode est très utilisée en Java. En particulier la surcharge
+de constructeur :\\
+
+\begin{verbatim}
+class test {
+   int x ;
+   int y ;
+   test (int xi) {
+     x = xi ;
+     y = 0 ;
+   }
+   test (int xi, int yi) {
+     x = xi ;
+     y = yi ;
+   }
+}
+\end{verbatim}
+
+Dans l'exemple précédent, on doit pouvoir distinguer les deux constructeurs
+indépendamment. Ces deux constructeurs possèdent le même nom, et ont donc la
+même entrée dans la HashMap des méthodes. On a résolu ce problème en donnant
+comme valeur à la clé correspondante à chaque nom de méthode, une liste de
+méthode distinguées par le nombre et le type d'arguments.
+
+

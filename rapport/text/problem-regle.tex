@@ -1,0 +1,28 @@
+% Règles
+
+Deux règles nous ont posés problèmes :\\
+\begin{verbatim}
+ INST → return E pv 
+ INST → INST -> si paro  E  parf BLOC SIX.
+\end{verbatim}
+
+Ces règles sont problématiques à cause de la gestion de la règle E → ER AFFX. On
+ne doit pas autoriser à priori des instructions telles que :\\
+ « return (a = 2) ;» ou « if (a = 2) {...} ».\
+On a envisagé deux solutions différentes : la première est de tout simplement
+changer la grammaire, en modifiant ces règles pour donner : \\
+
+\begin{verbatim}
+INST → return ER pv
+INST → INST -> si paro  ER  parf BLOC SIX,
+\end{verbatim}
+
+ce qui aurait résolu le problème en renvoyant une erreur syntaxique.\\
+
+La deuxième solution, et celle qui a été finalement implémentée, est de renvoyer
+une erreur analytique, calculée lors de l'évaluation de la règle\\
+
+\begin{verbatim}
+ E → ER AFFX.
+\end{verbatim}
+
